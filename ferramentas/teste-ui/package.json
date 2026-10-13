@@ -1,0 +1,8 @@
+{
+  "name": "tracolab-teste-ui",
+  "private": true,
+  "type": "module",
+  "description": "Teste de interface da página do TracoLab (Chromium com toque)",
+  "scripts": { "teste": "node fluxo.mjs" },
+  "devDependencies": { "playwright-core": "1.55.0" }
+}

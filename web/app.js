@@ -73,7 +73,8 @@ function salvar() {
 function carregar() {
   try {
     const s = JSON.parse(localStorage.getItem(CHAVE) || "null");
-    if (s && Array.isArray(s.regioes)) estado = s;
+    // descarta regiões vazias (a versão anterior podia salvá-las e elas ficariam invisíveis)
+    if (s && Array.isArray(s.regioes)) { s.regioes = s.regioes.filter((r) => (r.latex || "").trim()); estado = s; }
   } catch (_) { /* ignora */ }
   for (const r of estado.regioes) proximoId = Math.max(proximoId, Number(String(r.id).replace(/\D/g, "")) + 1 || 1);
 }
@@ -83,24 +84,44 @@ function carregar() {
 const elementos = new Map();   // id -> elemento .regiao
 
 function criarElemento(r) {
-  const el = modelo.content.firstElementChild.cloneNode(true);
+  // importNode + appendChild ANTES de mexer no <math-field>: num elemento ainda não ativado pelo
+  // MathLive, atribuir .value cria uma propriedade comum que encobre a do MathLive para sempre
+  // (a leitura devolvia sempre "" e a região era apagada ao perder o foco).
+  const el = document.importNode(modelo.content.firstElementChild, true);
   el.dataset.id = r.id;
   el.style.left = r.x + "px";
   el.style.top = r.y + "px";
+  pagina.appendChild(el);
+  elementos.set(r.id, el);
   const campo = el.querySelector(".campo");
+  customElements.upgrade(campo);
   campo.inlineShortcuts = ATALHOS;
   campo.smartMode = false;
   campo.value = r.latex;
   campo.addEventListener("input", () => { r.latex = campo.value; agendar(); });
+  // Enter (teclado físico ou tecla ↵ do teclado virtual): confirma e abre uma região logo abaixo
+  campo.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); ev.stopPropagation(); proximaLinha(r); }
+  }, true);
+  campo.addEventListener("change", () => { if (campo.hasFocus()) proximaLinha(r); });
   campo.addEventListener("focusout", () => {
     // região vazia some ao perder o foco
-    setTimeout(() => { if (!campo.value.trim() && document.activeElement !== campo) remover(r.id); }, 150);
+    setTimeout(() => { if (!campo.value.trim() && !campo.hasFocus()) remover(r.id); }, 200);
   });
   el.querySelector(".apagar").addEventListener("click", () => remover(r.id));
   arrastavel(el, r);
-  pagina.appendChild(el);
-  elementos.set(r.id, el);
   return el;
+}
+
+/** Depois do Enter: recalcula já e abre uma região vazia abaixo (ou foca a que já está lá). */
+function proximaLinha(r) {
+  r.latex = elementos.get(r.id).querySelector(".campo").value;
+  agendar(0);
+  if (!r.latex.trim()) return;
+  const abaixo = r.y + 72;
+  const existente = estado.regioes.find((o) => Math.abs(o.x - r.x) < GRADE * 2 && o.y > r.y && o.y <= abaixo + GRADE);
+  if (existente) elementos.get(existente.id).querySelector(".campo").focus();
+  else novaRegiao(r.x, abaixo);
 }
 
 function novaRegiao(x, y, focar = true) {
@@ -241,6 +262,10 @@ if (!estado.regioes.length) {
     ["A\\coloneq\\frac{\\pi d^2}{4}", 48, 60], ["\\sigma\\coloneq\\frac{F}{A}", 48, 132],
     ["\\sigma=\\mathrm{MPa}", 48, 204],
   ];
-  for (const [latex, x, y] of ex) { const r = novaRegiao(x, y, false); r.latex = latex; elementos.get(r.id).querySelector(".campo").value = latex; }
+  for (const [latex, x, y] of ex) {
+    const r = { id: "r" + proximoId++, latex, x, y };
+    estado.regioes.push(r);
+    criarElemento(r);
+  }
 }
 customElements.whenDefined("math-field").then(() => agendar(0));

@@ -23,6 +23,7 @@ Para os dois funcionarem juntos:
   do núcleo rodam esse arquivo (`./gradlew build`), e o caso precisa falhar antes da mudança e
   passar depois dela.
 - Mexeu em desempenho? Compare `./gradlew :bancada:run` antes e depois.
+- Mexeu na interface (`web/`)? Rode `ferramentas/teste-ui/fluxo.mjs` com o `servidor-dev` no ar.
 
 ## Regra de conteúdo: só o que é nosso
 
