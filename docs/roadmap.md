@@ -25,9 +25,11 @@
 
 ## Fase 3 — Interface para tablet
 
-- [ ] Página com regiões posicionáveis (arrastar, guia de linha de base)
-- [ ] Entrada de fórmula: teclado matemático primeiro, caneta/escrita à mão depois
-- [ ] Exibição do estado parcial: expressão restante + "faltam: …"
+- [x] Página com regiões posicionáveis (arrastar, guia de linha de base) — web + MathLive ([ADR 0008](decisoes/0008-interface-web-mathlive.md))
+- [x] Entrada de fórmula pelo teclado matemático (abas TracoLab e Unidades)
+- [ ] Escrita à mão com a S Pen (MyScript iink é a candidata; ML Kit não reconhece matemática)
+- [x] Exibição do estado parcial: expressão restante + "faltam: …"
+- [ ] APK: a mesma página numa WebView, com a ponte `TracoLabNativo`
 - [ ] Salvar e abrir páginas (formato próprio)
 
 ## Fase 4 — Outras plataformas (depois do Android)

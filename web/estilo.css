@@ -1,0 +1,78 @@
+/* TracoLab: tema escuro quente com verde-sálvia. */
+:root {
+  --fundo: #1d1a17;
+  --papel: #24201c;
+  --grade: #2f2a25;
+  --texto: #ece4d8;
+  --texto-suave: #a59a8b;
+  --salvia: #9cb38a;
+  --salvia-forte: #b7cca5;
+  --ambar: #e0b15e;
+  --terracota: #d9785d;
+  --borda: #3a342d;
+  --foco: #6f8a5f;
+  --raio: 10px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+.barra { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; background: rgba(29, 26, 23, .94); border-bottom: 1px solid var(--borda);
+  backdrop-filter: blur(6px); }
+.marca { font-size: 20px; letter-spacing: .3px; margin-right: 8px; }
+.marca b { color: var(--salvia); font-weight: 600; }
+button, select { font: inherit; color: var(--texto); background: #2c2722; border: 1px solid var(--borda);
+  border-radius: 8px; padding: 8px 14px; min-height: 40px; cursor: pointer; }
+button:hover, select:hover { border-color: var(--foco); }
+#btn-nova { background: #34402c; border-color: #4b5c3f; }
+button.secundario { background: transparent; }
+.status { margin-left: auto; color: var(--texto-suave); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* Página: papel com grade pontilhada; posições absolutas em px. */
+.pagina { position: relative; width: 2400px; min-height: 3200px; margin: 0;
+  background-color: var(--papel);
+  background-image: radial-gradient(var(--grade) 1.2px, transparent 1.2px);
+  background-size: 24px 24px; touch-action: pan-x pan-y; }
+
+.regiao { position: absolute; display: flex; align-items: flex-start; gap: 4px; padding: 4px 6px 4px 2px;
+  border-radius: var(--raio); border: 1px solid transparent; outline: none; }
+.regiao:focus-within { border-color: var(--borda); background: rgba(36, 32, 28, .85); }
+.alca { width: 20px; align-self: stretch; display: flex; align-items: center; justify-content: center;
+  cursor: grab; touch-action: none; border-radius: 6px; color: var(--texto-suave); font-size: 11px; opacity: .45; }
+.regiao:hover .alca, .regiao:focus-within .alca { opacity: 1; background: #2c2722; }
+.alca:active { cursor: grabbing; }
+.linha { display: flex; align-items: center; gap: 6px; }
+
+math-field.campo { min-width: 60px; font-size: 24px; padding: 2px 4px; border: none; background: transparent;
+  color: var(--texto); --caret-color: var(--salvia-forte); --selection-background-color: #3b4a33;
+  --contains-highlight-background-color: transparent; outline: none; }
+math-field.campo::part(virtual-keyboard-toggle), math-field.campo::part(menu-toggle) { display: none; }
+
+.resultado { font-size: 24px; color: var(--salvia-forte); white-space: nowrap; }
+.resultado:empty { display: none; }
+.apagar { visibility: hidden; min-height: 28px; padding: 0 8px; border-radius: 6px; color: var(--texto-suave); }
+.regiao:focus-within .apagar { visibility: visible; }
+
+.info { position: absolute; left: 26px; top: 100%; margin-top: 2px; font-size: 12.5px; white-space: nowrap;
+  color: var(--texto-suave); pointer-events: none; }
+.info:empty { display: none; }
+
+/* Estados */
+.regiao.parcial .resultado { color: var(--ambar); }
+.regiao.parcial .info { color: var(--ambar); }
+.regiao.erro .campo, .regiao.erro_sintaxe .campo { text-decoration: underline wavy var(--terracota); text-underline-offset: 6px; }
+.regiao.erro .info, .regiao.erro_sintaxe .info { color: var(--terracota); }
+.regiao.nao_suportado .info { color: var(--texto-suave); font-style: italic; }
+.regiao.arrastando { opacity: .85; border-color: var(--foco); }
+
+/* Guia da linha de base enquanto arrasta (ADR 0001) */
+.guia { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--foco); pointer-events: none; }
+
+/* Teclado virtual do MathLive no tema */
+:root { --keyboard-background: #1b1815; --keycap-background: #2c2722; --keycap-background-hover: #36302a;
+  --keycap-text: var(--texto); --keycap-secondary-text: var(--texto-suave);
+  --keyboard-toolbar-text: var(--texto-suave); --keyboard-toolbar-text-active: var(--salvia-forte);
+  --keycap-background-active: #3b4a33; --keyboard-accent-color: var(--salvia); }

@@ -6,6 +6,7 @@ versionamento [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não publicado]
 
 ### Adicionado
+- 2026-10-13: interface web (`web/`) com MathLive 0.110.0 embutido, conversor LaTeX ⇄ núcleo em Kotlin (20 testes), módulo `api` (JSON) e `servidor-dev`; ADR 0008.
 - 2026-10-13: núcleo Kotlin no repositório (`nucleo/`, `compat/log4j-android/`, `bancada/`), wrapper do Gradle com hash fixado, testes JUnit gerados da especificação e CI no GitHub Actions. O modo de validação passa a se chamar `classico`, e a mensagem de variável indefinida passa a ser "Variável não definida.".
 - 2026-10-13: projeto nomeado **TracoLab** (traço da S Pen); repositório Git iniciado.
 - 2026-10-13: núcleo testado no Galaxy Tab S10 Lite: 30/30 casos, recálculo de 110 regiões em 33–63 ms, APK de 8,5 MB; ADR 0005 aceita; `LogManager` substituta para o Symja rodar no Android.

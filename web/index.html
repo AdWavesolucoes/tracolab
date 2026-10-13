@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>TracoLab</title>
+  <link rel="stylesheet" href="vendor/mathlive-0.110.0/mathlive-fonts.css">
+  <link rel="stylesheet" href="vendor/mathlive-0.110.0/mathlive-static.css">
+  <link rel="stylesheet" href="estilo.css">
+  <script src="vendor/mathlive-0.110.0/mathlive.min.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="barra">
+    <span class="marca">Traço<b>Lab</b></span>
+    <button id="btn-nova" title="Nova região (ou toque num espaço vazio da página)">+ Região</button>
+    <label class="modo" title="Parcial: variável que falta deixa o resultado parcial. Clássico: é erro.">
+      <select id="sel-modo">
+        <option value="parcial">Modo parcial</option>
+        <option value="classico">Modo clássico</option>
+      </select>
+    </label>
+    <button id="btn-limpar" class="secundario" title="Apagar todas as regiões">Limpar</button>
+    <span id="status" class="status" aria-live="polite"></span>
+  </header>
+  <main id="pagina" class="pagina" aria-label="Página de cálculo"></main>
+  <template id="modelo-regiao">
+    <div class="regiao" tabindex="-1">
+      <div class="alca" title="Arraste para mover"><span class="ordem"></span></div>
+      <div class="linha">
+        <math-field class="campo" math-virtual-keyboard-policy="auto"></math-field>
+        <span class="resultado"></span>
+        <button class="apagar" title="Apagar região" aria-label="Apagar região">×</button>
+      </div>
+      <div class="info"></div>
+    </div>
+  </template>
+</body>
+</html>
