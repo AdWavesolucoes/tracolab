@@ -28,6 +28,12 @@ class CalculadoraTest {
         assertEquals("2{,}3\\,\\mathrm{m}", r.getValue("b")["resultado"].asText())
     }
 
+    @Test fun unidadePedidaComPotencia() {
+        val r = calcular(Triple("d", "d\\tldef20\\,\\mathrm{mm}", 10.0), Triple("a", "A\\tldef\\frac{\\pi d^2}{4}", 20.0),
+            Triple("v", "A=\\,\\mathrm{mm}^2", 30.0))
+        assertEquals("314{,}159\\,\\mathrm{mm}^{2}", r.getValue("v")["resultado"].asText())
+    }
+
     @Test fun nomeDefinidoMaisAbaixoVemEmAbaixo() {
         val r = calcular(Triple("s", "\\sigma\\coloneq\\frac{M}{W}", 10.0), Triple("w", "W\\coloneq2", 20.0))
         assertEquals(listOf("W"), r.getValue("s")["abaixo"].map { it.asText() })

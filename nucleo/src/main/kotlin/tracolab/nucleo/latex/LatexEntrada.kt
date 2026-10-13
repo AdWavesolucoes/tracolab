@@ -264,8 +264,10 @@ object LatexEntrada {
             val soUnidade = depois.all { it.t.startsWith("{") || it.t == "*" || it.t == "/" }
             if (depois.isEmpty() || (soUnidade && depois.any { it.t.startsWith("{") })) {
                 val antes = juntar(pecas.subList(0, iIgual))
-                val unidade = if (depois.isEmpty()) "" else " {" + depois.joinToString("") {
-                    if (it.t.startsWith("{")) it.t.removeSurrounding("{", "}") else it.t } + "}"
+                // {mm}^(2) → mm^2: dentro das chaves da unidade, nomes sem chaves e expoente simples
+                val unidade = if (depois.isEmpty()) "" else " {" + depois.joinToString("") { it.t }
+                    .replace(Regex("\\{([^{}]*)\\}"), "$1")
+                    .replace(Regex("\\^\\((-?\\d+)\\)"), "^$1") + "}"
                 return "$antes =$unidade"
             }
         }

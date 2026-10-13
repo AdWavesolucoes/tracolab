@@ -21,6 +21,8 @@ class LatexTest {
     @Test fun unidade() = assertEquals("L := 2*{m}", t("L\\coloneq2\\mathrm{m}"))
     @Test fun unidadeComposta() = assertEquals("A := 50*{mm}^(2)", t("A\\coloneq50\\mathrm{mm}^2"))
     @Test fun avaliacaoComUnidadePedida() = assertEquals("σ = {MPa}", t("\\sigma=\\mathrm{MPa}"))
+    @Test fun unidadePedidaComPotencia() = assertEquals("A = {mm^2}", t("A=\\,\\mathrm{mm}^2"))
+    @Test fun unidadePedidaComposta() = assertEquals("M = {kN*m}", t("M=\\mathrm{kN}\\cdot\\mathrm{m}"))
     @Test fun avaliacaoSimbolica() = assertEquals("a*x + b ->", t("a\\cdot x+b\\to"))
     @Test fun global() = assertEquals("g ≡ 9.8", t("g\\equiv9.8"))
     @Test fun funcaoDefinida() = assertEquals("f(t) := t^(2) + k", t("f\\left(t\\right)\\coloneq t^2+k"))
