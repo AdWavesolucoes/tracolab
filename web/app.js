@@ -77,6 +77,7 @@ let proximoId = 1;
 let temporizador = null;
 let ultimaResposta = null;
 let ultimoCampo = null;
+let motor = "";   // máquina que calculou (versão web de teste com mais de uma instância)
 const elementos = new Map();   // id -> elemento .rg
 
 // ------------------------------------------------------------------ persistência e histórico (só neste aparelho)
@@ -414,6 +415,7 @@ async function calcular(pedido) {
   if (window.TracoLabNativo) return JSON.parse(window.TracoLabNativo.calcular(JSON.stringify(pedido)));
   const resp = await fetch("api/calcular", { method: "POST", body: JSON.stringify(pedido) });
   if (!resp.ok) throw new Error(await resp.text());
+  motor = resp.headers.get("X-TracoLab-Motor") || "";
   return resp.json();
 }
 
@@ -504,6 +506,7 @@ function pintarResumo(resp) {
   if (erros) t += ` · ${erros} ${erros === 1 ? "erro" : "erros"}`;
   if (faltam.length) t += ` · falta ${faltam.slice(0, 4).map((n) => `<i>${escapar(n)}</i>`).join(", ")}${faltam.length > 4 ? "…" : ""}`;
   if (!pend && !erros && regs.length) t += " · calculado";
+  if (motor) t += ` · <span title="Máquina que está calculando">${escapar(motor)}</span>`;
   resumo.innerHTML = t;
 }
 

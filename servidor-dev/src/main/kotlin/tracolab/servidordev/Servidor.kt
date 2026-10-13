@@ -8,6 +8,8 @@ import java.net.InetSocketAddress
 
 /**
  * ./gradlew :servidor-dev:run --args="<endereço> <porta>"   (padrão: 127.0.0.1 8098)
+ * TRACOLAB_MOTOR=<nome> identifica a máquina no cabeçalho X-TracoLab-Motor (a página mostra
+ * quem está calculando quando há mais de uma instância atrás de um proxy).
  * GET  /...            arquivos de web/
  * POST /api/calcular   Calculadora.calcularJson
  */
@@ -37,8 +39,11 @@ fun main(args: Array<String>) {
     println("TracoLab (desenvolvimento) em http://$endereco:$porta/  — página em ${raiz.path}")
 }
 
+private val MOTOR = System.getenv("TRACOLAB_MOTOR").orEmpty()
+
 private fun responder(ex: HttpExchange, codigo: Int, tipo: String, corpo: ByteArray) {
     ex.responseHeaders.add("Content-Type", tipo)
+    if (MOTOR.isNotEmpty()) ex.responseHeaders.add("X-TracoLab-Motor", MOTOR)
     ex.responseHeaders.add("Cache-Control", "no-store")
     ex.sendResponseHeaders(codigo, corpo.size.toLong())
     ex.responseBody.use { it.write(corpo) }

@@ -12,3 +12,4 @@
 | [Decisões (ADRs)](decisoes/README.md) | Por que cada escolha de projeto foi feita |
 | [Roadmap](roadmap.md) | Próximas etapas e pendências |
 | [Glossário](glossario.md) | Termos usados na documentação |
+| [Identidade visual (PDF)](assets/identidade-visual.pdf) | Marca, cores, tipografia, ícones e telas do design |
