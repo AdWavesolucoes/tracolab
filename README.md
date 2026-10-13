@@ -28,11 +28,30 @@ A := π·d²/4
 |---|---|
 | Estudo do comportamento esperado | ✅ concluído ([modelo de avaliação](docs/comportamento/modelo-de-avaliacao.md)) |
 | Protótipo do motor (Python + SymPy) | ✅ funcionando, com unidades; 28/28 testes; [validação](docs/pesquisa/validacao.md): 94% de acerto, 29% de cobertura |
-| Motor em Kotlin + Symja | ✅ prova de conceito: 30/30 na JVM e no Galaxy Tab S10 Lite ([resultado](docs/pesquisa/prova-de-conceito-kotlin-symja.md)) |
+| Motor em Kotlin + Symja | ✅ no repositório (`nucleo/`): 30/30 na JVM e no Galaxy Tab S10 Lite ([resultado](docs/pesquisa/prova-de-conceito-kotlin-symja.md)) |
 | Interface para tablet | ⏳ planejado |
 | Versões Linux e webservice | 💭 possíveis, depois do Android ([ADR 0006](docs/decisoes/0006-nucleo-unico-multiplataforma.md)) |
 
 Veja o [roadmap](docs/roadmap.md).
+
+## Estrutura
+
+```
+nucleo/                  motor de cálculo em Kotlin + Symja, sem dependência de Android (ADR 0006)
+compat/log4j-android/    log4j-api com LogManager compatível com Android (o Symja precisa dele)
+bancada/                 medição de desempenho na JVM (a mesma usada no tablet)
+spec/                    especificação executável: os casos que todo motor precisa passar
+docs/                    documentação, decisões (ADRs) e pesquisa
+```
+
+## Como rodar
+
+Requer JDK 17 ou mais novo. O Gradle vem pelo wrapper.
+
+```bash
+./gradlew build            # compila e roda os 30 casos de comportamento (JUnit)
+./gradlew :bancada:run     # mede o desempenho na sua máquina
+```
 
 ## Documentação
 

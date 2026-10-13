@@ -21,7 +21,7 @@
 
 - [x] Prova de conceito Kotlin + Symja na JVM: 30/30 casos ([resultado](pesquisa/prova-de-conceito-kotlin-symja.md))
 - [x] Medir o Symja no tablet (Galaxy Tab S10 Lite): 30/30, 110 regiões em 33–63 ms, APK de 8,5 MB
-- [ ] Portar o motor para Kotlin como **biblioteca sem dependência de Android** ([ADR 0006](decisoes/0006-nucleo-unico-multiplataforma.md)), passando os mesmos casos
+- [x] Portar o motor para Kotlin como **biblioteca sem dependência de Android** ([ADR 0006](decisoes/0006-nucleo-unico-multiplataforma.md)), passando os mesmos casos: `nucleo/`, 30/30 no `./gradlew build`
 
 ## Fase 3 — Interface para tablet
 

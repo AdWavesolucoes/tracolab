@@ -106,5 +106,6 @@ Foram três rodadas no aparelho: duas com erro (cada erro revelou um problema) e
 > `META-INF/maven/org.matheclipse/matheclipse-core/pom.properties`, que o Symja lê ao iniciar
 > e que o Android Gradle Plugin exclui por padrão.
 
-O código da prova de conceito ainda não está neste repositório. Ele entra quando o núcleo for
-estruturado de verdade.
+O núcleo desta prova de conceito agora está no repositório: `nucleo/` (motor), `compat/log4j-android/`
+(a `LogManager` substituta) e `bancada/` (esta medição na JVM). O APK de medição do tablet ainda
+não está no repositório, porque depende do Android SDK, e entra junto com o app.

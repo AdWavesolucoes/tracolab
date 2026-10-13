@@ -21,7 +21,7 @@
      "passos": [
        {"acao": "adicionar", "id": "F", "texto": "F := m*a", "y": 10},
        {"acao": "adicionar", "id": "v", "texto": "F =", "y": 20},
-       {"verificar": "F", "tipo": "erro", "msg_contem": "undefined"},
+       {"verificar": "F", "tipo": "erro", "msg_contem": "não definida"},
        {"verificar": "v", "tipo": "erro", "msg_contem": "F"}
      ]},
     {"id": "04", "nome": "variável definida abaixo não vale", "modo": "parcial",

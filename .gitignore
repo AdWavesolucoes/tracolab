@@ -12,6 +12,7 @@ __pycache__/
 
 # Android / Gradle (fase do app)
 .gradle/
+.kotlin/
 build/
 local.properties
 *.apk

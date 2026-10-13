@@ -15,6 +15,15 @@ Para os dois funcionarem juntos:
   apagada: se mudar, um novo ADR a substitui e o antigo fica marcado como "Substituída".
 - **Toda mudança relevante** entra no [CHANGELOG](CHANGELOG.md), na seção `Não publicado`.
 
+## Código
+
+- **Kotlin** no estilo oficial (`kotlin.code.style=official`), com nomes em português.
+- O módulo `nucleo` **não pode depender de Android** ([ADR 0006](docs/decisoes/0006-nucleo-unico-multiplataforma.md)).
+- **Todo comportamento novo começa por um caso em `spec/casos-comportamento.json`.** Os testes
+  do núcleo rodam esse arquivo (`./gradlew build`), e o caso precisa falhar antes da mudança e
+  passar depois dela.
+- Mexeu em desempenho? Compare `./gradlew :bancada:run` antes e depois.
+
 ## Regra de conteúdo: só o que é nosso
 
 O projeto estuda o **comportamento** de ferramentas de cálculo existentes, sem copiar nada delas.

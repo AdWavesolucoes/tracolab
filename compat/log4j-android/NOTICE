@@ -1,0 +1,7 @@
+Este módulo redistribui o Apache Log4j API 2.21.1 (Apache License 2.0,
+https://logging.apache.org/log4j/2.x/), com a classe org.apache.logging.log4j.LogManager
+substituída por uma implementação própria compatível com Android.
+
+Apache Log4j
+Copyright 1999-2023 The Apache Software Foundation
+This product includes software developed at The Apache Software Foundation (http://www.apache.org/).
