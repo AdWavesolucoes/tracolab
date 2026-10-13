@@ -1,0 +1,40 @@
+# Obsidian: estado local de cada máquina (não versionar)
+.obsidian/workspace*.json
+.obsidian/cache
+.obsidian/plugins/*/data.json
+.trash/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Android / Gradle (fase do app)
+.gradle/
+build/
+local.properties
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Dados de terceiros e saídas geradas: NUNCA publicar
+# (planilhas, executáveis e qualquer coisa extraída de software proprietário)
+dados-externos/
+saida/
+*.xmcd
+*.mctx
+*.mcd
+*.exe
+*.dll
+
+# Segredos
+.env
+*.env
+*.pem
+*.key
+
+# Sistema
+.DS_Store
+Thumbs.db

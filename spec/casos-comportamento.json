@@ -1,0 +1,222 @@
+{
+  "versao": 1,
+  "descricao": "Casos de comportamento do motor. Toda implementação (Python, Kotlin...) deve passar todos. Ver docs/comportamento/casos.md e spec/README.md.",
+  "casos": [
+    {"id": "01", "nome": "modo parcial: F = m·a sem m e a fica parcial com 2 livres", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "F", "texto": "F := m*a", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "F =", "y": 20},
+       {"verificar": "v", "tipo": "parcial", "livres": ["a", "m"], "expr": "m*a"}
+     ]},
+    {"id": "02", "nome": "preenchimento em etapas: m acima deixa só a livre; a fecha o número", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "F", "texto": "F := m*a", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "F =", "y": 20},
+       {"acao": "adicionar", "id": "m", "texto": "m := 2", "y": 5},
+       {"verificar": "v", "tipo": "parcial", "livres": ["a"], "expr": "2*a"},
+       {"acao": "adicionar", "id": "a", "texto": "a := 3", "y": 6},
+       {"verificar": "v", "tipo": "numerico", "num": 6}
+     ]},
+    {"id": "03", "nome": "modo clássico: variável não definida é erro e se propaga", "modo": "classico",
+     "passos": [
+       {"acao": "adicionar", "id": "F", "texto": "F := m*a", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "F =", "y": 20},
+       {"verificar": "F", "tipo": "erro", "msg_contem": "undefined"},
+       {"verificar": "v", "tipo": "erro", "msg_contem": "F"}
+     ]},
+    {"id": "04", "nome": "variável definida abaixo não vale", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "v", "texto": "x + 1 =", "y": 10},
+       {"acao": "adicionar", "id": "x", "texto": "x := 5", "y": 20},
+       {"verificar": "v", "tipo": "parcial", "livres": ["x"]}
+     ]},
+    {"id": "05", "nome": "mesma linha: o da esquerda vem antes", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "x", "texto": "x := 5", "y": 10, "x": 0},
+       {"acao": "adicionar", "id": "v", "texto": "x*2 =", "y": 10, "x": 100},
+       {"verificar": "v", "tipo": "numerico", "num": 10}
+     ]},
+    {"id": "06", "nome": "definição global vale mesmo abaixo", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "v", "texto": "g*2 =", "y": 10},
+       {"acao": "adicionar", "id": "g", "texto": "g ≡ 9.8", "y": 50},
+       {"verificar": "v", "tipo": "numerico", "num": 19.6}
+     ]},
+    {"id": "07", "nome": "redefinição: aviso, e cada região usa o valor vigente", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "x1", "texto": "x := 1", "y": 10},
+       {"acao": "adicionar", "id": "v1", "texto": "x =", "y": 20},
+       {"acao": "adicionar", "id": "x2", "texto": "x := 5", "y": 30},
+       {"acao": "adicionar", "id": "v2", "texto": "x =", "y": 40},
+       {"verificar": "v1", "num": 1},
+       {"verificar": "v2", "num": 5},
+       {"verificar": "x2", "aviso": "Redefinição"}
+     ]},
+    {"id": "08", "nome": "função com nome livre, fornecido depois", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "f", "texto": "f(t) := t^2 + k", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "f(3) =", "y": 20},
+       {"verificar": "v", "tipo": "parcial", "livres": ["k"], "expr": "9 + k"},
+       {"acao": "adicionar", "id": "k", "texto": "k := 1", "y": 5},
+       {"verificar": "v", "num": 10}
+     ]},
+    {"id": "09", "nome": "função captura o valor vigente na definição", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "k1", "texto": "k := 1", "y": 5},
+       {"acao": "adicionar", "id": "f", "texto": "f(t) := t + k", "y": 10},
+       {"acao": "adicionar", "id": "k2", "texto": "k := 100", "y": 15},
+       {"acao": "adicionar", "id": "v", "texto": "f(0) =", "y": 20},
+       {"verificar": "v", "num": 1}
+     ]},
+    {"id": "10a", "nome": "simbólico substitui o que existe e mantém livres (modo parcial)", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "a", "texto": "a := 2", "y": 5},
+       {"acao": "adicionar", "id": "s", "texto": "a*x + b ->", "y": 10},
+       {"verificar": "s", "tipo": "parcial", "livres": ["b", "x"], "expr": "2*x + b"}
+     ]},
+    {"id": "10b", "nome": "simbólico substitui o que existe e mantém livres (modo clássico)", "modo": "classico",
+     "passos": [
+       {"acao": "adicionar", "id": "a", "texto": "a := 2", "y": 5},
+       {"acao": "adicionar", "id": "s", "texto": "a*x + b ->", "y": 10},
+       {"verificar": "s", "tipo": "parcial", "livres": ["b", "x"], "expr": "2*x + b"}
+     ]},
+    {"id": "11", "nome": "simbólico exato: fração, não decimal", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "s", "texto": "1/3 + 1/6 ->", "y": 10},
+       {"verificar": "s", "exato": "1/2"}
+     ]},
+    {"id": "12", "nome": "faixa monta vetor", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "i", "texto": "i := 0..4", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "v[i] := i^2", "y": 20},
+       {"acao": "adicionar", "id": "r", "texto": "v =", "y": 30},
+       {"verificar": "r", "lista": [0, 1, 4, 9, 16]}
+     ]},
+    {"id": "13", "nome": "expressão com faixa vira tabela", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "i", "texto": "i := 1..3", "y": 10},
+       {"acao": "adicionar", "id": "r", "texto": "i*10 =", "y": 20},
+       {"verificar": "r", "lista": [10, 20, 30]}
+     ]},
+    {"id": "14", "nome": "divisão por zero é erro e se propaga", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "x", "texto": "x := 1/0", "y": 10},
+       {"acao": "adicionar", "id": "y", "texto": "y := x + 1", "y": 20},
+       {"verificar": "x", "tipo": "erro"},
+       {"verificar": "y", "tipo": "erro"}
+     ]},
+    {"id": "15", "nome": "corrigir a origem do erro limpa a cadeia", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "x", "texto": "x := 1/0", "y": 10},
+       {"acao": "adicionar", "id": "y", "texto": "y := x + 1", "y": 20},
+       {"acao": "editar", "id": "x", "texto": "x := 4", "y": 10},
+       {"verificar": "y", "num": 5}
+     ]},
+    {"id": "16", "nome": "editar recalcula só quem depende", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "r0", "texto": "a := 1", "y": 10},
+       {"acao": "adicionar", "id": "r1", "texto": "b := 2", "y": 20},
+       {"acao": "adicionar", "id": "r2", "texto": "c := a + 1", "y": 30},
+       {"acao": "adicionar", "id": "r3", "texto": "d := b + 1", "y": 40},
+       {"acao": "adicionar", "id": "r4", "texto": "c =", "y": 50},
+       {"acao": "adicionar", "id": "r5", "texto": "d =", "y": 60},
+       {"acao": "editar", "id": "r0", "texto": "a := 10", "y": 10, "recalculadas": ["r0", "r2", "r4"]},
+       {"verificar": "r4", "num": 11},
+       {"verificar": "r5", "num": 3}
+     ]},
+    {"id": "17", "nome": "remover definição: quem dependia volta a parcial", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "a", "texto": "a := 2", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "a*x ->", "y": 20},
+       {"acao": "remover", "id": "a"},
+       {"verificar": "v", "tipo": "parcial", "livres": ["a", "x"]}
+     ]},
+    {"id": "18", "nome": "engenharia encadeada: σ = F/A com dados chegando em partes", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "A", "texto": "A := π*d^2/4", "y": 10},
+       {"acao": "adicionar", "id": "s", "texto": "σ := F/A", "y": 20},
+       {"acao": "adicionar", "id": "v", "texto": "σ =", "y": 30},
+       {"verificar": "v", "tipo": "parcial", "livres": ["F", "d"]},
+       {"acao": "adicionar", "id": "d", "texto": "d := 0.02", "y": 5},
+       {"verificar": "v", "livres": ["F"]},
+       {"acao": "adicionar", "id": "F", "texto": "F := 1000", "y": 6},
+       {"verificar": "v", "num": 3183098.861837907}
+     ]},
+    {"id": "19", "nome": "unidades: soma converte", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "L", "texto": "L := 2{m}", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "L + 30{cm} =", "y": 20},
+       {"verificar": "v", "tela": "2.3 m"}
+     ]},
+    {"id": "20", "nome": "unidades: tensão exibida em MPa", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "r0", "texto": "F := 10{kN}", "y": 10},
+       {"acao": "adicionar", "id": "r1", "texto": "A := 50{mm^2}", "y": 20},
+       {"acao": "adicionar", "id": "r2", "texto": "σ := F/A", "y": 30},
+       {"acao": "adicionar", "id": "r3", "texto": "σ = {MPa}", "y": 40},
+       {"verificar": "r3", "tela": "200 MPa"}
+     ]},
+    {"id": "21", "nome": "unidades: nome derivado no SI", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "m", "texto": "m := 2{kg}", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "m*9.81{m/s^2} =", "y": 20},
+       {"verificar": "v", "tela": "19.62 N"}
+     ]},
+    {"id": "22", "nome": "unidades: dimensões incompatíveis é erro e se propaga", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "L", "texto": "L := 2{m}", "y": 10},
+       {"acao": "adicionar", "id": "x", "texto": "x := L + 1{s}", "y": 20},
+       {"acao": "adicionar", "id": "y", "texto": "y := x*2", "y": 30},
+       {"verificar": "x", "tipo": "erro", "msg_contem": "compat"},
+       {"verificar": "y", "tipo": "erro"}
+     ]},
+    {"id": "23", "nome": "unidades: transcendental exige adimensional", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "a", "texto": "sin(2{m}) =", "y": 10},
+       {"acao": "adicionar", "id": "b", "texto": "sin(90{deg}) =", "y": 20},
+       {"verificar": "a", "tipo": "erro"},
+       {"verificar": "b", "num": 1}
+     ]},
+    {"id": "24", "nome": "unidades: unidade pedida incompatível é erro só na exibição", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "v", "texto": "3{m} = {s}", "y": 10},
+       {"verificar": "v", "tipo": "numerico", "tela_comeca": "[erro]"}
+     ]},
+    {"id": "25", "nome": "unidades: variável faltando não gera erro de unidade", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "v", "texto": "x + 5{m} =", "y": 10},
+       {"verificar": "v", "tipo": "parcial", "livres": ["x"]}
+     ]},
+    {"id": "26", "nome": "unidades: engenharia em etapas até MPa", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "A", "texto": "A := π*d^2/4", "y": 10},
+       {"acao": "adicionar", "id": "s", "texto": "σ := F/A", "y": 20},
+       {"acao": "adicionar", "id": "v", "texto": "σ = {MPa}", "y": 30},
+       {"verificar": "v", "tipo": "parcial"},
+       {"acao": "adicionar", "id": "d", "texto": "d := 20{mm}", "y": 5},
+       {"acao": "adicionar", "id": "F", "texto": "F := 31.4159265{kN}", "y": 6},
+       {"verificar": "v", "tela": "100 MPa"}
+     ]},
+    {"id": "27", "nome": "unidades: imperial", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "a", "texto": "1{ft} + 1{in} = {in}", "y": 10},
+       {"acao": "adicionar", "id": "b", "texto": "1{ksi} = {MPa}", "y": 20},
+       {"verificar": "a", "tela": "13 in"},
+       {"verificar": "b", "tela": "6.89476 MPa"}
+     ]},
+    {"id": "28", "nome": "unidades: comparação", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "c", "texto": "2{m} > 150{cm} =", "y": 10},
+       {"verificar": "c", "num": 1}
+     ]},
+    {"id": "29", "nome": "unidades: modo compatível, variável esconde a unidade", "modo": "parcial", "unidades_implicitas": true,
+     "passos": [
+       {"acao": "adicionar", "id": "d", "texto": "d := 3*ft", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "d = {in}", "y": 20},
+       {"verificar": "v", "tela": "36 in"},
+       {"acao": "adicionar", "id": "m", "texto": "m := 5", "y": 30},
+       {"acao": "adicionar", "id": "w", "texto": "m*2 =", "y": 40},
+       {"verificar": "w", "num": 10}
+     ]}
+  ]
+}
