@@ -29,7 +29,7 @@ A := π·d²/4
 | Estudo do comportamento esperado | ✅ concluído ([modelo de avaliação](docs/comportamento/modelo-de-avaliacao.md)) |
 | Protótipo do motor (Python + SymPy) | ✅ funcionando, com unidades; 28/28 testes; [validação](docs/pesquisa/validacao.md): 94% de acerto, 29% de cobertura |
 | Motor em Kotlin + Symja | ✅ no repositório (`nucleo/`): 30/30 na JVM e no Galaxy Tab S10 Lite ([resultado](docs/pesquisa/prova-de-conceito-kotlin-symja.md)) |
-| Interface para tablet | 🛠️ página web com MathLive no ar para testes ([ADR 0008](docs/decisoes/0008-interface-web-mathlive.md)); APK em seguida |
+| Interface para tablet | 🛠️ página web no visual do design, em uso como [versão de teste](docs/decisoes/0009-versao-web-de-teste.md); APK em seguida |
 | Versões Linux e webservice | 💭 possíveis, depois do Android ([ADR 0006](docs/decisoes/0006-nucleo-unico-multiplataforma.md)) |
 
 Veja o [roadmap](docs/roadmap.md).

@@ -9,6 +9,7 @@ versionamento [SemVer](https://semver.org/lang/pt-BR/).
 - 2026-10-13: na interface, o texto digitado não era lido e a região sumia ao tocar fora. O `<math-field>` era preenchido antes de o MathLive ativá-lo, e a atribuição encobria a propriedade `value`. O Enter agora confirma e abre uma região abaixo. Teste de interface em `ferramentas/teste-ui/` (11 verificações).
 
 ### Adicionado
+- 2026-10-13: versão web de teste (ADR 0009): `ferramentas/implantar-web.sh` instala o serviço systemd `tracolab-web`; o cabeçalho `X-TracoLab-Motor` mostra qual instância calcula; todo o projeto em bytecode Java 17.
 - 2026-10-14: identidade visual na interface: papel, nanquim, vermelhão e cobalto; fontes IBM Plex e Bricolage embutidas; marca e favicon. Estrutura do design "Tablet B": barra com resumo, trilho, painel de variáveis, folha A4 e faixa de teclas.
 - 2026-10-14: estado pendente com chips "falta F" (o toque cria `F :=` acima de quem usa), erro de ordem ("só é definida mais abaixo"), unidade do resultado como chip trocável (`σ = 100 MPa`), desfazer/refazer, numeração da ordem e nome da folha. A API ganhou `define` e `abaixo`.
 - 2026-10-13: interface web (`web/`) com MathLive 0.110.0 embutido, conversor LaTeX ⇄ núcleo em Kotlin (20 testes), módulo `api` (JSON) e `servidor-dev`; ADR 0008.

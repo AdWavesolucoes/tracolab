@@ -29,6 +29,13 @@
 - [x] Entrada de fórmula pelo teclado matemático (abas TracoLab e Unidades)
 - [ ] Escrita à mão com a S Pen (MyScript iink é a candidata; ML Kit não reconhece matemática)
 - [x] Exibição do estado parcial: expressão restante + "faltam: …"
+- [x] Identidade visual e estrutura do design "Tablet B" (barra, trilho, painel de variáveis, folha A4, faixa de teclas)
+- [x] Chips "falta F", erro de ordem, unidade do resultado como chip, desfazer
+- [x] Versão web de teste em uso diário ([ADR 0009](decisoes/0009-versao-web-de-teste.md))
+- [ ] Ajustes a partir do uso da versão de teste
+- [ ] Definir e mostrar na mesma região (`R := qL/2 = 36 kN`)
+- [ ] Painel de variáveis nas unidades usadas na folha (hoje mostra SI)
+- [ ] Regiões de texto; exportar/importar a folha em arquivo
 - [ ] APK: a mesma página numa WebView, com a ponte `TracoLabNativo`
 - [ ] Salvar e abrir páginas (formato próprio)
 

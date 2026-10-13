@@ -14,3 +14,4 @@ criar um novo, use o [modelo](0000-modelo.md).
 | [0006](0006-nucleo-unico-multiplataforma.md) | Núcleo único para Android, Linux e webservice | Proposta |
 | [0007](0007-unidades-explicitas.md) | Unidades de medida explícitas | Aceita |
 | [0008](0008-interface-web-mathlive.md) | Interface em página web com MathLive, ligada ao núcleo | Aceita |
+| [0009](0009-versao-web-de-teste.md) | Versão web de teste antes do APK | Aceita |
