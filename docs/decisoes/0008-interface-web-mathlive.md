@@ -41,3 +41,7 @@ o risco estão no desenho e na edição de fórmulas 2D.
 - Os atalhos de digitação do MathLive são substituídos por uma lista controlada: o padrão troca
   `in` por ∈ e quebraria nomes como `Fin`.
 - Estimativa revista para a interface: **6–10 sessões**.
+- O `:=` em cobalto é o macro `\tldef`, e não `\textcolor` direto: o MathLive faz o texto
+  digitado depois de um trecho colorido herdar a cor. O núcleo lê `\tldef` como `:=`.
+- A unidade de exibição de uma avaliação fica fora da fórmula (chip no resultado), para não
+  aparecer duas vezes (`σ = MPa 100 MPa`).

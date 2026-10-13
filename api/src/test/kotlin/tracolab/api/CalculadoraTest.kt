@@ -28,6 +28,13 @@ class CalculadoraTest {
         assertEquals("2{,}3\\,\\mathrm{m}", r.getValue("b")["resultado"].asText())
     }
 
+    @Test fun nomeDefinidoMaisAbaixoVemEmAbaixo() {
+        val r = calcular(Triple("s", "\\sigma\\coloneq\\frac{M}{W}", 10.0), Triple("w", "W\\coloneq2", 20.0))
+        assertEquals(listOf("W"), r.getValue("s")["abaixo"].map { it.asText() })
+        assertEquals(listOf("M", "W"), r.getValue("s")["livres"].map { it.asText() }.sorted())
+        assertEquals(listOf("W"), r.getValue("w")["define"].map { it.asText() })
+    }
+
     @Test fun erroDeSintaxeNaoDerrubaAPagina() {
         val r = calcular(Triple("a", "x\\coloneq\\frac{1}", 10.0), Triple("b", "2+2=", 20.0))
         assertEquals("erro_sintaxe", r.getValue("a")["tipo"].asText())

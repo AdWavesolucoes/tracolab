@@ -68,6 +68,7 @@ Comece pelo [índice da documentação](docs/README.md).
 | [Claude Code](https://claude.com/claude-code) (Anthropic) | Desenvolvimento assistido por IA: estudo do comportamento, protótipo, núcleo Kotlin, testes e documentação |
 | [REA](https://github.com/morluto/rea) + [Ghidra](https://github.com/NationalSecurityAgency/ghidra) | Inspeção de artefatos binários na fase de estudo do comportamento |
 | [MathLive](https://github.com/arnog/mathlive) (MIT) | Editor de fórmulas da interface (`web/vendor/`) |
+| [IBM Plex](https://github.com/IBM/plex) e [Bricolage Grotesque](https://github.com/ateliertriay/bricolage) (OFL-1.1) | Fontes da interface, embutidas em `web/vendor/fontes/` |
 | [SymPy](https://www.sympy.org/) | Motor simbólico do protótipo em Python |
 | [Symja](https://github.com/axkr/symja_android_library) (LGPL-3.0) | Motor simbólico do núcleo em Kotlin, no Android e na JVM |
 

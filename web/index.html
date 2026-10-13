@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>TracoLab</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%231d1a17%22/%3E%3Cpath d=%22M7 22 Q16 4 25 12%22 stroke=%22%239cb38a%22 stroke-width=%223%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
+  <title>TraçoLab</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="vendor/mathlive-0.110.0/mathlive-fonts.css">
   <link rel="stylesheet" href="vendor/mathlive-0.110.0/mathlive-static.css">
   <link rel="stylesheet" href="estilo.css">
@@ -13,27 +13,81 @@
 </head>
 <body>
   <header class="barra">
-    <span class="marca">Traço<b>Lab</b></span>
-    <button id="btn-nova" title="Nova região (ou toque num espaço vazio da página)">+ Região</button>
-    <label class="modo" title="Parcial: variável que falta deixa o resultado parcial. Clássico: é erro.">
-      <select id="sel-modo">
-        <option value="parcial">Modo parcial</option>
-        <option value="classico">Modo clássico</option>
-      </select>
-    </label>
-    <button id="btn-limpar" class="secundario" title="Apagar todas as regiões">Limpar</button>
-    <span id="status" class="status" aria-live="polite"></span>
+    <svg class="marca" width="30" height="30" viewBox="0 0 96 96" aria-hidden="true"><rect x="1" y="1" width="94" height="94" rx="23" fill="#17233A" stroke="#2B3B5A" stroke-width="2"/><path d="M18 32 C26 18 40 18 48 32 S70 46 78 32" fill="none" stroke="#FF6B3D" stroke-width="7" stroke-linecap="round"/><path d="M48 32 V62" fill="none" stroke="#F5F5F0" stroke-width="7" stroke-linecap="round"/><circle cx="48" cy="75" r="5.5" fill="#FF6B3D"/></svg>
+    <span class="palavra">Traço<span>Lab</span></span>
+    <div class="titulo">
+      <label for="nome-folha" class="sr">Nome da folha</label>
+      <input id="nome-folha" class="nome" value="Folha sem título" spellcheck="false" autocomplete="off">
+      <span id="resumo" class="resumo" aria-live="polite"></span>
+    </div>
+    <button id="btn-desfazer" class="ib" aria-label="Desfazer" disabled><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+    <button id="btn-refazer" class="ib" aria-label="Refazer" disabled><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
+    <button id="btn-ordem" class="ib texto" aria-label="Mostrar ordem de avaliação" aria-pressed="false">1·2</button>
+    <button id="btn-calcular" class="ib calcular" aria-label="Calcular folha"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></button>
   </header>
-  <main id="pagina" class="pagina" aria-label="Página de cálculo"></main>
-  <template id="modelo-regiao">
-    <div class="regiao" tabindex="-1">
-      <div class="alca" title="Arraste para mover"><span class="ordem"></span></div>
-      <div class="linha">
-        <math-field class="campo" math-virtual-keyboard-policy="auto"></math-field>
-        <span class="resultado"></span>
-        <button class="apagar" title="Apagar região" aria-label="Apagar região">×</button>
+
+  <div class="corpo">
+    <nav class="trilho" aria-label="Seções">
+      <button id="rail-variaveis" class="rail on" aria-pressed="true"><span class="pill"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14l-7 7 7 7H5"/></svg></span>Variáveis</button>
+      <button id="rail-ajustes" class="rail" aria-expanded="false" aria-controls="ajustes"><span class="pill"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>Ajustes</button>
+    </nav>
+
+    <aside id="painel" class="painel" aria-label="Variáveis">
+      <span class="painel-titulo">Variáveis</span>
+      <label for="busca" class="sr">Buscar símbolo</label>
+      <input id="busca" type="search" placeholder="Buscar símbolo" autocomplete="off">
+      <div id="lista-variaveis" class="lista"></div>
+    </aside>
+
+    <section id="ajustes" class="ajustes" hidden aria-label="Ajustes">
+      <span class="painel-titulo">Ajustes</span>
+      <label class="campo-ajuste">Quando falta um dado
+        <select id="sel-modo">
+          <option value="parcial">Mostrar o resultado pendente</option>
+          <option value="classico">Tratar como erro (clássico)</option>
+        </select>
+      </label>
+      <button id="btn-limpar" class="secundario">Apagar todas as regiões</button>
+    </section>
+
+    <main class="mesa">
+      <div id="pagina" class="folha" aria-label="Folha de cálculo">
+        <span class="margem esq" aria-hidden="true"></span><span class="margem dir" aria-hidden="true"></span>
       </div>
-      <div class="info"></div>
+    </main>
+  </div>
+
+  <div class="faixa" role="toolbar" aria-label="Teclas">
+    <button class="key def" data-insere="\textcolor{#2748C9}{\coloneq}" aria-label="Definição">:=</button>
+    <button class="key eq" data-insere="=" aria-label="Avaliar">=</button>
+    <button class="key eq" data-insere="\to" aria-label="Avaliar simbolicamente">→</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button class="key" data-insere="\frac{#@}{#?}" aria-label="Fração">÷</button>
+    <button class="key" data-insere="#@^{#?}" aria-label="Potência">xⁿ</button>
+    <button class="key" data-insere="#@_{#?}" aria-label="Índice">xᵢ</button>
+    <button class="key" data-insere="\sqrt{#0}" aria-label="Raiz quadrada">√</button>
+    <button class="key" data-insere="\lbrack #0\rbrack" aria-label="Elemento de vetor">[ ]</button>
+    <button class="key" data-insere="\pi" aria-label="Pi">π</button>
+    <button class="key" data-camada="greek" aria-label="Letras gregas">α</button>
+    <button class="key" data-insere="^{\circ}" aria-label="Grau">°</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button class="key mono" data-camada="unidades" aria-label="Unidades">un</button>
+    <button id="btn-teclado" class="key escura" aria-label="Abrir ou fechar o teclado"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="2"/><path d="M6 9.5h.01M9.5 9.5h.01M13 9.5h.01M16.5 9.5h.01M6 13h.01M18 13h.01M8.5 15.5h7"/></svg></button>
+  </div>
+
+  <div id="menu-unidade" class="menu-unidade" hidden role="dialog" aria-label="Unidade do resultado"></div>
+
+  <template id="modelo-regiao">
+    <div class="rg" tabindex="-1">
+      <span class="bd" aria-hidden="true"></span>
+      <button class="alca" aria-label="Arrastar região"></button>
+      <div class="linha">
+        <math-field class="campo" math-virtual-keyboard-policy="manual"></math-field>
+        <span class="resultado"></span>
+        <button class="unidade" hidden></button>
+      </div>
+      <div class="falta" hidden><span class="lbl">falta</span></div>
+      <div class="nota" role="note" hidden></div>
     </div>
   </template>
 </body>

@@ -1,6 +1,7 @@
 package tracolab.nucleo
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import tracolab.nucleo.latex.LatexEntrada
 import tracolab.nucleo.latex.LatexSaida
@@ -27,6 +28,8 @@ class LatexTest {
     @Test fun raiz() = assertEquals("r := sqrt(a + b)", t("r\\coloneq\\sqrt{a+b}"))
     @Test fun indiceDeVetor() = assertEquals("v[i] := i^(2)", t("v\\lbrack i\\rbrack\\coloneq i^2"))
     @Test fun igualNoMeioEComparacao() = assertEquals("a == b", t("a=b"))
+    @Test fun corNaoMudaOCalculo() = assertEquals("F := m*a", t("F\\textcolor{#2748C9}{\\coloneq}m\\cdot a"))
+    @Test fun macroDeDefinicaoDaInterface() = assertEquals("F := 31.4*{kN}", t("F\\tldef31{,}4\\mathrm{kN}"))
     @Test fun graus() = assertEquals("sin(90*{deg}) =", t("\\sin\\left(90^{\\circ}\\right)="))
 
     @Test fun nomesNaSaida() {
@@ -47,5 +50,12 @@ class LatexTest {
         p2.adicionar(regiaoDeTexto("a", LatexEntrada.regiao("F\\coloneq m\\cdot a"), 10.0))
         p2.adicionar(regiaoDeTexto("b", LatexEntrada.regiao("F="), 20.0))
         assertEquals("a \\cdot m", p2.resultadoTela("b").latex)  // formato do TeXForm do Symja
+
+        // pendente com unidade: vírgula decimal e expoente inteiro (o Symja escreve 3183.099 e m^{2.0})
+        val p3 = Planilha("parcial")
+        listOf("d\\tldef20\\mathrm{mm}", "\\sigma\\tldef\\frac{F}{\\pi d^2/4}", "\\sigma=")
+            .forEachIndexed { k, l -> p3.adicionar(regiaoDeTexto("q$k", LatexEntrada.regiao(l), 10.0 * (k + 1))) }
+        val tex = p3.resultadoTela("q2").latex!!
+        assertTrue("{,}" in tex && "2.0" !in tex && "." !in tex) { tex }
     }
 }

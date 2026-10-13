@@ -193,6 +193,9 @@ object LatexEntrada {
                 out += if (indice == null) Peca("sqrt($a)", true, true) else Peca("(($a)^(1/($indice)))", true, true)
             }
             nome == "mathrm" || nome == "unit" -> out += Peca("{" + textoBruto(argumento(l)) + "}", true, true)
+            // cor é só apresentação (ex.: := em cobalto): descarta a cor, mantém o conteúdo
+            nome == "textcolor" -> { argumento(l); out += converterSeq(argumento(l)) }
+            nome == "color" -> argumento(l)
             nome == "operatorname" || nome == "mathit" || nome == "text" || nome == "textit" || nome == "mathbf" -> {
                 val n = textoBruto(argumento(l))
                 out += Peca(n, true, true, nome = true)
@@ -211,7 +214,7 @@ object LatexEntrada {
             nome == "pi" -> out += Peca("π", true, true, nome = true)
             nome == "cdot" || nome == "times" || nome == "ast" -> out += Peca("*", false, false)
             nome == "div" -> out += Peca("/", false, false)
-            nome == "coloneq" || nome == "coloneqq" || nome == "Coloneq" -> out += Peca(":=", false, false)
+            nome == "coloneq" || nome == "coloneqq" || nome == "Coloneq" || nome == "tldef" -> out += Peca(":=", false, false)
             nome == "equiv" -> out += Peca("≡", false, false)
             nome == "to" || nome == "rightarrow" || nome == "longrightarrow" || nome == "Rightarrow" -> out += Peca("->", false, false)
             nome == "gt" -> out += Peca(">", false, false)

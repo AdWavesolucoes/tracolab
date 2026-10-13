@@ -39,10 +39,14 @@ object LatexSaida {
     /** LaTeX de uma expressão do Symja, trocando os nomes codificados pelos nomes reais. */
     fun expressao(e: IExpr, m: Motor): String {
         val tex = m.ev(F.TeXForm(e)).toString()
-        return SIMBOLO.replace(tex) { mr ->
+        val comNomes = SIMBOLO.replace(tex) { mr ->
             val n = decodificar(mr.groupValues[2])
             if (mr.groupValues[1] == PU) "\\mathrm{$n}" else nome(n)
         }
+        return comNomes
+            .replace(Regex("\\^\\{(-?\\d+)\\.0\\}"), "^{$1}")      // m^{2.0} → m^{2}
+            .replace(Regex("(\\d)\\.(\\d)"), "$1{,}$2")                // vírgula decimal
+            .replace(Regex("(\\d)\\.(?!\\d)"), "$1")                    // 2. → 2
     }
 
     /** "8787.21" → "8787{,}21"; "5e-05" → "5\times10^{-5}". */

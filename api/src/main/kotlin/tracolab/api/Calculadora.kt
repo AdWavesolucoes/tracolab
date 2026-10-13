@@ -16,6 +16,9 @@ import tracolab.nucleo.regiaoDeTexto
  * Resposta: {"ms": 12, "regioes": [{"id": "r1", "papel": "definicao", "tipo": "parcial",
  *            "texto": "F := m*a", "resultado": null, "livres": ["a", "m"], "msg": null, "aviso": null}]}
  *
+ * Cada região também traz `define` (nomes que ela define, para o painel de variáveis) e
+ * `abaixo` (nomes que faltam mas são definidos mais abaixo na folha: erro de ordem, não dado faltando).
+ *
  * `y` é a linha de base da região (ADR 0001). `tipo` pode ser também "erro_sintaxe" (o LaTeX
  * não pôde ser lido) ou "vazia". O motor (Symja) não é seguro para várias threads: as chamadas
  * são serializadas.
@@ -47,11 +50,14 @@ class Calculadora(private val motor: Motor = Motor()) {
             }
         }
         pl.recalcular()
+        val definidos = pl.regioes.flatMap { it.define }.toSet()
         for (reg in pl.regioes) {
             val o = saidas.getValue(reg.id)
             val e = reg.estado!!
             o.put("tipo", e.tipo).put("msg", e.msg).put("aviso", e.aviso)
             o.putArray("livres").apply { e.livres.forEach { add(it) } }
+            o.putArray("define").apply { reg.define.forEach { add(it) } }
+            o.putArray("abaixo").apply { e.livres.filter { it in definidos }.forEach { add(it) } }
             val tela = pl.resultadoTela(reg.id)
             o.put("resultado", tela.latex)
             tela.avisoExibicao?.let { o.put("aviso", it) }
