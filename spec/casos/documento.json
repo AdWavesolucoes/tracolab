@@ -1,0 +1,331 @@
+{
+ "versao": 1,
+ "descricao": "Folha como documento: definir e mostrar (R := q*L/2 =). Ver docs/comportamento/documento.md.",
+ "casos": [
+  {
+   "id": "doc-01",
+   "nome": "definir e mostrar: o valor aparece na própria definição e vale abaixo",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := 2*3 =",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "x*2 =",
+     "y": 20
+    },
+    {
+     "verificar": "x",
+     "tipo": "numerico",
+     "tela": "6"
+    },
+    {
+     "verificar": "v",
+     "num": 12
+    }
+   ]
+  },
+  {
+   "id": "doc-02",
+   "nome": "definir e mostrar com unidade pedida",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "q",
+     "texto": "q := 12{kN/m}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "L",
+     "texto": "L := 6{m}",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "R",
+     "texto": "R := q*L/2 = {kN}",
+     "y": 30
+    },
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "R =",
+     "y": 40
+    },
+    {
+     "verificar": "R",
+     "tipo": "numerico",
+     "tela": "36 kN"
+    },
+    {
+     "verificar": "v",
+     "tela": "36000 N"
+    }
+   ]
+  },
+  {
+   "id": "doc-03",
+   "nome": "definir e mostrar pendente: falta q e L",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "R",
+     "texto": "R := q*L/2 =",
+     "y": 10
+    },
+    {
+     "verificar": "R",
+     "tipo": "parcial",
+     "livres": [
+      "L",
+      "q"
+     ],
+     "expr": "q*L/2"
+    }
+   ]
+  },
+  {
+   "id": "doc-04",
+   "nome": "definir e mostrar numa definição global",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "g*2 =",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "g",
+     "texto": "g ≡ 9.81 =",
+     "y": 20
+    },
+    {
+     "verificar": "g",
+     "tipo": "numerico",
+     "tela": "9.81"
+    },
+    {
+     "verificar": "v",
+     "num": 19.62
+    }
+   ]
+  },
+  {
+   "id": "doc-05",
+   "nome": "definir e mostrar numa função: define, sem valor para mostrar",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "f",
+     "texto": "f(t) := t^2 =",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "f(3) =",
+     "y": 20
+    },
+    {
+     "verificar": "f",
+     "tipo": "numerico"
+    },
+    {
+     "verificar": "v",
+     "num": 9
+    }
+   ]
+  },
+  {
+   "id": "doc-06",
+   "nome": "definir e mostrar com unidade incompatível: erro só na exibição",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := 5{m} = {s}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "x*2 =",
+     "y": 20
+    },
+    {
+     "verificar": "x",
+     "tipo": "numerico",
+     "tela_comeca": "[erro]"
+    },
+    {
+     "verificar": "v",
+     "tela": "10 m"
+    }
+   ]
+  },
+  {
+   "id": "doc-07",
+   "nome": "definir e mostrar redefinindo: aviso e valor vigente",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "x := 1",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "x := x + 1 =",
+     "y": 20
+    },
+    {
+     "verificar": "b",
+     "tela": "2",
+     "aviso": "Redefinição"
+    }
+   ]
+  },
+  {
+   "id": "doc-08",
+   "nome": "definir e mostrar no modo clássico: variável que falta é erro",
+   "modo": "classico",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "R",
+     "texto": "R := q*L/2 =",
+     "y": 10
+    },
+    {
+     "verificar": "R",
+     "tipo": "erro"
+    }
+   ]
+  },
+  {
+   "id": "doc-09",
+   "nome": "definir e mostrar simbólico: a avaliação → vem antes do =",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "a := 2",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "y",
+     "texto": "y := a*x + b -> =",
+     "y": 20
+    },
+    {
+     "verificar": "y",
+     "tipo": "parcial",
+     "livres": [
+      "b",
+      "x"
+     ],
+     "expr": "2*x + b"
+    }
+   ]
+  },
+  {
+   "id": "doc-10",
+   "nome": "definir e mostrar com comparação: o >= não vira mostrar",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "o",
+     "texto": "ok := 3 >= 2 =",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "p",
+     "texto": "nok := 3 <= 2",
+     "y": 20
+    },
+    {
+     "verificar": "o",
+     "tipo": "numerico",
+     "num": 1
+    },
+    {
+     "verificar": "p",
+     "tipo": "numerico",
+     "num": 0
+    }
+   ]
+  },
+  {
+   "id": "doc-11",
+   "nome": "definir e mostrar numa faixa: continua faixa",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "i",
+     "texto": "i := 0..3 =",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "i*2 =",
+     "y": 20
+    },
+    {
+     "verificar": "i",
+     "tipo": "numerico"
+    },
+    {
+     "verificar": "v",
+     "lista": [
+      0,
+      2,
+      4,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "doc-12",
+   "nome": "definir e mostrar um elemento: mostra o vetor",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "v[2] := 5 =",
+     "y": 10
+    },
+    {
+     "verificar": "v",
+     "tipo": "numerico",
+     "lista": [
+      0,
+      0,
+      5
+     ]
+    }
+   ]
+  }
+ ]
+}

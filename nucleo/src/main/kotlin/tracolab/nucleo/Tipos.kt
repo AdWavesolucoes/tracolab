@@ -52,6 +52,7 @@ class Regiao(
     val usa: List<String> = emptyList(),
     val unidadeExibicao: No? = null,
     val unidadeExibicaoTexto: String? = null,
+    val mostrar: Boolean = false,        // definir e mostrar: R := q*L/2 = (o valor aparece na definição)
 ) {
     var estado: Estado? = null
 }
