@@ -20,8 +20,9 @@ na JVM + `web/`), para uso diário no navegador do tablet:
 - **um endereço só**: as folhas ficam salvas no navegador por endereço, então trocar de endereço
   "perderia" as folhas. Um proxy na frente encaminha para a instância principal e, se ela
   estiver desligada, para uma instância de reserva;
-- acesso apenas por rede local ou VPN, nunca aberto para a internet, porque o `servidor-dev`
-  não tem autenticação nem limites de tempo por cálculo;
+- acesso por rede local ou VPN; um endereço público só **atrás de autenticação na borda**
+  (ex.: Cloudflare Access), porque o `servidor-dev` não tem autenticação nem limites de tempo
+  por cálculo. O endereço público aponta só para a instância principal, sem usar a reserva;
 - o cabeçalho `X-TracoLab-Motor` mostra na página qual instância está calculando.
 
 ## Alternativas consideradas
