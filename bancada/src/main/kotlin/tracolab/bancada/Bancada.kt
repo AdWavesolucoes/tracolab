@@ -12,6 +12,8 @@ import java.io.File
  * (docs/pesquisa/prova-de-conceito-kotlin-symja.md).
  *
  *   ./gradlew :bancada:run
+ *
+ * Também avalia folhas em lote (ver Lote.kt): bancada lote <entrada.jsonl> <saida.jsonl> [limite-s]
  */
 
 /** Roda tudo e devolve o relatório em texto. */
@@ -60,6 +62,10 @@ fun bench(motor: Motor): String {
 }
 
 fun main(args: Array<String>) {
+    if (args.firstOrNull() == "lote") {
+        require(args.size >= 3) { "uso: bancada lote <entrada.jsonl> <saida.jsonl> [limite-s]" }
+        return lote(File(args[1]), File(args[2]), args.getOrNull(3)?.toLong() ?: 30)
+    }
     val caminho = args.firstOrNull() ?: "spec/casos-comportamento.json"
     println(relatorioCompleto(File(caminho).readText(), "JVM " + System.getProperty("java.version") + " / " + System.getProperty("os.arch")))
 }
