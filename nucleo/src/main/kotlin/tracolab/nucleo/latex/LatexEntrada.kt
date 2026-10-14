@@ -345,6 +345,7 @@ object LatexEntrada {
             .replace(Regex("(?<=[\\p{L}\\p{N}_)\\]])\\s+(?=[(\\[])"), "") // f(t), v[i]
             .replace(Regex("([(\\[])\\s+"), "$1")
             .replace(Regex("\\s+([)\\]])"), "$1")
+            .replace(Regex("\\s+([,;])"), "$1")                        // [1; 2], M[i, j]
             .trim()
     }
 
