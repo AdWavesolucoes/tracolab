@@ -4,6 +4,11 @@
 Python, o núcleo em Kotlin, o que vier depois) precisa passar todos os casos. A descrição em
 texto de cada caso está em [docs/comportamento/casos.md](../docs/comportamento/casos.md).
 
+Os casos de cada área nova ficam num arquivo próprio em [`casos/`](casos/) (`casos/matrizes.json`,
+`casos/calculo.json`, `casos/regressoes.json`...), no mesmo formato. O teste do núcleo roda o
+arquivo base e todos os de `casos/`, e o `id` de cada caso precisa ser único entre todos eles
+(use um prefixo da área: `mat-01`, `calc-01`).
+
 ## Formato
 
 Cada caso tem `modo` (`parcial` ou `classico`), opcionalmente `unidades_implicitas: true`, e uma
@@ -46,3 +51,6 @@ Todos os campos são opcionais e se somam:
 | `expr =` / `expr = {MPa}` | Avaliação numérica (com unidade de exibição) |
 | `expr ->` ou `expr →` | Avaliação simbólica |
 | `20{mm}`, `{kN/m^2}` | Unidade explícita |
+| `[1, 2; 3, 4]` | Matriz: linhas separadas por `;`, elementos por `,` |
+| `"OK"` | Texto |
+| `f(a, b)` | Chamada de função do usuário ou embutida (registro em `nucleo/.../embutidos/`) |

@@ -33,14 +33,14 @@ object LatexEntrada {
 
     // ------------------------------------------------------------------ léxico
 
-    private sealed class Tok {
+    internal sealed class Tok {
         data class Cmd(val nome: String) : Tok()
         data class Ch(val c: Char) : Tok()
         object Abre : Tok()
         object Fecha : Tok()
     }
 
-    private fun lexico(s: String): List<Tok> {
+    internal fun lexico(s: String): List<Tok> {
         val out = mutableListOf<Tok>()
         var i = 0
         while (i < s.length) {
@@ -68,9 +68,9 @@ object LatexEntrada {
     // ------------------------------------------------------------------ peças de saída
 
     /** Um pedaço do texto de saída e se ele começa/termina um operando (para multiplicação implícita). */
-    private data class Peca(val t: String, val inicia: Boolean, val termina: Boolean, val nome: Boolean = false)
+    internal data class Peca(val t: String, val inicia: Boolean, val termina: Boolean, val nome: Boolean = false)
 
-    private class Leitor(val toks: List<Tok>) {
+    internal class Leitor(val toks: List<Tok>) {
         var p = 0
         fun fim() = p >= toks.size
         fun olha(): Tok? = toks.getOrNull(p)
@@ -78,7 +78,7 @@ object LatexEntrada {
     }
 
     /** Lê um grupo `{...}` (ou um token só) e devolve os tokens de dentro. */
-    private fun argumento(l: Leitor): List<Tok> {
+    internal fun argumento(l: Leitor): List<Tok> {
         val t = l.olha() ?: throw ErroLatex("argumento faltando")
         if (t == Tok.Abre) {
             l.prox()
@@ -98,7 +98,7 @@ object LatexEntrada {
     }
 
     /** Texto bruto de um argumento (para nomes de unidade, índices, \operatorname). */
-    private fun textoBruto(toks: List<Tok>): String = toks.joinToString("") {
+    internal fun textoBruto(toks: List<Tok>): String = toks.joinToString("") {
         when (it) {
             is Tok.Ch -> it.c.toString()
             is Tok.Cmd -> GREGAS[it.nome] ?: when (it.nome) { "%" -> "%"; "circ" -> "°"; "mu" -> "μ"; "Omega" -> "Ω"; else -> "" }
@@ -106,7 +106,7 @@ object LatexEntrada {
         }
     }
 
-    private fun converterSeq(toks: List<Tok>): List<Peca> {
+    internal fun converterSeq(toks: List<Tok>): List<Peca> {
         val l = Leitor(toks)
         val out = mutableListOf<Peca>()
         while (!l.fim()) {
@@ -229,12 +229,51 @@ object LatexEntrada {
             nome == "%" -> out += Peca("{%}", true, true)
             nome == "degree" || nome == "circ" -> out += Peca("{deg}", true, true)
             nome == "{" || nome == "}" -> {}
+            nome == "begin" -> out += lerAmbiente(l)
             else -> throw ErroLatex("comando não suportado: \\$nome")
         }
     }
 
+    /**
+     * `\begin{nome} ... \end{nome}` (o `\begin` já foi lido): separa as células (linhas por `\\`,
+     * colunas por `&`, só no nível de fora), converte cada uma e entrega a [ambiente].
+     */
+    private fun lerAmbiente(l: Leitor): Peca {
+        val nome = textoBruto(argumento(l))
+        val corpo = mutableListOf<Tok>()
+        var nivel = 1
+        while (true) {
+            if (l.fim()) throw ErroLatex("\\begin{$nome} sem \\end")
+            val t = l.prox()
+            if (t == Tok.Cmd("begin")) nivel++
+            if (t == Tok.Cmd("end") && --nivel == 0) { argumento(l); break }
+            corpo += t
+        }
+        val linhas = mutableListOf<List<String>>()
+        var linha = mutableListOf<String>()
+        var celula = mutableListOf<Tok>()
+        var chaves = 0; var dentro = 0
+        fun fechaCelula() { linha += juntar(converterSeq(celula)); celula = mutableListOf() }
+        for (t in corpo) {
+            when {
+                t == Tok.Abre -> chaves++
+                t == Tok.Fecha -> chaves--
+                t == Tok.Cmd("begin") -> dentro++
+                t == Tok.Cmd("end") -> dentro--
+            }
+            val fora = chaves == 0 && dentro == 0
+            when {
+                fora && t == Tok.Ch('&') -> fechaCelula()
+                fora && t == Tok.Cmd("\\") -> { fechaCelula(); linhas += linha; linha = mutableListOf() }
+                else -> celula += t
+            }
+        }
+        if (celula.isNotEmpty() || linha.isNotEmpty()) { fechaCelula(); linhas += linha }
+        return ambiente(nome, linhas)
+    }
+
     /** Junta as peças inserindo '*' na multiplicação implícita (exceto nome seguido de '(' ou '['). */
-    private fun juntar(pecas: List<Peca>): String {
+    internal fun juntar(pecas: List<Peca>): String {
         val sb = StringBuilder()
         var ant: Peca? = null
         for (p in pecas) {

@@ -12,12 +12,14 @@ sealed class No {
     data class Cmp(val op: String, val a: No, val b: No) : No()
     data class Chama(val nome: String, val args: List<No>) : No()
     data class Indice(val base: No, val idx: List<No>) : No()
+    data class Matriz(val linhas: List<List<No>>) : No()   // [a, b; c, d]: linhas por ';', colunas por ','
+    data class Texto(val valor: String) : No()               // "OK"
 }
 
 class ErroSintaxe(msg: String) : Exception(msg)
 
 /** Parser descendente recursivo: + - * / ^, chamadas f(a, b), índices v[i], comparações,
- *  e unidades entre chaves, inclusive coladas no número: 20{mm}. */
+ *  unidades entre chaves, inclusive coladas no número (20{mm}), matrizes [1, 2; 3, 4] e textos "OK". */
 class Parser(private val s: String) {
     private var p = 0
 
@@ -102,6 +104,8 @@ class Parser(private val s: String) {
         val c = olha() ?: throw ErroSintaxe("fim inesperado")
         if (c == '(') { p++; val n = comparacao(); if (!consome(")")) throw ErroSintaxe("falta ')'"); return n }
         if (c == '{') return unidade()
+        if (c == '[') { p++; return matriz() }
+        if (c == '"') return texto()
         if (c.isDigit() || c == '.') return numero()
         if (ehLetra(c)) {
             val nome = identificador()
@@ -112,6 +116,33 @@ class Parser(private val s: String) {
     }
 
     private fun ehLetra(c: Char) = c.isLetter() || c == '_'
+
+    /** [a, b; c, d] (o '[' já foi lido): linhas separadas por ';', elementos por ','. */
+    private fun matriz(): No {
+        val linhas = mutableListOf<List<No>>()
+        var linha = mutableListOf<No>()
+        if (olha() == ']') throw ErroSintaxe("matriz vazia")
+        while (true) {
+            linha += comparacao()
+            when {
+                consome(",") -> continue
+                consome(";") -> { linhas += linha; linha = mutableListOf() }
+                consome("]") -> { linhas += linha; break }
+                else -> throw ErroSintaxe("esperava ',', ';' ou ']' na matriz")
+            }
+        }
+        if (linhas.any { it.size != linhas[0].size }) throw ErroSintaxe("linhas da matriz com tamanhos diferentes")
+        return No.Matriz(linhas)
+    }
+
+    /** "texto" entre aspas duplas, sem escapes. */
+    private fun texto(): No {
+        val fim = s.indexOf('"', p + 1)
+        if (fim < 0) throw ErroSintaxe("falta '\"'")
+        val t = s.substring(p + 1, fim)
+        p = fim + 1
+        return No.Texto(t)
+    }
 
     private fun identificador(): String {
         val i = p

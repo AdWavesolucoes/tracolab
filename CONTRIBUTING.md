@@ -19,9 +19,13 @@ Para os dois funcionarem juntos:
 
 - **Kotlin** no estilo oficial (`kotlin.code.style=official`), com nomes em português.
 - O módulo `nucleo` **não pode depender de Android** ([ADR 0006](docs/decisoes/0006-nucleo-unico-multiplataforma.md)).
-- **Todo comportamento novo começa por um caso em `spec/casos-comportamento.json`.** Os testes
-  do núcleo rodam esse arquivo (`./gradlew build`), e o caso precisa falhar antes da mudança e
-  passar depois dela.
+- **Todo comportamento novo começa por um caso na especificação**: `spec/casos-comportamento.json`
+  ou o arquivo da área em `spec/casos/`. Os testes do núcleo rodam todos (`./gradlew build`), e o
+  caso precisa falhar antes da mudança e passar depois dela.
+- **Funções embutidas** ficam no registro do núcleo: um arquivo por área em
+  `nucleo/src/main/kotlin/tracolab/nucleo/embutidos/`, listado em `Modulos.kt`.
+- **Interface (`web/js/`)**: scripts clássicos, um por assunto. Uma área nova entra num arquivo
+  próprio e se registra nos pontos de extensão `TL` (ver `web/js/configuracao.js`).
 - Mexeu em desempenho? Compare `./gradlew :bancada:run` antes e depois.
 - Mexeu na interface (`web/`)? Rode `ferramentas/teste-ui/fluxo.mjs` com o `servidor-dev` no ar.
 

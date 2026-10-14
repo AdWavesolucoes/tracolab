@@ -22,5 +22,7 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
     systemProperty("tracolab.spec", rootProject.file("spec/casos-comportamento.json").absolutePath)
+    systemProperty("tracolab.spec.pasta", rootProject.file("spec/casos").absolutePath)
+    inputs.dir(rootProject.file("spec")).withPropertyName("especificacao")
     testLogging { events("failed"); exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL }
 }
