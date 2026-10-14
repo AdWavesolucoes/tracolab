@@ -10,7 +10,8 @@ function agendar(ms = 220, salvarHist = true) {
 async function calcular(pedido) {
   if (window.TracoLabNativo) return JSON.parse(window.TracoLabNativo.calcular(JSON.stringify(pedido)));
   const resp = await fetch("api/calcular", { method: "POST", body: JSON.stringify(pedido) });
-  if (!resp.ok) throw new Error(await resp.text());
+  // erro da API vem como {"erro": "..."} (pedido grande demais, servidor ocupado...): mostra na barra
+  if (!resp.ok) throw new Error((await resp.json().catch(() => ({}))).erro || "sem conexão com o núcleo");
   motor = resp.headers.get("X-TracoLab-Motor") || "";
   return resp.json();
 }
@@ -33,8 +34,9 @@ async function recalcular() {
     pintarResumo(resp);
     pintarVariaveis();
     for (const f of TL.aposCalculo) f(resp);
+    if (resp.erro) resumo.textContent = resp.erro;
   } catch (e) {
-    resumo.textContent = "sem conexão com o núcleo";
+    resumo.textContent = e instanceof TypeError || !e.message ? "sem conexão com o núcleo" : e.message;   // TypeError: rede
   }
 }
 
