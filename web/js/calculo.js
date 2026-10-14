@@ -45,7 +45,9 @@ async function recalcular() {
 
 /** Ordem de cálculo: linha de base, depois x (ADR 0001). Numera as regiões e devolve a lista. */
 function numerarOrdem() {
-  const ordem = [...estado.regioes].sort((a, b) => linhaDeBase(a) - linhaDeBase(b) || a.x - b.x);
+  // só o que vai ao núcleo entra na numeração (texto não tem ordem de cálculo)
+  const ordem = estado.regioes.filter((r) => !TL.tipos[r.tipo] || TL.tipos[r.tipo].pedido?.(r))
+    .sort((a, b) => linhaDeBase(a) - linhaDeBase(b) || a.x - b.x);
   ordem.forEach((r, i) => { const bd = elementos.get(r.id)?.querySelector(".bd"); if (bd) bd.textContent = i + 1; });
   return ordem;
 }
