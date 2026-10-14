@@ -65,6 +65,10 @@ object LatexSaida {
     init { check(PV != PU) }
 }
 
+/** Linhas de um vetor e tamanho de uma expressão que a tela ainda desenha sem travar (ADR 0017). */
+const val MAX_LINHAS_TELA = 100
+const val MAX_FOLHAS_TELA = 3_000
+
 /** O que a tela mostra para a região `id` (null quando não há valor a mostrar). */
 fun Planilha.resultadoTela(id: String): ResultadoTela {
     val r = regioes.first { it.id == id }
@@ -73,9 +77,14 @@ fun Planilha.resultadoTela(id: String): ResultadoTela {
     e.faixa?.let { return ResultadoTela("${LatexSaida.expressao(it.inicio, motor)}\\,..\\,${LatexSaida.expressao(it.fim, motor)}") }
     if (e.funcao != null) return ResultadoTela(null)
     val v = e.valor ?: return ResultadoTela(null)
+    // ADR 0017: a tela não recebe o que não consegue desenhar (vetor de 200 mil linhas, expressão gigante)
+    if (v.leafCount() > MAX_FOLHAS_TELA && !v.isList)
+        return ResultadoTela(null, "Expressão grande demais para mostrar (${v.leafCount()} termos).")
     if (v.isList) {
-        val itens = (1 until (v as IAST).size()).map { valorSimples(v.get(it)) }
-        return ResultadoTela("\\begin{pmatrix}" + itens.joinToString("\\\\") + "\\end{pmatrix}")
+        val n = (v as IAST).argSize()
+        val itens = (1..minOf(n, MAX_LINHAS_TELA)).map { valorSimples(v.get(it)) } + if (n > MAX_LINHAS_TELA) listOf("\\vdots") else emptyList()
+        return ResultadoTela("\\begin{pmatrix}" + itens.joinToString("\\\\") + "\\end{pmatrix}",
+            if (n > MAX_LINHAS_TELA) "Mostrando $MAX_LINHAS_TELA de $n valores." else null)
     }
     if (e.tipo == "parcial" || r.tipo == "avaliacao_simbolica" || r.tipo == "definicao_simbolica" || motor.temLivres(v))
         return ResultadoTela(LatexSaida.expressao(v, motor))
