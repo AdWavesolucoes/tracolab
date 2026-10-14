@@ -35,6 +35,11 @@ const TL = {
   aposCalculo: [],
   /** Opções da folha que vão ao núcleo: () => objeto, mesclado em pedido.opcoes. */
   opcoes: [],
+  /**
+   * Teclas extras do teclado virtual: { latex, label, tooltip? }. Juntas formam a camada
+   * "Operadores" (Σ, ∫, matriz, se...), montada por inicio.js na ordem em que foram registradas.
+   */
+  teclas: [],
 };
 
 const MF = window.MathfieldElement;

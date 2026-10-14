@@ -11,6 +11,13 @@ if (!estado.regioes.length) {
   ];
   for (const [latex, unidade, x, y] of ex) estado.regioes.push({ id: "r" + proximoId++, latex, unidade, x, y });
 }
+// camada "Operadores" com as teclas registradas pelas áreas (TL.teclas), 7 por linha
+if (TL.teclas.length) {
+  const linhas = [];
+  for (let i = 0; i < TL.teclas.length; i += 7) linhas.push(TL.teclas.slice(i, i + 7));
+  window.mathVirtualKeyboard.layouts = [...window.mathVirtualKeyboard.layouts,
+    { id: "operadores", label: "Operadores", tooltip: "Operadores e funções", rows: linhas }];
+}
 nomeFolha.value = estado.nome;
 document.title = `${estado.nome} · TraçoLab`;
 selModo.value = estado.modo;
