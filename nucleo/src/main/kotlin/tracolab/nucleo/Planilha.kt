@@ -121,20 +121,10 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
                             else iterar(c) { avaliar(r.expr!!, c) }
                     return estadoDe(v, c, exato = r.tipo == "definicao_simbolica")
                 }
-                "elemento" -> {
-                    val atual = (env[r.define[0]] as? Valor.Expr)?.e
-                    val lista: MutableList<IExpr> =
-                        if (atual != null && atual.isList) (1 until (atual as IAST).size()).map { atual.get(it) }.toMutableList()
-                        else mutableListOf()
-                    iterar(c) {
-                        val k = motor.dbl(avaliar(r.indices[0], c)).toInt() - origem
-                        if (k < 0) throw ErroCalculo("Índice fora do intervalo.")
-                        val v = avaliar(r.expr!!, c)
-                        while (lista.size <= k) lista += F.C0
-                        lista[k] = v
-                        F.C0
-                    }
-                    return estadoDe(F.List(*lista.toTypedArray()), c)
+                "elemento" -> {   // v[i] := ... e M[i, j] := ... (Matriciais.Gravador)
+                    val g = Matriciais.Gravador((env[r.define[0]] as? Valor.Expr)?.e, origem, motor)
+                    iterar(c) { g.gravar(r.indices.map { avaliar(it, c) }, avaliar(r.expr!!, c)); F.C0 }
+                    return estadoDe(g.valor(), c)
                 }
             }
             throw NaoSuportado("definição ${r.tipoAlvo}")
@@ -171,19 +161,25 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         val e = r.estado!!
         if (e.tipo != "numerico" && e.tipo != "parcial") return "[${e.tipo}] ${e.msg}"
         val v = e.valor ?: return "?"
-        if (v.isList || motor.temLivres(v)) return v.toString()
-        return try {
-            if (r.unidadeExibicao != null) {
-                val alvo = avaliar(r.unidadeExibicao, Contexto(emptyMap(), this))
-                if (!motor.dims(v).contentEquals(motor.dims(alvo))) throw ErroUnidade("A unidade pedida não é compatível com o resultado.")
-                "${g6(motor.dbl(motor.ev(F.Divide(v, alvo))))} ${r.unidadeExibicaoTexto}"
-            } else if (!motor.temUnidade(v)) g6(motor.dbl(v))
-            else {
-                val d = motor.dims(v)
-                "${g6(motor.dbl(motor.ev(F.Divide(v, motor.monomio(d)))))} ${textoUnidade(d)}"
-            }
+        if (motor.temLivres(v)) return v.toString()
+        if (v.isList) return try {   // [1 kN; 2 kN] e [1, 2; 3, 4]
+            Matriciais.linhas(v).joinToString("; ", "[", "]") { l -> l.joinToString(", ") { exibirValor(it, r) } }
         } catch (err: ErroUnidade) { "[erro] ${err.message}" }
+        return try { exibirValor(v, r) } catch (err: ErroUnidade) { "[erro] ${err.message}" }
     }
+
+    /** Texto "número unidade" de um valor escalar numérico, na unidade pedida pela região ou no SI. */
+    fun exibirValor(v: IExpr, r: Regiao): String =
+        if (r.unidadeExibicao != null) {
+            val alvo = avaliar(r.unidadeExibicao, Contexto(emptyMap(), this))
+            // zero combina com qualquer unidade (elementos nulos de uma matriz em kN, por exemplo)
+            if (!v.isZero && !motor.dims(v).contentEquals(motor.dims(alvo))) throw ErroUnidade("A unidade pedida não é compatível com o resultado.")
+            "${g6(motor.dbl(motor.ev(F.Divide(v, alvo))))} ${r.unidadeExibicaoTexto}"
+        } else if (!motor.temUnidade(v)) g6(motor.dbl(v))
+        else {
+            val d = motor.dims(v)
+            "${g6(motor.dbl(motor.ev(F.Divide(v, motor.monomio(d)))))} ${textoUnidade(d)}"
+        }
 
     private val derivadas = listOf(
         "N" to intArrayOf(1, 1, -2, 0, 0, 0, 0), "Pa" to intArrayOf(-1, 1, -2, 0, 0, 0, 0),

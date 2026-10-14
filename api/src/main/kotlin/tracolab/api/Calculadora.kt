@@ -3,6 +3,7 @@ package tracolab.api
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
+import tracolab.nucleo.Matriciais
 import tracolab.nucleo.Motor
 import tracolab.nucleo.Planilha
 import tracolab.nucleo.latex.LatexEntrada
@@ -31,7 +32,8 @@ class Calculadora(private val motor: Motor = Motor()) {
     @Synchronized
     fun calcular(pedido: JsonNode): ObjectNode {
         val t0 = System.nanoTime()
-        val pl = Planilha(pedido["modo"]?.asText() ?: "parcial", motor = motor)
+        val origem = pedido["opcoes"]?.get("origem")?.asInt() ?: 0   // primeiro índice de vetores (ADR 0010)
+        val pl = Planilha(pedido["modo"]?.asText() ?: "parcial", origem = if (origem == 1) 1 else 0, motor = motor)
         val saidas = linkedMapOf<String, ObjectNode>()
         for (r in pedido["regioes"] ?: json.createArrayNode()) {
             val id = r["id"].asText()
@@ -58,6 +60,9 @@ class Calculadora(private val motor: Motor = Motor()) {
             o.putArray("livres").apply { e.livres.forEach { add(it) } }
             o.putArray("define").apply { reg.define.forEach { add(it) } }
             o.putArray("abaixo").apply { e.livres.filter { it in definidos }.forEach { add(it) } }
+            e.valor?.takeIf { it.isList }?.let { v ->   // vetor/matriz: [linhas, colunas] (painel de variáveis)
+                runCatching { Matriciais.dimensoes(v) }.getOrNull()?.let { (l, c) -> o.putArray("forma").add(l).add(c) }
+            }
             val tela = pl.resultadoTela(reg.id)
             o.put("resultado", tela.latex)
             tela.avisoExibicao?.let { o.put("aviso", it) }

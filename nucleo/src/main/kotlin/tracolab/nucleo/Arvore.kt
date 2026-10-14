@@ -65,6 +65,7 @@ class Parser(private val s: String) {
         while (true) {
             a = when {
                 consome("*") || consome("·") -> No.Bin('*', a, unario())
+                consome("×") -> No.Bin('×', a, unario())   // produto vetorial entre vetores; senão, produto
                 consome("/") -> No.Bin('/', a, unario())
                 else -> return a
             }

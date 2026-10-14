@@ -3,6 +3,7 @@ package tracolab.nucleo.latex
 import org.matheclipse.core.expression.F
 import org.matheclipse.core.interfaces.IAST
 import org.matheclipse.core.interfaces.IExpr
+import tracolab.nucleo.Matriciais
 import tracolab.nucleo.Motor
 import tracolab.nucleo.PU
 import tracolab.nucleo.PV
@@ -34,14 +35,18 @@ object LatexSaida {
         return if (indice.isEmpty()) b else "${b}_{$indice}"
     }
 
-    private val SIMBOLO = Regex("(zz[vu])((?:[0-9a-f]{4})+)")
+    private val SIMBOLO = Regex("(zz[vub])((?:[0-9a-f]{4})+)")
 
     /** LaTeX de uma expressão do Symja, trocando os nomes codificados pelos nomes reais. */
     fun expressao(e: IExpr, m: Motor): String {
         val tex = m.ev(F.TeXForm(e)).toString()
         val comNomes = SIMBOLO.replace(tex) { mr ->
             val n = decodificar(mr.groupValues[2])
-            if (mr.groupValues[1] == PU) "\\mathrm{$n}" else nome(n)
+            when (mr.groupValues[1]) {
+                PU -> "\\mathrm{$n}"
+                Matriciais.PB -> "\\operatorname{$n}"   // embutido pendente: rows(x)
+                else -> nome(n)
+            }
         }
         return comNomes
             .replace(Regex("\\^\\{(-?\\d+)\\.0\\}"), "^{$1}")      // m^{2.0} → m^{2}
@@ -73,10 +78,7 @@ fun Planilha.resultadoTela(id: String): ResultadoTela {
     e.faixa?.let { return ResultadoTela("${LatexSaida.expressao(it.inicio, motor)}\\,..\\,${LatexSaida.expressao(it.fim, motor)}") }
     if (e.funcao != null) return ResultadoTela(null)
     val v = e.valor ?: return ResultadoTela(null)
-    if (v.isList) {
-        val itens = (1 until (v as IAST).size()).map { valorSimples(v.get(it)) }
-        return ResultadoTela("\\begin{pmatrix}" + itens.joinToString("\\\\") + "\\end{pmatrix}")
-    }
+    if (v.isList) return matrizTela(v, r)
     if (e.tipo == "parcial" || r.tipo == "avaliacao_simbolica" || r.tipo == "definicao_simbolica" || motor.temLivres(v))
         return ResultadoTela(LatexSaida.expressao(v, motor))
     val tela = exibir(id)
@@ -86,6 +88,6 @@ fun Planilha.resultadoTela(id: String): ResultadoTela {
     return ResultadoTela(LatexSaida.numero(num) + if (un.isEmpty()) "" else "\\," + LatexSaida.unidade(un))
 }
 
-private fun Planilha.valorSimples(x: IExpr): String =
+internal fun Planilha.valorSimples(x: IExpr): String =
     if (motor.temLivres(x) || motor.temUnidade(x)) LatexSaida.expressao(x, motor)
     else try { LatexSaida.numero(tracolab.nucleo.g6(motor.dbl(x))) } catch (_: Exception) { LatexSaida.expressao(x, motor) }

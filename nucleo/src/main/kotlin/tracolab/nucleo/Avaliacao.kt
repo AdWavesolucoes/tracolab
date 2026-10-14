@@ -44,28 +44,27 @@ fun avaliar(n: No, c: Contexto): IExpr {
         is No.Unidade -> avaliarUnidade(n.expr, m)
         is No.Neg -> m.ev(F.Negate(avaliar(n.a, c)))
         is No.Bin -> {
-            val a = avaliar(n.a, c); val b = avaliar(n.b, c)
+            val a = avaliar(n.a, c)
+            // M^T com M matriz/vetor é a transposta (T não é avaliado como nome)
+            if (n.op == '^' && n.b == No.Id("T") && a.isList) return Matriciais.transposta(a)
+            val b = avaliar(n.b, c)
+            if (a.isList || b.isList) return Matriciais.binario(n.op, a, b, m)
             when (n.op) {
                 '+' -> { m.checarSoma(a, b); m.ev(F.Plus(a, b)) }
                 '-' -> { m.checarSoma(a, b); m.ev(F.Subtract(a, b)) }
-                '*' -> m.ev(F.Times(a, b))
+                '*', '×' -> m.ev(F.Times(a, b))
                 '/' -> { if (b.isZero) throw ErroCalculo("Divisão por zero."); m.ev(F.Divide(a, b)) }
                 '^' -> m.ev(F.Power(a, b))
                 else -> throw NaoSuportado("operador ${n.op}")
             }
         }
-        is No.Cmp -> comparar(n.op, avaliar(n.a, c), avaliar(n.b, c), m)
-        is No.Chama -> chamar(n, c)
-        is No.Indice -> {
-            val base = avaliar(n.base, c)
-            val idx = n.idx.map { avaliar(it, c) }
-            if (base.isList && idx.size == 1 && idx[0].isInteger) {
-                val k = m.dbl(idx[0]).toInt() - c.pl.origem
-                val l = base as IAST
-                if (k < 0 || k >= l.argSize()) throw ErroCalculo("Índice fora do intervalo.")
-                l.get(k + 1)
-            } else throw NaoSuportado("índice")
+        is No.Cmp -> {
+            val a = avaliar(n.a, c); val b = avaliar(n.b, c)
+            if (a.isList || b.isList) throw ErroCalculo("A comparação é entre escalares; elemento a elemento, use vec(...).")
+            comparar(n.op, a, b, m)
         }
+        is No.Chama -> chamar(n, c)
+        is No.Indice -> Matriciais.indice(avaliar(n.base, c), n.idx.map { avaliar(it, c) }, c.pl.origem, m)
         // Representação (ADR 0004): uma coluna só ([a; b; c]) é vetor, uma List simples como a de
         // v[i] := ...; senão, List de linhas (List de List). Operações de matriz: embutidos/.
         is No.Matriz -> {
