@@ -122,18 +122,24 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
                     return estadoDe(v, c, exato = r.tipo == "definicao_simbolica")
                 }
                 "elemento" -> {
+                    if (r.indices.size != 1) throw NaoSuportado("elemento de matriz")
                     val atual = (env[r.define[0]] as? Valor.Expr)?.e
                     val lista: MutableList<IExpr> =
                         if (atual != null && atual.isList) (1 until (atual as IAST).size()).map { atual.get(it) }.toMutableList()
                         else mutableListOf()
+                    var pendente: IExpr? = null
                     iterar(c) {
-                        val k = motor.dbl(avaliar(r.indices[0], c)).toInt() - origem
+                        val i = avaliar(r.indices[0], c)
+                        // índice ainda faltando: o vetor fica pendente (v_n), e quem o usa também
+                        if (motor.temLivres(i)) { pendente = i; return@iterar F.C0 }
+                        val k = indiceInteiro(i, motor) - origem
                         if (k < 0) throw ErroCalculo("Índice fora do intervalo.")
                         val v = avaliar(r.expr!!, c)
                         while (lista.size <= k) lista += F.C0
                         lista[k] = v
                         F.C0
                     }
+                    pendente?.let { return estadoDe(F.Subscript(F.List(*lista.toTypedArray()), it), c) }
                     return estadoDe(F.List(*lista.toTypedArray()), c)
                 }
             }

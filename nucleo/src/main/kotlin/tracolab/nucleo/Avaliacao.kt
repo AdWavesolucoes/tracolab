@@ -59,8 +59,11 @@ fun avaliar(n: No, c: Contexto): IExpr {
         is No.Indice -> {
             val base = avaliar(n.base, c)
             val idx = n.idx.map { avaliar(it, c) }
-            if (base.isList && idx.size == 1 && idx[0].isInteger) {
-                val k = m.dbl(idx[0]).toInt() - c.pl.origem
+            // vetor ou índice ainda faltando: o elemento fica pendente (v_k), como um nome que falta
+            if ((!base.isList && m.temLivres(base)) || idx.any { m.temLivres(it) })
+                return F.ast(F.Subscript).also { s -> s.append(base); idx.forEach { s.append(it) } }
+            if (base.isList && idx.size == 1) {
+                val k = indiceInteiro(idx[0], m) - c.pl.origem
                 val l = base as IAST
                 if (k < 0 || k >= l.argSize()) throw ErroCalculo("Índice fora do intervalo.")
                 l.get(k + 1)
@@ -75,6 +78,14 @@ fun avaliar(n: No, c: Contexto): IExpr {
         }
         is No.Texto -> throw NaoSuportado("texto")   // sintaxe reservada; a avaliação fica com a área de lógica
     }
+}
+
+/** Índice de vetor: número inteiro sem unidade (2 e 2.0 valem; 1.5 e 2{m} não). */
+fun indiceInteiro(x: IExpr, m: Motor): Int {
+    if (m.temUnidade(x)) throw ErroCalculo("O índice não pode ter unidade.")
+    val d = try { m.dbl(x) } catch (_: Exception) { throw ErroCalculo("O índice deve ser um número inteiro.") }
+    if (d != Math.rint(d) || Math.abs(d) > Int.MAX_VALUE) throw ErroCalculo("O índice deve ser um número inteiro.")
+    return d.toInt()
 }
 
 private fun avaliarUnidade(n: No, m: Motor): IExpr = when (n) {

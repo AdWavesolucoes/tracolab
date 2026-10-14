@@ -2,8 +2,7 @@
   "versao": 1,
   "descricao": "Regressões de bugs encontrados no núcleo (área bugs-nucleo). Cada caso falhava antes da correção.",
   "casos": [
-    {"id": "reg-01", "nome": "unidade com expoente negativo: soma e exibição pedida (zero negativo nas dimensões)", "modo": "parcial",
-     "passos": [
+    {"id": "reg-01", "nome": "unidade com expoente negativo: soma e exibição pedida (zero negativo nas dimensões)", "modo": "parcial", "passos": [
        {"acao": "adicionar", "id": "f", "texto": "f := 4000{Hz}/64", "y": 10},
        {"acao": "adicionar", "id": "s", "texto": "f + 1{Hz} =", "y": 20},
        {"acao": "adicionar", "id": "e", "texto": "f = {Hz}", "y": 30},
@@ -11,6 +10,39 @@
        {"verificar": "s", "tipo": "numerico", "tela": "63.5 Hz"},
        {"verificar": "e", "tela": "62.5 Hz"},
        {"verificar": "t", "tela": "3 m/s"}
+     ]},
+    {"id": "reg-02", "nome": "índice vindo de uma definição (2 guardado como 2.0) lê o elemento", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "v", "texto": "v := [10; 20; 30]", "y": 10},
+       {"acao": "adicionar", "id": "k", "texto": "k := 2", "y": 20},
+       {"acao": "adicionar", "id": "a", "texto": "v[k] =", "y": 30},
+       {"acao": "adicionar", "id": "b", "texto": "v[k - 1] + v[4/2] =", "y": 40},
+       {"verificar": "a", "tipo": "numerico", "num": 30},
+       {"verificar": "b", "tipo": "numerico", "num": 50}
+     ]},
+    {"id": "reg-03", "nome": "índice fracionário ou com unidade é erro, não truncamento silencioso", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "w", "texto": "w[0.5] := 1", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "v := [1; 2]", "y": 20},
+       {"acao": "adicionar", "id": "a", "texto": "v[1.5] =", "y": 30},
+       {"acao": "adicionar", "id": "b", "texto": "v[1{m}] =", "y": 40},
+       {"acao": "adicionar", "id": "i", "texto": "i := 0, 0.5..1", "y": 50},
+       {"acao": "adicionar", "id": "u", "texto": "u[i] := i", "y": 60},
+       {"verificar": "w", "tipo": "erro", "msg_contem": "inteiro"},
+       {"verificar": "a", "tipo": "erro", "msg_contem": "inteiro"},
+       {"verificar": "b", "tipo": "erro", "msg_contem": "unidade"},
+       {"verificar": "u", "tipo": "erro", "msg_contem": "inteiro"}
+     ]},
+    {"id": "reg-04", "nome": "vetor ou índice faltando deixa o elemento pendente, não 'não suportado'", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "a", "texto": "w[1]*2 =", "y": 10},
+       {"acao": "adicionar", "id": "v", "texto": "v := [10; 20]", "y": 20},
+       {"acao": "adicionar", "id": "b", "texto": "v[m] =", "y": 30},
+       {"acao": "adicionar", "id": "u", "texto": "u[n] := 3", "y": 40},
+       {"acao": "adicionar", "id": "c", "texto": "u[0] + 1 =", "y": 50},
+       {"verificar": "a", "tipo": "parcial", "livres": ["w"]},
+       {"verificar": "b", "tipo": "parcial", "livres": ["m"]},
+       {"verificar": "u", "tipo": "parcial", "livres": ["n"]},
+       {"verificar": "c", "tipo": "parcial", "livres": ["n"]},
+       {"acao": "adicionar", "id": "n", "texto": "n := 1", "y": 35},
+       {"verificar": "c", "tipo": "numerico", "num": 1}
      ]}
   ]
 }
