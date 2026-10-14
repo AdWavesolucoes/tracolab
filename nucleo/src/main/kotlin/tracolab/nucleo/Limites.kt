@@ -1,7 +1,11 @@
 package tracolab.nucleo
 
 import org.matheclipse.core.basic.Config
+import org.matheclipse.core.eval.exception.ASTElementLimitExceeded
+import org.matheclipse.core.eval.exception.BigIntegerLimitExceeded
 import org.matheclipse.core.eval.exception.LimitException
+import org.matheclipse.core.eval.exception.MemoryLimitExceeded
+import org.matheclipse.core.eval.exception.PolynomialDegreeLimitExceeded
 import org.matheclipse.core.eval.exception.TimeoutException
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
@@ -121,7 +125,11 @@ internal object LimitesSymja {
 internal fun mensagemDeLimite(e: Throwable, prazo: String): String? = when (e) {
     is TempoEsgotado -> e.message
     is TimeoutException -> prazo
-    is LimitException -> "Cálculo grande demais para o motor (números, expressões ou repetições além do limite)."
+    is BigIntegerLimitExceeded -> "Número grande demais para a conta exata (mais de 60 mil algarismos)."
+    is ASTElementLimitExceeded -> "Expressão ou lista grande demais para o motor."
+    is PolynomialDegreeLimitExceeded -> "Polinômio de grau alto demais."
+    is MemoryLimitExceeded -> "Memória insuficiente para este cálculo."
+    is LimitException -> "Cálculo grande demais para o motor (limite de repetições)."
     is StackOverflowError -> "Fórmula ou recursão profunda demais."
     is OutOfMemoryError -> "Memória insuficiente para este cálculo."
     else -> null
