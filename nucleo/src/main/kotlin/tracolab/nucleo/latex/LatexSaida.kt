@@ -56,8 +56,8 @@ object LatexSaida {
         return if (m == null) base else "$base\\times10^{${if (m.groupValues[2] == "-") "-" else ""}${m.groupValues[3]}}"
     }
 
-    /** "kN", "m^2", "kg·m^-1" → LaTeX de unidade. */
-    fun unidade(t: String): String = t.split("·").joinToString("\\cdot ") { parte ->
+    /** "kN", "m^2", "kg·m^-1", "kN*m" (unidade pedida pelo teclado) → LaTeX de unidade. */
+    fun unidade(t: String): String = t.split("·", "*").joinToString("\\cdot ") { parte ->
         val nomeU = parte.substringBefore('^'); val pot = parte.substringAfter('^', "")
         "\\mathrm{$nomeU}" + if (pot.isEmpty()) "" else "^{$pot}"
     }

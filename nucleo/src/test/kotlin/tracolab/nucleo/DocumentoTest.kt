@@ -94,4 +94,9 @@ class DocumentoTest {
             LatexEntrada.regiao("A\\tldef50\\,\\mathrm{mm}^2"), "x := q*A =")
         assertEquals("12\\,\\mathrm{kN}/\\mathrm{m}\\cdot 50\\,\\mathrm{mm}^{2}", pl.substituicaoTela("r2"))
     }
+
+    @Test fun unidadeCompostaPedidaSemAsterisco() {
+        val pl = folha("q := 12{kN/m}", "L := 6{m}", "M := q*L^2/8 = {kN*m}")
+        assertEquals("54\\,\\mathrm{kN}\\cdot \\mathrm{m}", pl.resultadoTela("r2").latex)
+    }
 }

@@ -6,6 +6,7 @@
   const H = 297 * 96 / 25.4;   // altura de uma A4 em px CSS (1122,5)
   const FOLGA = 240;            // espaço livre abaixo da última região, para tocar e criar outra
   const MARGEM = 36;            // onde começa a região empurrada para a página seguinte
+  const RODAPE = 34;            // faixa do rodapé de impressão, no fim de cada página
 
   function marcas(classe, n, monta) {
     const atuais = [...pagina.querySelectorAll(":scope > ." + classe)];
@@ -39,7 +40,7 @@
     for (const c of caixas) {
       let t = c.topo + desloc;
       const p = Math.floor(t / H);
-      if (c.alt < H - 2 * MARGEM && Math.floor((t + c.alt - 1) / H) > p) {
+      if (c.alt < H - MARGEM - RODAPE && t + c.alt > (p + 1) * H - RODAPE) {
         const novo = (p + 1) * H + MARGEM;
         desloc += novo - t;
         t = novo;
