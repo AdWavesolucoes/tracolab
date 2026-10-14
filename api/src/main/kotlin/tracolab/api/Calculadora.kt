@@ -19,6 +19,16 @@ import java.util.concurrent.TimeoutException
 
 private const val MAX_TEXTO_JSON = 8_000_000
 
+/** Maior aninhamento de chaves e parênteses do LaTeX. */
+private fun profundidade(latex: String): Int {
+    var nivel = 0; var maior = 0
+    for (c in latex) when (c) {
+        '{', '(', '[' -> { nivel++; if (nivel > maior) maior = nivel }
+        '}', ')', ']' -> nivel--
+    }
+    return maior
+}
+
 /** Pedido que a API recusa inteiro (400): JSON malformado, campos errados, tamanho além do limite. */
 class PedidoInvalido(msg: String) : Exception(msg)
 
@@ -33,6 +43,8 @@ data class LimitesPedido(
     val regioes: Int = 2_000,
     val caracteresLatex: Int = 20_000,
     val caracteresId: Int = 100,
+    /** Chaves e parênteses aninhados numa fórmula. */
+    val niveis: Int = 200,
     /** Espera por um motor livre antes de responder "ocupado". */
     val msEspera: Long = 20_000,
     /** Folga, além do prazo da folha, antes de abandonar um cálculo que não para (ex.: conta presa
@@ -131,6 +143,11 @@ class Calculadora(
             if (latex.isBlank()) { o.put("tipo", "vazia"); continue }
             if (latex.length > limitesPedido.caracteresLatex) {
                 o.put("tipo", "erro_sintaxe").put("msg", "Fórmula longa demais: ${latex.length} caracteres (máximo ${limitesPedido.caracteresLatex}).")
+                continue
+            }
+            // a conversão do LaTeX não tem prazo e fica quadrática com chaves muito aninhadas
+            if (profundidade(latex) > limitesPedido.niveis) {
+                o.put("tipo", "erro_sintaxe").put("msg", "Fórmula aninhada demais (mais de ${limitesPedido.niveis} níveis).")
                 continue
             }
             try {

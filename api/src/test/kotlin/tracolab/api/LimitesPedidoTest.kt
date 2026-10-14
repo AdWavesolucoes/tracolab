@@ -39,8 +39,15 @@ class LimitesPedidoTest {
 
     @Test fun formulaFundaCalculaNaPilhaGrande() {
         // 3 mil chaves aninhadas estouram a pilha padrão, mas não a da thread de cálculo
-        val r = regioes(Calculadora().calcularJson(pedido("{".repeat(3000) + "1" + "}".repeat(3000) + "+1=")))
+        val calc = Calculadora(limitesPedido = LimitesPedido(niveis = 5000))
+        val r = regioes(calc.calcularJson(pedido("{".repeat(3000) + "1" + "}".repeat(3000) + "+1=")))
         assertEquals("2", r.getValue("r0")["resultado"].asText())
+    }
+
+    @Test fun aninhamentoDemaisEErroSoNaRegiao() {
+        val r = regioes(Calculadora().calcularJson(pedido("{".repeat(201) + "1" + "}".repeat(201) + "=", "\\frac{\\left(1+2\\right)}{3}=")))
+        assertEquals("Fórmula aninhada demais (mais de 200 níveis).", r.getValue("r0")["msg"].asText())
+        assertEquals("1", r.getValue("r1")["resultado"].asText())
     }
 
     @Test fun estouroNumaRegiaoNaoDerrubaAFolha() {
