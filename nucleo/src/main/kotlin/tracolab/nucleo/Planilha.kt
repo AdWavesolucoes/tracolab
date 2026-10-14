@@ -167,7 +167,7 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
             if (modo == "classico" && !simbolica) throw ErroCalculo("Variável não definida.")
             return Estado("parcial", valor = v, livres = livres)
         }
-        return Estado("numerico", valor = if (exato) v else motor.ev(F.N(v)))
+        return Estado("numerico", valor = motor.expandirUnidades(if (exato) v else motor.ev(F.N(v))))
     }
 
     // ---- exibição
@@ -188,7 +188,8 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
                 val d = motor.dims(v)
                 "${g6(motor.dbl(motor.ev(F.Divide(v, motor.monomio(d)))))} ${textoUnidade(d)}"
             }
-        } catch (err: ErroUnidade) { "[erro] ${err.message}" }
+        } catch (err: ErroUnidade) { "[erro] ${err.message}"
+        } catch (err: Exception) { v.toString() }   // não real (2·i) ou não numérico: mostra a expressão
     }
 
     private val derivadas = listOf(

@@ -91,6 +91,13 @@ class Motor {
 
     private fun numero(p: Double): IExpr = if (p == Math.rint(p)) F.ZZ(p.toLong()) else F.num(p)
 
+    /**
+     * Raízes e potências fracionárias de unidades: √(25 m²) → 5 m. As unidades de base são
+     * positivas, mas o Symja não supõe isso e deixa √(m²) sem simplificar (aí o número não sai).
+     * Só vale para valor sem nome faltando, para não transformar √(x²) em x.
+     */
+    fun expandirUnidades(e: IExpr): IExpr = if (temUnidade(e) && !temLivres(e)) ev(F.PowerExpand(e)) else e
+
     /** Nomes ainda não fornecidos dentro de um valor. */
     fun nomesLivres(e: IExpr): List<String> {
         val out = sortedSetOf<String>()

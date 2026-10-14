@@ -104,7 +104,7 @@ private fun comparar(op: String, a0: IExpr, b0: IExpr, m: Motor): IExpr {
     if ((m.temUnidade(a) || m.temUnidade(b)) && !(m.temLivres(a) || m.temLivres(b))) {
         m.checarSoma(a, b)
         val mono = m.monomio(m.dims(if (m.temUnidade(a)) a else b))
-        a = m.ev(F.Divide(a, mono)); b = m.ev(F.Divide(b, mono))
+        a = m.ev(F.PowerExpand(F.Divide(a, mono))); b = m.ev(F.PowerExpand(F.Divide(b, mono)))
     }
     val r = m.ev(when (op) {
         ">" -> F.Greater(a, b); "<" -> F.Less(a, b); ">=" -> F.GreaterEqual(a, b)
