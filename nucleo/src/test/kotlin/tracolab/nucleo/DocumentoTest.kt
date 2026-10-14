@@ -87,4 +87,11 @@ class DocumentoTest {
             assertEquals("\\operatorname{zz_doc_soma}\\left(i^{2};\\,i;\\,1;\\,3\\right)", pl.substituicaoTela("r2"))
         } finally { Embutidos.especiais.remove("zz_doc_soma") }
     }
+
+    @Test fun unidadesComoOTecladoInsere() {
+        // o teclado de unidades insere \mathrm{kN}/\mathrm{m} e \mathrm{mm}^2 separados
+        val pl = folha(LatexEntrada.regiao("q\\tldef12\\,\\mathrm{kN}/\\mathrm{m}"),
+            LatexEntrada.regiao("A\\tldef50\\,\\mathrm{mm}^2"), "x := q*A =")
+        assertEquals("12\\,\\mathrm{kN}/\\mathrm{m}\\cdot 50\\,\\mathrm{mm}^{2}", pl.substituicaoTela("r2"))
+    }
 }

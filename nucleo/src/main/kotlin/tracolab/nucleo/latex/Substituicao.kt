@@ -51,9 +51,10 @@ private class Substituidor(val pl: Planilha, val r: Regiao) {
             when (n.op) {
                 '+' -> T("${par(a, 2)}+${parNeg(b, 2)}", 2)
                 '-' -> T("${par(a, 2)}-${parNeg(b, 3)}", 2)
-                // 20{mm}: número e unidade com espaço fino, sem ponto de multiplicação
-                '*' -> if (n.b is No.Unidade) T("${parNeg(a, 3)}\\,${b.s}", 3) else T("${par(a, 3)}\\cdot ${parNeg(b, 3)}", 3)
-                '/' -> T("\\frac{${a.s}}{${b.s}}", 9)
+                // 20{mm}, 50{mm}^2: número e unidade com espaço fino, sem ponto de multiplicação
+                '*' -> if (unidadePura(n.b)) T("${parNeg(a, 3)}\\,${b.s}", 3) else T("${par(a, 3)}\\cdot ${parNeg(b, 3)}", 3)
+                // 12{kN}/{m}: a unidade composta fica na linha (12 kN/m), não vira fração
+                '/' -> if (unidadePura(n.b) && quantidade(n.a)) T("${a.s}/${par(b, 9)}", 3) else T("\\frac{${a.s}}{${b.s}}", 9)
                 '^' -> T("${parNeg(a, 6)}^{${b.s}}", 5)
                 else -> T("${par(a, 3)}${n.op}${par(b, 3)}", 3)
             }
@@ -99,11 +100,22 @@ private class Substituidor(val pl: Planilha, val r: Regiao) {
         return T(tela, if (tela.startsWith("-")) 4 else if (simples) 9 else 3)
     }
 
-    /** Número escrito à mão, com ou sem unidade: 12, 0,02, 20{mm}, -3{kN}, {m}. */
+    /** Número escrito à mão, com ou sem unidade: 12, 0,02, 20{mm}, -3{kN}, 12{kN}/{m}, 50{mm}^2. */
     private fun quantidade(n: No): Boolean = when (n) {
         is No.Num, is No.Unidade -> true
         is No.Neg -> quantidade(n.a)
-        is No.Bin -> n.op == '*' && n.a is No.Num && n.b is No.Unidade
+        is No.Bin -> (n.op == '*' || n.op == '/') && quantidade(n.a) && unidadePura(n.b)
+        else -> false
+    }
+
+    /** Só unidades: {kN}, {m}^2, {kN}*{m}. */
+    private fun unidadePura(n: No): Boolean = when (n) {
+        is No.Unidade -> true
+        is No.Bin -> when (n.op) {
+            '^' -> unidadePura(n.a) && (n.b is No.Num || (n.b is No.Neg && n.b.a is No.Num))
+            '*', '/' -> unidadePura(n.a) && unidadePura(n.b)
+            else -> false
+        }
         else -> false
     }
 
