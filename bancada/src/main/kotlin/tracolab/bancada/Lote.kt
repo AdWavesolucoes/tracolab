@@ -115,6 +115,7 @@ private fun calcularFolha(folha: JsonNode, motor: Motor): ObjectNode {
         o.put("tipo", e.tipo).put("msg", e.msg).put("aviso", e.aviso)
         o.putArray("livres").apply { e.livres.forEach { add(it) } }
         parcial?.get(id)?.estado?.let { p -> o.putArray("livres_parcial").apply { p.livres.forEach { add(it) } } }
+        if (e.tipo == "numerico" || e.tipo == "parcial") o.put("tela", pl.exibir(id).take(200))
         val v = e.valor
         when {
             e.funcao != null -> o.put("funcao", true)

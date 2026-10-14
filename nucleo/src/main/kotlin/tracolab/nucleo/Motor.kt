@@ -60,7 +60,8 @@ class Motor {
         if (e.isPower) {
             val ex = e.exponent()
             if (temUnidade(ex) || !ex.isNumber) throw ErroUnidade("Expoente com unidade ou simbólico.")
-            val k = dbl(ex); return dims(e.base()).map { it * k }.toDoubleArray()
+            // + 0.0: 0 * (-1) dá -0.0, e contentEquals distingue -0.0 de 0.0 (1/{s} ≠ {Hz})
+            val k = dbl(ex); return dims(e.base()).map { it * k + 0.0 }.toDoubleArray()
         }
         if (e.isPlus) {
             val ds = (1 until (e as IAST).size()).map { dims(e.get(it)) }

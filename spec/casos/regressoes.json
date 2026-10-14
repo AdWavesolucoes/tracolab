@@ -1,0 +1,16 @@
+{
+  "versao": 1,
+  "descricao": "Regressões de bugs encontrados no núcleo (área bugs-nucleo). Cada caso falhava antes da correção.",
+  "casos": [
+    {"id": "reg-01", "nome": "unidade com expoente negativo: soma e exibição pedida (zero negativo nas dimensões)", "modo": "parcial",
+     "passos": [
+       {"acao": "adicionar", "id": "f", "texto": "f := 4000{Hz}/64", "y": 10},
+       {"acao": "adicionar", "id": "s", "texto": "f + 1{Hz} =", "y": 20},
+       {"acao": "adicionar", "id": "e", "texto": "f = {Hz}", "y": 30},
+       {"acao": "adicionar", "id": "t", "texto": "2{m}/{s} + 1/{s}*1{m} = {m/s}", "y": 40},
+       {"verificar": "s", "tipo": "numerico", "tela": "63.5 Hz"},
+       {"verificar": "e", "tela": "62.5 Hz"},
+       {"verificar": "t", "tela": "3 m/s"}
+     ]}
+  ]
+}
