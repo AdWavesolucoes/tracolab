@@ -66,9 +66,14 @@ fun avaliar(n: No, c: Contexto): IExpr {
                 l.get(k + 1)
             } else throw NaoSuportado("índice")
         }
-        // Literais com sintaxe já reservada; a avaliação fica com a área de cada um.
-        is No.Matriz -> throw NaoSuportado("matriz")
-        is No.Texto -> throw NaoSuportado("texto")
+        // Representação (ADR 0004): uma coluna só ([a; b; c]) é vetor, uma List simples como a de
+        // v[i] := ...; senão, List de linhas (List de List). Operações de matriz: embutidos/.
+        is No.Matriz -> {
+            val linhas = n.linhas.map { l -> l.map { avaliar(it, c) } }
+            if (linhas.all { it.size == 1 }) F.List(*linhas.map { it[0] }.toTypedArray())
+            else F.List(*linhas.map { F.List(*it.toTypedArray()) }.toTypedArray())
+        }
+        is No.Texto -> throw NaoSuportado("texto")   // sintaxe reservada; a avaliação fica com a área de lógica
     }
 }
 

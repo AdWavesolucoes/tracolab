@@ -38,10 +38,15 @@ class CosturasTest {
         assertThrows(LatexEntrada.ErroLatex::class.java) { LatexEntrada.regiao("\\begin{foo}1\\end{foo}") }
     }
 
-    @Test fun matrizAindaNaoAvaliadaENaoSuportada() {
+    @Test fun matrizLiteralViraLista() {
         val pl = Planilha()
-        pl.adicionar(regiaoDeTexto("m", "M := [1, 2; 3, 4]", 10.0))
-        assertEquals("nao_suportado", pl.regioes[0].estado!!.tipo)
+        pl.adicionar(regiaoDeTexto("v", "v := [1; 2; a]", 10.0))
+        pl.adicionar(regiaoDeTexto("e", "v[1] =", 20.0))
+        pl.adicionar(regiaoDeTexto("m", "M := [1, 2; 3, 4]", 30.0))
+        assertEquals("parcial", pl.regioes[0].estado!!.tipo)          // a ainda falta
+        assertEquals(listOf("a"), pl.regioes[0].estado!!.livres)
+        assertEquals("2", pl.exibir("e"))                               // origem 0
+        assertEquals("{{1.0,2.0},{3.0,4.0}}", pl.regioes[2].estado!!.valor.toString())   // lista de linhas
     }
 
     @Test fun nomeLigadoDeEspecialNaoEUsado() {
