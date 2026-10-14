@@ -21,7 +21,12 @@ async function recalcular() {
     regioes: estado.regioes.map((r) => {
       const tipo = TL.tipos[r.tipo];
       if (tipo) return tipo.pedido ? tipo.pedido(r) : null;
-      return { id: r.id, latex: r.latex + (r.unidade || ""), x: r.x, y: linhaDeBase(r) };
+      // a unidade do resultado só vale enquanto a fórmula termina em "=": sem ele, numa definição
+      // ela multiplicaria o valor (R := qL/2 kN)
+      const unidade = r.unidade && /=\s*$/.test(r.latex) ? r.unidade : "";
+      const o = { id: r.id, latex: r.latex + unidade, x: r.x, y: linhaDeBase(r) };
+      if (r.substituir) o.substituir = true;
+      return o;
     }).filter(Boolean),
     opcoes: Object.assign({}, ...TL.opcoes.map((f) => f())),
   };
