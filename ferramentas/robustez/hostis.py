@@ -74,6 +74,8 @@ def bruto(dados, tempo=10):
 def resumo(st, corpo):
     try:
         j = json.loads(corpo)
+        if "erro" in j and not j.get("regioes"):
+            return "erro: " + j["erro"]
         regs = j.get("regioes", [])
         estados = {}
         for o in regs:

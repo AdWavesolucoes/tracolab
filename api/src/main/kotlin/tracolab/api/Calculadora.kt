@@ -17,6 +17,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
+private const val MAX_TEXTO_JSON = 8_000_000
+
 /** Pedido que a API recusa inteiro (400): JSON malformado, campos errados, tamanho além do limite. */
 class PedidoInvalido(msg: String) : Exception(msg)
 
@@ -62,7 +64,8 @@ class Calculadora(
     private val limitesPedido: LimitesPedido = LimitesPedido(),
 ) {
     private val json = ObjectMapper().apply {
-        factory.setStreamReadConstraints(StreamReadConstraints.builder().maxStringLength(limitesPedido.caracteresLatex * 4).build())
+        // o tamanho de cada fórmula é conferido depois, região por região (erro só nela)
+        factory.setStreamReadConstraints(StreamReadConstraints.builder().maxStringLength(MAX_TEXTO_JSON).build())
     }
     private val livres = ArrayBlockingQueue<Motor>(motores).apply { repeat(motores) { add(Motor()) } }
     private val threads = Executors.newCachedThreadPool { r ->

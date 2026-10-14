@@ -33,11 +33,17 @@ fun main(args: Array<String>) {
     val porta = args.getOrNull(1)?.toInt() ?: 8098
     val raiz = File("web").canonicalFile
     val calc = Calculadora(motores = System.getenv("TRACOLAB_MOTORES")?.toIntOrNull()?.coerceIn(1, 8) ?: 2)
+    iniciar(endereco, porta, raiz, calc)
+    println("TracoLab (desenvolvimento) em http://$endereco:$porta/  — página em ${raiz.path}")
+}
 
+/** Sobe o servidor (porta 0: uma livre, para testes). */
+fun iniciar(endereco: String, porta: Int, raiz: File, calc: Calculadora): HttpServer {
     val srv = HttpServer.create(InetSocketAddress(endereco, porta), 0)
     srv.createContext("/api/calcular") { ex -> tratar(ex) {
         if (ex.requestMethod != "POST") return@tratar naoPermitido(ex, "POST")
         val corpo = try { lerCorpo(ex, MAX_CORPO) } catch (e: GrandeDemais) {
+            drenar(ex)   // sem ler o resto, a conexão fecha e o cliente não vê a resposta
             return@tratar erroJson(ex, 413, "Pedido grande demais (máximo ${MAX_CORPO / 1_000_000} MB).")
         }
         val resp = try { calc.calcularJson(corpo.toString(Charsets.UTF_8)) }
@@ -59,7 +65,7 @@ fun main(args: Array<String>) {
     } }
     srv.executor = Executors.newFixedThreadPool(16)   // um cliente lento não prende os outros
     srv.start()
-    println("TracoLab (desenvolvimento) em http://$endereco:$porta/  — página em ${raiz.path}")
+    return srv
 }
 
 private val MOTOR = System.getenv("TRACOLAB_MOTOR").orEmpty()
@@ -85,7 +91,7 @@ private fun lerCorpo(ex: HttpExchange, max: Int): ByteArray {
     ex.requestHeaders.getFirst("Content-Length")?.toLongOrNull()?.let { if (it > max) throw GrandeDemais() }
     val saida = ByteArrayOutputStream()
     val buf = ByteArray(64 * 1024)
-    ex.requestBody.use { ent ->
+    ex.requestBody.let { ent ->
         while (true) {
             val n = ent.read(buf)
             if (n < 0) break
@@ -94,6 +100,12 @@ private fun lerCorpo(ex: HttpExchange, max: Int): ByteArray {
         }
     }
     return saida.toByteArray()
+}
+
+/** Descarta o resto do corpo, até 4× o máximo (depois disso a conexão fecha mesmo). */
+private fun drenar(ex: HttpExchange) = runCatching {
+    val buf = ByteArray(64 * 1024); var total = 0L
+    while (total < 4L * MAX_CORPO) { val n = ex.requestBody.read(buf); if (n < 0) break; total += n }
 }
 
 /** Toda resposta sai, mesmo com erro inesperado: nada de conexão pendurada nem stack trace para o cliente. */

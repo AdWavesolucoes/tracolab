@@ -23,8 +23,8 @@ class Faixa(val inicio: IExpr, val passo: IExpr, val fim: IExpr) {
     fun valores(m: Motor, maximo: Int = Limites().elementos): List<IExpr> {
         val a = m.dbl(inicio); val d = m.dbl(passo); val b = m.dbl(fim)
         if (d == 0.0 || (b - a) / d < 0 || !((b - a) / d).isFinite()) throw ErroCalculo("Faixa inválida")
-        val n = (b - a) / d + 1e-9 + 1
-        if (n > maximo) throw ErroCalculo("Faixa grande demais: ${"%.0f".format(n)} valores (máximo $maximo).")
+        val n = ((b - a) / d + 1e-9).toLong() + 1
+        if (n > maximo) throw ErroCalculo("Faixa grande demais: $n valores (máximo $maximo).")
         return (0 until n.toInt()).map { k -> if (k % 1024 == 0) m.verificarPrazo(); m.ev(F.Plus(inicio, F.Times(F.ZZ(k.toLong()), passo))) }
     }
 }
