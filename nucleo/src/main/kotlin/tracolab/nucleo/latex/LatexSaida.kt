@@ -88,11 +88,11 @@ fun Planilha.resultadoTela(id: String): ResultadoTela {
     if (v.isList) return matrizTela(v, r)
     if (e.tipo == "parcial" || r.tipo == "avaliacao_simbolica" || r.tipo == "definicao_simbolica" || motor.temLivres(v))
         return ResultadoTela(LatexSaida.expressao(v, motor))
-    // número que não é real (2·i): a exibição numérica não se aplica, mostra a expressão exata
-    if (!motor.temUnidade(v) && runCatching { motor.dbl(v) }.isFailure) return ResultadoTela(LatexSaida.expressao(v, motor))
     val tela = exibir(id)
     if (tela.startsWith("[erro]")) return ResultadoTela(null, tela.removePrefix("[erro]").trim())
     val num = tela.substringBefore(' ')
+    // número que não é real (2·i): não há texto "número unidade", mostra a expressão
+    if (!Regex("^-?[0-9.]+(e[+-][0-9]+)?$").matches(num)) return ResultadoTela(LatexSaida.expressao(v, motor))
     val un = tela.substringAfter(' ', "")
     return ResultadoTela(LatexSaida.numero(num) + if (un.isEmpty()) "" else "\\," + LatexSaida.unidade(un))
 }

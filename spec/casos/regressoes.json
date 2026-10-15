@@ -43,6 +43,18 @@
        {"verificar": "c", "tipo": "parcial", "livres": ["n"]},
        {"acao": "adicionar", "id": "n", "texto": "n := 1", "y": 35},
        {"verificar": "c", "tipo": "numerico", "num": 1}
+     ]},
+    {"id": "reg-05", "nome": "raiz e potência fracionária de grandeza com unidade (√(a² + b²) em metros)", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "a", "texto": "a := 3{m}", "y": 10},
+       {"acao": "adicionar", "id": "b", "texto": "b := 4{m}", "y": 20},
+       {"acao": "adicionar", "id": "c", "texto": "c := sqrt(a^2 + b^2)", "y": 30},
+       {"acao": "adicionar", "id": "e", "texto": "c = {cm}", "y": 40},
+       {"acao": "adicionar", "id": "f", "texto": "sqrt(4{m^2}) > 1{m} =", "y": 50},
+       {"acao": "adicionar", "id": "g", "texto": "(8{m^3})^(1/3) + 1{m} =", "y": 60},
+       {"verificar": "c", "tipo": "numerico", "tela": "5 m"},
+       {"verificar": "e", "tela": "500 cm"},
+       {"verificar": "f", "tipo": "numerico", "num": 1},
+       {"verificar": "g", "tela": "3 m"}
      ]}
   ]
 }

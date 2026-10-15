@@ -1,7 +1,9 @@
 package tracolab.nucleo
 
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import tracolab.nucleo.latex.resultadoTela
 
 /** Regressões que não cabem no formato da especificação (área bugs-nucleo). */
 class RegressoesTest {
@@ -11,5 +13,18 @@ class RegressoesTest {
         val pl = Planilha()
         pl.adicionar(regiaoDeTexto("m", "M[1, 1] := 5", 10.0))
         assertNotEquals("{0.0,5.0}", pl.regioes[0].estado!!.valor.toString())
+    }
+
+    /** √(−4) = derrubava a página inteira: exibir lançava ArgumentTypeException ao pedir o double. */
+    @Test fun numeroNaoRealNaoDerrubaAExibicao() {
+        val pl = Planilha()
+        listOf("sqrt(-4) =", "[1; sqrt(-1)] =", "sqrt(-4{m^2}) =").forEachIndexed { k, t ->
+            pl.adicionar(regiaoDeTexto("r$k", t, 10.0 * (k + 1)))
+        }
+        for (r in pl.regioes) {
+            val tela = pl.resultadoTela(r.id).latex
+            assertTrue(tela != null && "i" in tela) { "${r.id}: $tela" }
+            pl.exibir(r.id)
+        }
     }
 }

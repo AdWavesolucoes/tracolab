@@ -201,10 +201,12 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         if (e.tipo != "numerico" && e.tipo != "parcial") return "[${e.tipo}] ${e.msg}"
         val v = e.valor ?: return "?"
         if (motor.temLivres(v)) return v.toString()
+        // número que não é real (2·i) não tem texto "número unidade": mostra a expressão
+        fun texto(x: IExpr) = try { exibirValor(x, r) } catch (err: ErroUnidade) { throw err } catch (_: Exception) { x.toString() }
         if (v.isList) return try {   // [1 kN; 2 kN] e [1, 2; 3, 4]
-            Matriciais.linhas(v).joinToString("; ", "[", "]") { l -> l.joinToString(", ") { exibirValor(it, r) } }
+            Matriciais.linhas(v).joinToString("; ", "[", "]") { l -> l.joinToString(", ") { texto(it) } }
         } catch (err: ErroUnidade) { "[erro] ${err.message}" }
-        return try { exibirValor(v, r) } catch (err: ErroUnidade) { "[erro] ${err.message}" }
+        return try { texto(v) } catch (err: ErroUnidade) { "[erro] ${err.message}" }
     }
 
     /** Texto "número unidade" de um valor escalar numérico, na unidade pedida pela região ou no SI. */
