@@ -154,7 +154,7 @@ private fun valor(pl: Planilha, r: Regiao, v: IExpr): ObjectNode {
         val d = try { m.dims(x) } catch (_: ErroUnidade) { null }
         if (dims == null && d != null) dims = d
         val a = alvo
-        if (a != null && d != null && !d.contentEquals(m.dims(a))) o.put("unidade_incompativel", true)
+        if (a != null && d != null && !x.isZero && !d.contentEquals(m.dims(a))) o.put("unidade_incompativel", true)   // 0 serve em qualquer unidade
         val divisor = when {
             a != null -> a
             d != null && m.temUnidade(x) -> m.monomio(d)
