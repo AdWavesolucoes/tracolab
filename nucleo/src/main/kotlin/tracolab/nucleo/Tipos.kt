@@ -20,12 +20,12 @@ sealed class Valor {
 }
 
 class Faixa(val inicio: IExpr, val passo: IExpr, val fim: IExpr) {
-    fun valores(m: Motor): List<IExpr> {
+    fun valores(m: Motor, maximo: Int = Limites().elementos): List<IExpr> {
         val a = m.dbl(inicio); val d = m.dbl(passo); val b = m.dbl(fim)
-        if (d == 0.0 || (b - a) / d < 0) throw ErroCalculo("Faixa inválida")
-        val n = ((b - a) / d + 1e-9).toInt() + 1
-        if (n > 200_000) throw NaoSuportado("faixa grande demais")
-        return (0 until n).map { k -> m.ev(F.Plus(inicio, F.Times(F.ZZ(k.toLong()), passo))) }
+        if (d == 0.0 || (b - a) / d < 0 || !((b - a) / d).isFinite()) throw ErroCalculo("Faixa inválida")
+        val n = ((b - a) / d + 1e-9).toLong() + 1
+        if (n > maximo) throw ErroCalculo("Faixa grande demais: $n valores (máximo $maximo).")
+        return (0 until n.toInt()).map { k -> if (k % 1024 == 0) m.verificarPrazo(); m.ev(F.Plus(inicio, F.Times(F.ZZ(k.toLong()), passo))) }
     }
 }
 
@@ -52,6 +52,7 @@ class Regiao(
     val usa: List<String> = emptyList(),
     val unidadeExibicao: No? = null,
     val unidadeExibicaoTexto: String? = null,
+    val mostrar: Boolean = false,        // definir e mostrar: R := q*L/2 = (o valor aparece na definição)
 ) {
     var estado: Estado? = null
 }

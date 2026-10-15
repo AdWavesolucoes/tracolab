@@ -2,8 +2,9 @@
 // Carrega a folha salva (ou a de exemplo) e faz o primeiro cálculo. Sempre o último script.
 
 carregar();
-if (!estado.regioes.length) {
-  // folha de exemplo: tensão numa barra tracionada, esperando a carga
+if (!estado.regioes.length && !estado.id) {
+  // folha de exemplo (só na primeira folha do aparelho, que ainda não tem id: ver arquivo.js):
+  // tensão numa barra tracionada, esperando a carga
   estado.nome = "Barra tracionada";
   const ex = [
     [`d${DEF}20\\,\\mathrm{mm}`, "", 40, 48], [`A${DEF}\\frac{\\pi d^2}{4}`, "", 40, 132],

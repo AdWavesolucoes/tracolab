@@ -13,6 +13,7 @@ class Contexto(
     val pl: Planilha,
     val livres: MutableList<String> = mutableListOf(),
     val iter: MutableMap<String, IExpr> = mutableMapOf(),
+    val profundidade: Int = 0,           // chamadas aninhadas de funções do usuário (ADR 0017)
 )
 
 fun numeroExato(t: String): IExpr {
@@ -23,6 +24,7 @@ fun numeroExato(t: String): IExpr {
 
 fun avaliar(n: No, c: Contexto): IExpr {
     val m = c.pl.motor
+    m.verificarPrazo()
     return when (n) {
         is No.Num -> numeroExato(n.texto)
         is No.Id -> {
@@ -107,8 +109,10 @@ private fun chamar(n: No.Chama, c: Contexto): IExpr {
     if (f is Valor.Funcao) {
         val vals = n.args.map { avaliar(it, c) }
         if (vals.size != f.params.size) throw ErroCalculo("${n.nome}: número errado de argumentos")
+        if (c.profundidade >= c.pl.limites.profundidade)
+            throw ErroCalculo("Recursão profunda demais: mais de ${c.pl.limites.profundidade} chamadas aninhadas de ${n.nome}.")
         val env = HashMap(f.env); f.params.zip(vals).forEach { (p, v) -> env[p] = Valor.Expr(v) }
-        return avaliar(f.corpo, Contexto(env, c.pl, c.livres))
+        return avaliar(f.corpo, Contexto(env, c.pl, c.livres, profundidade = c.profundidade + 1))
     }
     if (f != null) throw ErroCalculo("${n.nome} não é uma função")
     // embutidos: registro em Embutidos (um arquivo por área em embutidos/)

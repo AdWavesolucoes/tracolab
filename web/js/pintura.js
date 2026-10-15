@@ -19,7 +19,8 @@ function pintar(o) {
   const nota = el.querySelector(".nota");
 
   // resultado (avaliações): número em vermelhão e a unidade como chip que troca a exibição
-  const avaliacao = o.papel === "avaliacao_numerica" || o.papel === "avaliacao_simbolica";
+  // avaliação, ou definição terminada em "=" (definir e mostrar: R := qL/2 = 36 kN)
+  const avaliacao = o.papel === "avaliacao_numerica" || o.papel === "avaliacao_simbolica" || !!o.mostra;
   res.innerHTML = ""; un.hidden = true;
   if (avaliacao && o.resultado) {
     const partes = o.tipo === "numerico" ? o.resultado.split("\\,") : [o.resultado];

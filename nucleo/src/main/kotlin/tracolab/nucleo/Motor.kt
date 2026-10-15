@@ -25,6 +25,19 @@ class Motor {
     val bases: List<ISymbol> = listOf("m", "kg", "s", "A", "K", "mol", "cd").map { F.symbol(PU + codificar(it)) }
     private val cacheUnid = HashMap<String, IExpr>()
 
+    /** Prazo do cálculo em andamento (ADR 0017): `verificarPrazo()` nos laços longos, `prazo.tentarPor(ms) { }`. */
+    val prazo = Prazo(this)
+    fun verificarPrazo() = prazo.verificar()
+
+    /** A interrupção por prazo não deve ser engolida por quem captura erros para tentar outro caminho. */
+    fun interrompido(e: Throwable) = e is TempoEsgotado || e is org.matheclipse.core.eval.exception.TimeoutException
+
+    /** O Symja consulta o motor da thread (`EvalEngine.get()`) em muitos pontos internos: antes de
+     *  calcular numa thread que não é a que criou o motor, ele tem que ser o desta thread. */
+    fun ativar() = EvalEngine.set(engine)
+
+    init { LimitesSymja.garantir() }
+
     fun ev(e: IExpr): IExpr = engine.evaluate(e)
     fun dbl(e: IExpr): Double = engine.evalDouble(e)
     fun sym(nome: String): ISymbol = F.symbol(PV + codificar(nome))
@@ -89,6 +102,30 @@ class Motor {
     }
 
     private fun numero(p: Double): IExpr = if (p == Math.rint(p)) F.ZZ(p.toLong()) else F.num(p)
+
+    /**
+     * Valor numérico que não dá para mostrar nem usar: estouro (`10^400`, `10^10^10`), indeterminado
+     * (`0/0` depois de simplificar), infinito, ou conta que o Symja devolveu sem fazer (`Hold`,
+     * limite de iterações). Devolve a mensagem do erro, ou null se o valor é bom.
+     */
+    fun problemaNumerico(v: IExpr, exato: Boolean = false): String? {
+        var msg: String? = null
+        fun anda(x: IExpr) {
+            if (msg != null) return
+            val cabeca = (x as? IAST)?.head()
+            msg = when {
+                cabeca == F.Overflow -> "O resultado passa do maior número que dá para calcular (cerca de 1,8×10³⁰⁸)."
+                cabeca == F.Hold -> "Cálculo grande demais para o motor (limite de repetições)."
+                x.isIndeterminate -> "Resultado indeterminado."
+                !exato && (x.isComplexInfinity || x.isDirectedInfinity) -> "Resultado infinito."
+                x is org.matheclipse.core.interfaces.INum && !x.doubleValue().isFinite() -> "O resultado passa do maior número que dá para calcular (cerca de 1,8×10³⁰⁸)."
+                else -> null
+            }
+            if (msg == null && x is IAST) for (i in 1 until x.size()) anda(x.get(i))
+        }
+        anda(v)
+        return msg
+    }
 
     /** Nomes ainda não fornecidos dentro de um valor. */
     fun nomesLivres(e: IExpr): List<String> {

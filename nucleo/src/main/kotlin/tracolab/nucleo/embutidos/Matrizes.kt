@@ -140,7 +140,9 @@ object Matrizes : ModuloEmbutidos {
     /** Ordena pelo valor numérico da chave (mesma dimensão; os nomes que faltam impedem a ordem). */
     private fun <T> ordenar(xs: List<T>, m: Motor, chave: (T) -> IExpr): List<T> {
         val fat = Matriciais.fatorar(xs.map(chave), m) ?: throw ErroCalculo("Para ordenar, todos os valores precisam ser conhecidos.")
-        val nums = fat.first.map { try { m.dbl(it) } catch (_: Exception) { throw ErroCalculo("Para ordenar, os valores devem ser reais.") } }
+        val nums = fat.first.map {
+            try { m.dbl(it) } catch (e: Exception) { if (m.interrompido(e)) throw e; throw ErroCalculo("Para ordenar, os valores devem ser reais.") }
+        }
         return xs.indices.sortedBy { nums[it] }.map { xs[it] }
     }
 

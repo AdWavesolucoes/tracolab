@@ -16,9 +16,10 @@ import java.math.RoundingMode
  *             "classico" (variável que falta em := ou = é erro). Ver ADR 0002.
  * @param unidades true trata nomes como m, s, kg como unidades quando não são variáveis
  *             (modo compatível). No app a unidade é explícita: 20{mm}. Ver ADR 0007.
+ * @param limites tempo, recursão e tamanho máximos (ADR 0017).
  */
 class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: Boolean = false,
-               val motor: Motor = Motor()) {
+               val motor: Motor = Motor(), val limites: Limites = Limites()) {
     init { require(modo == "parcial" || modo == "classico") { "modo deve ser 'parcial' ou 'classico'" } }
     val regioes = mutableListOf<Regiao>()
     private var env = HashMap<String, Valor>()
@@ -61,9 +62,18 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         }
         env = HashMap(); origemNome = HashMap()
         val recalc = mutableListOf<String>()
-        for (r in ordem) {
-            if (sujos == null || r.id in sujos || r.estado == null) { r.estado = avaliarRegiao(r); recalc += r.id }
-            publicar(r)
+        motor.ativar()
+        // ADR 0017: cada região tem um prazo, e a folha inteira também; o que passar vira erro
+        val folha = "Não calculada: a folha passou de ${textoTempo(limites.msFolha)}."
+        motor.prazo.com(limites.msFolha, folha) {
+            for (r in ordem) {
+                if (sujos == null || r.id in sujos || r.estado == null) {
+                    r.estado = if (motor.prazo.esgotado()) Estado("erro", msg = folha)
+                               else motor.prazo.com(limites.msRegiao, "Cálculo interrompido: passou de ${textoTempo(limites.msRegiao)}.") { avaliarRegiao(r) }
+                    recalc += r.id
+                }
+                publicar(r)
+            }
         }
         return recalc
     }
@@ -92,13 +102,30 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         }
         val aviso = if (r.define.any { it in env } && r.tipoAlvo != "elemento") "Redefinição" else null
         val c = Contexto(HashMap(env), this)
+        elementosRegiao = 0
         return try {
             calcular(r, c).also { if (it.aviso == null) it.aviso = aviso }
-        } catch (e: ErroUnidade) { Estado("erro", msg = e.message)
-        } catch (e: ErroCalculo) { Estado("erro", msg = e.message)
-        } catch (e: NaoSuportado) { Estado("nao_suportado", msg = e.message)
-        } catch (e: UsaFaixa) { Estado("erro", msg = "Faixa '${e.nome}' usada fora de contexto")
-        } catch (e: Exception) { Estado("nao_suportado", msg = "interno ${e.javaClass.simpleName}: ${e.message}") }
+        } catch (e: Throwable) {
+            // limites e falhas graves (ADR 0017): só esta região fica com erro
+            mensagemDeLimite(e, motor.prazo.motivo)?.let { return Estado("erro", msg = it) }
+            erroComum(e)
+        }
+    }
+
+    private fun erroComum(e: Throwable): Estado = when (e) {
+        is ErroUnidade, is ErroCalculo -> Estado("erro", msg = e.message)
+        is NaoSuportado -> Estado("nao_suportado", msg = e.message)
+        is UsaFaixa -> Estado("erro", msg = "Faixa '${e.nome}' usada fora de contexto")
+        is Exception -> Estado("nao_suportado", msg = "interno ${e.javaClass.simpleName}: ${e.message}")
+        else -> throw e
+    }
+
+    /** Valores produzidos pela região em andamento (faixas, v[i] :=), contra [Limites.elementos]. */
+    private var elementosRegiao = 0
+    private fun contarElementos(n: Int) {
+        elementosRegiao += n
+        if (elementosRegiao > limites.elementos)
+            throw ErroCalculo("Resultado grande demais: mais de ${limites.elementos} valores.")
     }
 
     private fun calcular(r: Regiao, c: Contexto): Estado {
@@ -122,7 +149,7 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
                     return estadoDe(v, c, exato = r.tipo == "definicao_simbolica")
                 }
                 "elemento" -> {   // v[i] := ... e M[i, j] := ... (Matriciais.Gravador)
-                    val g = Matriciais.Gravador((env[r.define[0]] as? Valor.Expr)?.e, origem, motor)
+                    val g = Matriciais.Gravador((env[r.define[0]] as? Valor.Expr)?.e, origem, motor, limites.elementos)
                     iterar(c) { g.gravar(r.indices.map { avaliar(it, c) }, avaliar(r.expr!!, c)); F.C0 }
                     return estadoDe(g.valor(), c)
                 }
@@ -138,7 +165,9 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
     /** Se a expressão usa uma variável de faixa, repete para cada valor e devolve uma lista. */
     private fun iterar(c: Contexto, fn: () -> IExpr): IExpr = try { fn() } catch (u: UsaFaixa) {
         if (u.nome in c.iter) throw u
-        val res = u.faixa.valores(motor).map { v -> c.iter[u.nome] = v; iterar(c, fn) }
+        val vals = u.faixa.valores(motor, limites.elementos)
+        contarElementos(vals.size)
+        val res = vals.map { v -> c.iter[u.nome] = v; iterar(c, fn) }
         c.iter.remove(u.nome)
         F.List(*res.toTypedArray())
     }
@@ -151,7 +180,9 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
             if (modo == "classico" && !simbolica) throw ErroCalculo("Variável não definida.")
             return Estado("parcial", valor = v, livres = livres)
         }
-        return Estado("numerico", valor = if (exato) v else motor.ev(F.N(v)))
+        val valor = if (exato) v else motor.ev(F.N(v))
+        motor.problemaNumerico(valor, exato)?.let { throw ErroCalculo(it) }
+        return Estado("numerico", valor = valor)
     }
 
     // ---- exibição

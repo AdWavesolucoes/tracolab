@@ -31,15 +31,37 @@ User=tracolab
 Group=tracolab
 WorkingDirectory=/opt/tracolab-web
 Environment=TRACOLAB_MOTOR=$NOME
-Environment="JAVA_OPTS=-Xmx256m -XX:+UseSerialGC -Djava.util.prefs.userRoot=/tmp/prefs"
+Environment=TRACOLAB_MOTORES=2
+# ExitOnOutOfMemoryError: sem memória, a JVM sai e o systemd sobe de novo (Restart=on-failure)
+Environment="JAVA_OPTS=-Xmx256m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError -Djava.util.prefs.userRoot=/tmp/prefs"
 ExecStart=/opt/tracolab-web/app/bin/servidor-dev $ENDERECO $PORTA
 Restart=on-failure
 RestartSec=3
+# Limites (ADR 0017): heap de 256 MB + metaspace, pilhas e código da JVM cabem em 512 MB
+MemoryMax=512M
+TasksMax=128
+LimitNOFILE=4096
+# Endurecimento: a JVM só precisa de rede e de ler /opt/tracolab-web (nada de
+# MemoryDenyWriteExecute: o JIT escreve código executável)
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
 PrivateDevices=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+SystemCallArchitectures=native
+UMask=0077
 
 [Install]
 WantedBy=multi-user.target

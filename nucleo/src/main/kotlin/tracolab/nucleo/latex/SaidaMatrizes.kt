@@ -16,13 +16,24 @@ private const val MAX_COLUNAS = 8
  * senão, cada elemento leva a sua. Elementos com nome faltando saem como expressão.
  */
 internal fun Planilha.matrizTela(v: IExpr, r: Regiao): ResultadoTela {
-    val ls = try { Matriciais.linhas(v) } catch (_: Exception) { return ResultadoTela(LatexSaida.expressao(v, motor)) }
+    val todas = try { Matriciais.linhas(v) } catch (_: Exception) { return ResultadoTela(LatexSaida.expressao(v, motor)) }
+    // resume antes de formatar: um vetor de 200 mil valores não passa elemento por elemento
+    val iLin = indices(todas.size, MAX_LINHAS); val iCol = indices(todas[0].size, MAX_COLUNAS)
+    val ls = iLin.map { i -> iCol.map { j -> todas[i][j] } }
+    val aviso = when {
+        iLin.size == todas.size && iCol.size == todas[0].size -> null
+        todas[0].size == 1 -> "Vetor com ${todas.size} valores: mostrando os ${MAX_LINHAS - 2} primeiros e o último."
+        else -> "Matriz ${todas.size}×${todas[0].size}: mostrando o começo e o fim."
+    }
     var unidade = ""
-    val celulas: List<List<String>> = if (motor.temLivres(v)) ls.map { l -> l.map { valorSimples(it) } }
+    val celulas: List<List<String>> = if (ls.any { l -> l.any { motor.temLivres(it) } }) ls.map { l -> l.map { valorSimples(it) } }
     else {
         val textos = try { ls.map { l -> l.map { exibirValor(it, r) } } }
         catch (e: ErroUnidade) { return ResultadoTela(null, e.message) }
-        catch (_: Exception) { return ResultadoTela(ls.joinToString("\\\\", "\\begin{pmatrix}", "\\end{pmatrix}") { l -> l.joinToString("&") { valorSimples(it) } }) }
+        catch (e: Exception) {
+            if (motor.interrompido(e)) throw e
+            return ResultadoTela(pmatrix(pontos(ls.map { l -> l.map { valorSimples(it) } }, iLin, iCol)), aviso)
+        }
         val unids = textos.flatten().filter { ' ' in it }.map { it.substringAfter(' ') }.toSet()
         val comum = unids.size == 1 && textos.flatten().all { ' ' in it || it == "0" }
         if (comum) unidade = unids.first()
@@ -32,17 +43,21 @@ internal fun Planilha.matrizTela(v: IExpr, r: Regiao): ResultadoTela {
             if (comum || un.isEmpty()) num else "$num~${LatexSaida.unidade(un)}"
         } }
     }
-    return ResultadoTela(pmatrix(resumir(celulas)) + if (unidade.isEmpty()) "" else "\\," + LatexSaida.unidade(unidade))
+    return ResultadoTela(pmatrix(pontos(celulas, iLin, iCol)) + if (unidade.isEmpty()) "" else "\\," + LatexSaida.unidade(unidade), aviso)
 }
+
+/** Índices mostrados: todos, ou os primeiros e o último. */
+private fun indices(n: Int, max: Int): List<Int> = if (n <= max) (0 until n).toList() else (0 until max - 2).toList() + (n - 1)
 
 private fun pmatrix(c: List<List<String>>) = c.joinToString("\\\\", "\\begin{pmatrix}", "\\end{pmatrix}") { it.joinToString("&") }
 
-private fun resumir(c: List<List<String>>): List<List<String>> {
+/** Põe ⋯ antes da última coluna e ⋮ antes da última linha quando a matriz foi resumida. */
+private fun pontos(c: List<List<String>>, iLin: List<Int>, iCol: List<Int>): List<List<String>> {
     var ls = c
-    if (ls[0].size > MAX_COLUNAS) ls = ls.map { it.take(MAX_COLUNAS - 2) + "\\cdots" + it.last() }
-    if (ls.size > MAX_LINHAS) {
-        val pontos = ls[0].map { if (it == "\\cdots") "\\ddots" else "\\vdots" }
-        ls = ls.take(MAX_LINHAS - 2) + listOf(pontos) + listOf(ls.last())
+    if (iCol.size > 1 && iCol.last() != iCol[iCol.size - 2] + 1) ls = ls.map { it.dropLast(1) + "\\cdots" + it.last() }
+    if (iLin.size > 1 && iLin.last() != iLin[iLin.size - 2] + 1) {
+        val p = ls[0].map { if (it == "\\cdots") "\\ddots" else "\\vdots" }
+        ls = ls.dropLast(1) + listOf(p) + listOf(ls.last())
     }
     return ls
 }

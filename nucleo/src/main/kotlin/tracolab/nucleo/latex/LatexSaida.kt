@@ -61,14 +61,18 @@ object LatexSaida {
         return if (m == null) base else "$base\\times10^{${if (m.groupValues[2] == "-") "-" else ""}${m.groupValues[3]}}"
     }
 
-    /** "kN", "m^2", "kg·m^-1" → LaTeX de unidade. */
-    fun unidade(t: String): String = t.split("·").joinToString("\\cdot ") { parte ->
+    /** "kN", "m^2", "kg·m^-1", "kN*m" (unidade pedida pelo teclado) → LaTeX de unidade. */
+    fun unidade(t: String): String = t.split("·", "*").joinToString("\\cdot ") { parte ->
         val nomeU = parte.substringBefore('^'); val pot = parte.substringAfter('^', "")
         "\\mathrm{$nomeU}" + if (pot.isEmpty()) "" else "^{$pot}"
     }
 
     init { check(PV != PU) }
 }
+
+/** Linhas de um vetor e tamanho de uma expressão que a tela ainda desenha sem travar (ADR 0017). */
+const val MAX_LINHAS_TELA = 100
+const val MAX_FOLHAS_TELA = 3_000
 
 /** O que a tela mostra para a região `id` (null quando não há valor a mostrar). */
 fun Planilha.resultadoTela(id: String): ResultadoTela {
@@ -78,6 +82,9 @@ fun Planilha.resultadoTela(id: String): ResultadoTela {
     e.faixa?.let { return ResultadoTela("${LatexSaida.expressao(it.inicio, motor)}\\,..\\,${LatexSaida.expressao(it.fim, motor)}") }
     if (e.funcao != null) return ResultadoTela(null)
     val v = e.valor ?: return ResultadoTela(null)
+    // ADR 0017: a tela não recebe o que não consegue desenhar (expressão gigante); listas: matrizTela resume
+    if (v.leafCount() > MAX_FOLHAS_TELA && !v.isList)
+        return ResultadoTela(null, "Expressão grande demais para mostrar (${v.leafCount()} termos).")
     if (v.isList) return matrizTela(v, r)
     if (e.tipo == "parcial" || r.tipo == "avaliacao_simbolica" || r.tipo == "definicao_simbolica" || motor.temLivres(v))
         return ResultadoTela(LatexSaida.expressao(v, motor))

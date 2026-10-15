@@ -84,7 +84,7 @@ object Matriciais {
             throw ErroCalculo("As dimensões não são compatíveis: ${texto(la.size to la[0].size)} e ${texto(lb.size to lb[0].size)}.")
         val forma = la ?: lb!!
         return deLinhas(forma.indices.map { i ->
-            forma[i].indices.map { j -> f(la?.get(i)?.get(j) ?: a, lb?.get(i)?.get(j) ?: b) }
+            forma[i].indices.map { j -> m.verificarPrazo(); f(la?.get(i)?.get(j) ?: a, lb?.get(i)?.get(j) ?: b) }
         })
     }
 
@@ -97,7 +97,7 @@ object Matriciais {
         }
         if (la[0].size != lb.size)
             throw ErroCalculo("As dimensões não são compatíveis para o produto: ${texto(la.size to la[0].size)} · ${texto(lb.size to lb[0].size)}.")
-        val r = la.map { linha -> lb[0].indices.map { j -> somaVerificada(linha.indices.map { k -> F.Times(linha[k], lb[k][j]) }, m) } }
+        val r = la.map { linha -> lb[0].indices.map { j -> m.verificarPrazo(); somaVerificada(linha.indices.map { k -> F.Times(linha[k], lb[k][j]) }, m) } }
         return if (r.size == 1 && r[0].size == 1) r[0][0] else deLinhas(r)
     }
 
@@ -202,7 +202,7 @@ object Matriciais {
     /** Valor numérico de um índice (aceita 2.0, que é como um inteiro definido acima chega). */
     fun inteiro(e: IExpr, m: Motor): Int? {
         if (m.temLivres(e) || m.temUnidade(e) || e.isList) return null
-        val x = try { m.dbl(e) } catch (_: Exception) { return null }
+        val x = try { m.dbl(e) } catch (ex: Exception) { if (m.interrompido(ex)) throw ex; return null }
         val k = Math.rint(x)
         return if (Math.abs(x - k) < 1e-9 && Math.abs(k) < Int.MAX_VALUE) k.toInt() else null
     }
@@ -233,7 +233,7 @@ object Matriciais {
     }
 
     /** Definição de elemento: `v[i] := ...` e `M[i, j] := ...`. A matriz cresce com zeros. */
-    class Gravador(atual: IExpr?, private val origem: Int, private val m: Motor) {
+    class Gravador(atual: IExpr?, private val origem: Int, private val m: Motor, private val max: Int = 200_000) {
         private val ls: MutableList<MutableList<IExpr>> =
             if (atual != null && atual.isList) linhas(atual).map { it.toMutableList() }.toMutableList() else mutableListOf()
         private var duasDimensoes = atual != null && ehMatriz(atual)
@@ -244,6 +244,8 @@ object Matriciais {
             val i = indiceInteiro(idx[0], m) - origem
             val j = if (idx.size == 2) indiceInteiro(idx[1], m) - origem else 0
             if (i < 0 || j < 0) throw ErroCalculo("Índice fora do intervalo.")
+            if (i >= max || j >= max || (i + 1).toLong() * maxOf(j + 1, ls.firstOrNull()?.size ?: 1) > max)
+                throw ErroCalculo("Índice grande demais: o vetor pode ter até $max elementos.")
             if (idx.size == 1 && duasDimensoes && (ls.firstOrNull()?.size ?: 1) > 1)
                 throw ErroCalculo("É uma matriz: use dois índices, M[i, j].")
             if (idx.size == 2) duasDimensoes = true
@@ -275,6 +277,7 @@ object Matriciais {
         try {
             return deLinhas(forma.indices.map { i ->
                 forma[i].indices.map { j ->
+                    c.pl.motor.verificarPrazo()
                     for ((n, ls) in arrays) c.iter[n] = ls[i][j]
                     val r = avaliar(corpo, c)
                     if (r.isList) throw ErroCalculo("vec: cada elemento deve dar um escalar.")
