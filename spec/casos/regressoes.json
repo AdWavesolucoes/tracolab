@@ -81,6 +81,23 @@
        {"verificar": "a", "tipo": "parcial", "livres": ["n"]},
        {"acao": "adicionar", "id": "n", "texto": "n := 2", "y": 5},
        {"verificar": "a", "tipo": "numerico", "lista": [0, 2, 4]}
+     ]},
+    {"id": "reg-09", "nome": "mover uma definição para baixo recalcula quem ficou entre a posição antiga e a nova", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "c", "texto": "c := 2", "y": 10},
+       {"acao": "adicionar", "id": "u", "texto": "c*3 =", "y": 20},
+       {"verificar": "u", "tipo": "numerico", "num": 6},
+       {"acao": "editar", "id": "c", "texto": "c := 2", "y": 30},
+       {"verificar": "u", "tipo": "parcial", "livres": ["c"]},
+       {"acao": "editar", "id": "c", "texto": "c + 1 =", "y": 5},
+       {"verificar": "u", "tipo": "parcial", "livres": ["c"]}
+     ]},
+    {"id": "reg-10", "nome": "termos conhecidos de dimensões diferentes são erro mesmo com um nome faltando na soma", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "a", "texto": "(34 + L) + 5{MPa} =", "y": 10},
+       {"acao": "adicionar", "id": "b", "texto": "34 + 5{MPa} + L =", "y": 20},
+       {"acao": "adicionar", "id": "c", "texto": "(x + 2{m}) + 3{cm} =", "y": 30},
+       {"verificar": "a", "tipo": "erro", "msg_contem": "unidades"},
+       {"verificar": "b", "tipo": "erro", "msg_contem": "unidades"},
+       {"verificar": "c", "tipo": "parcial", "livres": ["x"]}
      ]}
   ]
 }

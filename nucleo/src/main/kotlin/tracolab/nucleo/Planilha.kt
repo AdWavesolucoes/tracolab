@@ -35,8 +35,10 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
 
     fun editar(id: String, nova: Regiao): List<String> {
         val i = regioes.indexOfFirst { it.id == id }
+        require(i >= 0) { "região inexistente: $id" }
         val antiga = regioes[i]; regioes[i] = nova
-        return recalcular(nova, antiga.define.toSet(), global = antiga.tipo == "definicao_global")
+        // a região pode ter mudado de lugar: quem está entre a posição antiga e a nova também conta
+        return recalcular(nova, antiga.define.toSet(), antiga.y to antiga.x, global = antiga.tipo == "definicao_global")
     }
 
     fun remover(id: String): List<String> {
@@ -52,7 +54,7 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         if (aPartirDe != null || nomesExtra.isNotEmpty()) {
             val nomes = nomesExtra.toMutableSet().apply { aPartirDe?.let { addAll(it.define) } }
             sujos = mutableSetOf<String>().apply { aPartirDe?.let { add(it.id) } }
-            var ini = aPartirDe?.let { it.y to it.x } ?: posicao!!
+            var ini = listOfNotNull(aPartirDe?.let { it.y to it.x }, posicao).minWith(compareBy({ it.first }, { it.second }))
             if (global || aPartirDe?.tipo == "definicao_global") ini = Double.NEGATIVE_INFINITY to Double.NEGATIVE_INFINITY
             for (r in ordem) {
                 val depois = r.y > ini.first || (r.y == ini.first && r.x >= ini.second) ||

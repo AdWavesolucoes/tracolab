@@ -85,11 +85,20 @@ class Motor {
         throw ErroUnidade("Este valor deve ser adimensional.")
     }
 
+    /**
+     * Soma e subtração só entre grandezas de mesma dimensão. Termo com nome faltando tem dimensão
+     * desconhecida e não acusa nada (x + 5 m fica pendente); mas os termos conhecidos dos dois
+     * lados têm de combinar entre si: (34 + L) + 5 MPa já é erro, qualquer que seja L.
+     */
     fun checarSoma(a: IExpr, b: IExpr) {
         if (!(temUnidade(a) || temUnidade(b))) return
-        if (temLivres(a) || temLivres(b) || a.isZero || b.isZero) return
-        if (!dims(a).contentEquals(dims(b))) throw ErroUnidade("As unidades não são compatíveis.")
+        val conhecidos = (termos(a) + termos(b)).filter { !it.isZero && !temLivres(it) }
+        if (conhecidos.size < 2) return
+        val d = dims(conhecidos[0])
+        if (conhecidos.any { !dims(it).contentEquals(d) }) throw ErroUnidade("As unidades não são compatíveis.")
     }
+
+    private fun termos(e: IExpr): List<IExpr> = if (e.isPlus) (1 until (e as IAST).size()).map { e.get(it) } else listOf(e)
 
     fun exigirAdimensional(e: IExpr, onde: String) {
         if (temUnidade(e) && !temLivres(e) && dims(e).any { it != 0.0 })
