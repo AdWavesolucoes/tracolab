@@ -40,6 +40,7 @@ object LatexSaida {
 
     /** LaTeX de uma expressão do Symja, trocando os nomes codificados pelos nomes reais. */
     fun expressao(e: IExpr, m: Motor): String {
+        expressaoComCasos(e, m)?.let { return it }   // por partes: a TeXForm não escreve cases (SaidaLogica.kt)
         val tex = m.ev(F.TeXForm(e)).toString()
         val comNomes = SIMBOLO.replace(tex) { mr ->
             val n = decodificar(mr.groupValues[2])
@@ -91,6 +92,7 @@ fun Planilha.resultadoTela(id: String): ResultadoTela {
     if (r.tipo == "avaliacao_simbolica" || r.tipo == "definicao_simbolica") return ResultadoTela(LatexSaida.expressao(v, motor))
     // ADR 0014: unidades da folha e formato dos números (TelaUnidades.kt)
     val f = formatoTela(id)
+    logicaTela(v, r, f)?.let { return ResultadoTela(it) }   // textos, relações, por partes (SaidaLogica.kt)
     if (e.tipo == "parcial" || motor.temLivres(v)) return ResultadoTela(pendenteTela(v, f))
     return try { ResultadoTela(escalarTela(v, r, f)) }
     catch (err: ErroUnidade) { ResultadoTela(null, err.message) }

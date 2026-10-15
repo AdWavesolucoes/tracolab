@@ -14,6 +14,7 @@ import tracolab.nucleo.latex.LatexEntrada
 import tracolab.nucleo.latex.configTela
 import tracolab.nucleo.latex.resultadoTela
 import tracolab.nucleo.latex.substituicaoTela
+import tracolab.nucleo.latex.verificacaoTela
 import tracolab.nucleo.regiaoDeTexto
 import tracolab.nucleo.textoTempo
 import java.util.concurrent.ArrayBlockingQueue
@@ -70,6 +71,9 @@ data class LimitesPedido(
  * Folha como documento: `mostra: true` numa definição terminada em "=" (definir e mostrar, a
  * tela mostra `resultado` como numa avaliação); com `"substituir": true` no pedido de uma região
  * que mostra valor, a resposta traz `substituicao` (a fórmula com os valores, ver substituicaoTela).
+ *
+ * Verificação (ADR 0013): uma comparação avaliada (`σ ≤ σ_adm =`) traz `verificacao`:
+ * `{"ok": true|false|null, "utilizacao": 0.6, "lados": "150\\,\\mathrm{MPa}\\le 250\\,\\mathrm{MPa}"}`.
  *
  * `y` é a linha de base da região (ADR 0001). `tipo` pode ser também "erro_sintaxe" (o LaTeX
  * não pôde ser lido) ou "vazia".
@@ -206,6 +210,12 @@ class Calculadora(
             }
             o.put("resultado", tela.latex)
             tela.avisoExibicao?.let { o.put("aviso", it) }
+            e.verificacao?.let { v ->   // σ ≤ σ_adm =: atende, utilização e os dois lados (ADR 0013)
+                val ov = o.putObject("verificacao")
+                if (v.ok == null) ov.putNull("ok") else ov.put("ok", v.ok)
+                v.utilizacao?.let { ov.put("utilizacao", it) }
+                pl.verificacaoTela(reg.id)?.let { ov.put("lados", it) }
+            }
             if (reg.mostrar) {
                 o.put("mostra", true)
                 if (reg.tipoAlvo == "funcao" && e.aviso == null) o.put("aviso", "Uma função não tem valor para mostrar.")
