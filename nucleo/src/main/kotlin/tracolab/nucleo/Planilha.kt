@@ -42,7 +42,7 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
     }
 
     fun remover(id: String): List<String> {
-        val antiga = regioes.first { it.id == id }; regioes.remove(antiga)
+        val antiga = requireNotNull(regioes.firstOrNull { it.id == id }) { "região inexistente: $id" }; regioes.remove(antiga)
         return recalcular(null, antiga.define.toSet(), antiga.y to antiga.x, antiga.tipo == "definicao_global")
     }
 
