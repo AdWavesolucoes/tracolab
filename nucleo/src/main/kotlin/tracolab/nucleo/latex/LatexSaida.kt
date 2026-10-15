@@ -52,6 +52,7 @@ object LatexSaida {
             .replace(Regex("\\^\\{(-?\\d+)\\.0\\}"), "^{$1}")      // m^{2.0} → m^{2}
             .replace(Regex("(\\d)\\.(\\d)"), "$1{,}$2")                // vírgula decimal
             .replace(Regex("(\\d)\\.(?!\\d)"), "$1")                    // 2. → 2
+            .replace(Regex("(\\d)\\*10\\^\\{"), "$1\\\\times10^{")        // 5*10^{6} → 5\times10^{6}
     }
 
     /** "8787.21" → "8787{,}21"; "5e-05" → "5\times10^{-5}". */
