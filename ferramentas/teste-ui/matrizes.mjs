@@ -61,7 +61,7 @@ await operadores(); await tecla("|M|"); await p.keyboard.type("M"); await p.keyb
 const rd = await regiao(d);
 confere("|M| = −2", /^[−-]2$/.test(rd.res.trim()), JSON.stringify(rd));
 
-// 4. vetor com unidade: unidade comum vira o chip; trocar para kN
+// 4. vetor com unidade: unidade comum vira o chip (a da folha, kN: ADR 0014); trocar para N
 const f = await nova(320);
 await p.keyboard.type("F:=[1;2]"); await p.keyboard.press("ArrowRight");
 await p.locator(".faixa .key", { hasText: "un" }).tap(); await esperar(300);
@@ -69,12 +69,12 @@ await aba("Unidades"); await tecla("kN");
 const fe = await nova(400);
 await p.keyboard.type("F="); await esperar(1300);
 let rf = await regiao(fe);
-confere("F = vetor em N com o chip da unidade", /1000/.test(rf.res.replace(/\s/g, "")) && /2000/.test(rf.res.replace(/\s/g, "")) && /N/.test(rf.un), JSON.stringify(rf));
+confere("F = vetor em kN com o chip da unidade", /^\(?12/.test(rf.res.replace(/\s|\u200b/g, "")) && /^kN$/.test(rf.un.trim()), JSON.stringify(rf));
 await p.evaluate(() => window.mathVirtualKeyboard.hide()); await esperar(300);
 await p.locator(`.rg[data-id="${fe}"] .unidade`).tap(); await esperar(300);
-await p.locator("#menu-unidade button", { hasText: /^kN$/ }).tap(); await esperar(1200);
+await p.locator("#menu-unidade button", { hasText: /^N$/ }).tap(); await esperar(1200);
 rf = await regiao(fe);
-confere("chip troca a matriz para kN", (await resultado(fe)) === "\\begin{pmatrix}1\\\\2\\end{pmatrix}\\,\\mathrm{kN}" && /kN/.test(rf.un), await resultado(fe));
+confere("chip troca a matriz para N", (await resultado(fe)) === "\\begin{pmatrix}1000\\\\2000\\end{pmatrix}\\,\\mathrm{N}" && /N/.test(rf.un), await resultado(fe));
 
 // 5. painel de variáveis resume vetores e matrizes
 const vars = await p.$$eval("#lista-variaveis .vr", (els) => els.map((e) => e.textContent.replace(/\s+/g, " ").trim()));
