@@ -16,5 +16,7 @@ internal fun ambiente(nome: String, linhas: List<List<String>>): Peca = when (no
     }
     // |A|: determinante escrito com barras
     "vmatrix" -> Peca("det(" + ambiente("pmatrix", linhas).t + ")", true, true)
+    // por partes: { v₁ se c₁; v₂ se c₂; v₃ senão } → cases(v₁, c₁, v₂, c₂, v₃) (EntradaLogica.kt)
+    "cases", "dcases" -> casos(linhas)
     else -> throw ErroLatex("ambiente não suportado: $nome")
 }

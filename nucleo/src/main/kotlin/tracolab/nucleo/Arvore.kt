@@ -169,7 +169,7 @@ class Parser(private val s: String) {
     private fun texto(): No {
         val fim = s.indexOf('"', p + 1)
         if (fim < 0) throw ErroSintaxe("falta '\"'")
-        val t = s.substring(p + 1, fim)
+        val t = s.substring(p + 1, fim).replace('\u00A0', ' ')   // o conversor do LaTeX protege os espaços assim
         p = fim + 1
         return No.Texto(t)
     }

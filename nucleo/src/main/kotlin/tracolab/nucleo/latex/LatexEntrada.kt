@@ -43,6 +43,8 @@ object LatexEntrada {
     internal fun lexico(s: String): List<Tok> {
         val out = mutableListOf<Tok>()
         var i = 0
+        // dentro de \text{...} o espaço conta (texto "não atende", ADR 0013); fora, não
+        var nivel = 0; var nivelTexto = -1; var aposTexto = false
         while (i < s.length) {
             val c = s[i]
             when {
@@ -51,16 +53,19 @@ object LatexEntrada {
                     if (j < s.length && s[j].isLetter()) {
                         while (j < s.length && s[j].isLetter()) j++
                         out += Tok.Cmd(s.substring(i + 1, j))
+                        aposTexto = nivelTexto < 0 && s.substring(i + 1, j) in COMANDOS_TEXTO
                     } else if (j < s.length) {
                         out += Tok.Cmd(s[j].toString()); j++
                     }
                     i = j
+                    continue
                 }
-                c == '{' -> { out += Tok.Abre; i++ }
-                c == '}' -> { out += Tok.Fecha; i++ }
-                c.isWhitespace() -> i++
+                c == '{' -> { out += Tok.Abre; i++; nivel++; if (aposTexto) nivelTexto = nivel }
+                c == '}' -> { out += Tok.Fecha; i++; if (nivel == nivelTexto) nivelTexto = -1; nivel-- }
+                c.isWhitespace() -> { if (nivelTexto >= 0) out += Tok.Ch(' '); i++; continue }
                 else -> { out += Tok.Ch(c); i++ }
             }
+            aposTexto = false
         }
         return out
     }
@@ -222,6 +227,7 @@ object LatexEntrada {
             }
             c == '|' -> out += Peca("|", true, true)
             c == '\'' -> {}
+            c == '"' -> out += textoEntreAspas(l)   // "OK" digitado no modo de fórmula (EntradaLogica.kt)
             else -> throw ErroLatex("caractere não suportado: '$c'")
         }
     }
@@ -247,7 +253,9 @@ object LatexEntrada {
             // cor é só apresentação (ex.: := em cobalto): descarta a cor, mantém o conteúdo
             nome == "textcolor" -> { argumento(l); out += converterSeq(argumento(l)) }
             nome == "color" -> argumento(l)
-            nome == "operatorname" || nome == "mathit" || nome == "text" || nome == "textit" || nome == "mathbf" -> {
+            nome in COMANDOS_TEXTO -> out += pecaTexto(textoLatex(argumento(l)))   // texto "OK" (EntradaLogica.kt)
+            nome in COMANDOS_LOGICOS -> out += Peca(COMANDOS_LOGICOS.getValue(nome), false, false)
+            nome == "operatorname" || nome == "mathit" || nome == "textit" || nome == "mathbf" -> {
                 val n = textoBruto(argumento(l))
                 out += Peca(n, true, true, nome = true)
             }
