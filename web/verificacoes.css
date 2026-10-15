@@ -1,0 +1,16 @@
+/* Verificações de engenharia (ADR 0013): selo "atende"/"não atende" e a utilização. */
+.verif { display: inline-flex; align-items: center; gap: 8px; margin-left: 12px; white-space: nowrap; }
+.selo { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 12px 0 9px; border-radius: 15px;
+  font: 600 14px/1 var(--sans); letter-spacing: .01em; }
+.selo.ok { color: var(--nanquim); background: rgba(39, 72, 201, .09); border: 1px solid rgba(39, 72, 201, .55); }
+.selo.ok svg { color: var(--cobalto); }
+.selo.falha { color: #FFFFFF; background: var(--vermelhao); border: 1px solid var(--vermelhao); }
+.selo.pend { color: var(--grafite); border: 1px dashed var(--grafite-claro); background: transparent; padding: 0 12px; font-weight: 500; }
+.util { display: inline-flex; align-items: center; gap: 7px; font: 500 14px var(--mono); color: var(--apoio); }
+.util.alta { color: var(--vermelhao); }
+.barra-util { position: relative; width: 56px; height: 6px; border-radius: 3px; background: var(--linha); overflow: hidden; box-shadow: inset 0 0 0 1px var(--borda-clara); }
+.barra-util > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--cobalto); }
+.util.alta .barra-util > span { background: var(--vermelhao); }
+.rg.verif-ok .resultado, .rg.verif-falha .resultado { color: var(--nanquim); }
+.rg.verif-falha { border-color: rgba(194, 58, 20, .55); }
+@media print { .selo.ok { background: transparent; } .barra-util { display: none; } }
