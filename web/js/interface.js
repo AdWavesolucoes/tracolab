@@ -11,8 +11,14 @@ function campoAlvo() {
 }
 
 for (const tecla of document.querySelectorAll(".faixa .key")) {
-  tecla.addEventListener("pointerdown", (ev) => ev.preventDefault());   // não tira o foco da fórmula
-  tecla.addEventListener("click", () => {
+  // não tira o foco da fórmula; e marca que o toque começou nesta tecla
+  tecla.addEventListener("pointerdown", (ev) => { ev.preventDefault(); tecla.tocada = true; });
+  tecla.addEventListener("click", (ev) => {
+    // Clique de um toque que começou em outro lugar (ex.: na aba de camada do teclado virtual,
+    // que encolhe ao trocar de camada e deixa a faixa por baixo do dedo): ignora. Teclado físico
+    // (Enter/Espaço no botão) dá clique sem toque: ev.detail === 0.
+    if (!tecla.tocada && ev.detail !== 0) return;
+    tecla.tocada = false;
     const campo = campoAlvo();
     campo.focus();
     if (tecla.dataset.insere) campo.insert(tecla.dataset.insere, { format: "latex", selectionMode: "placeholder", focus: true });
