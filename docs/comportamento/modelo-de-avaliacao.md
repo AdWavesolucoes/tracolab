@@ -148,3 +148,7 @@ Cada área tem o seu documento, com os casos em `spec/casos/<área>.json`:
 | Folha como documento | [documento.md](documento.md) |
 | Limites de cálculo | [robustez.md](robustez.md) |
 | Regressões do núcleo | [regressoes.md](regressoes.md) |
+| Σ, Π, ∫ e d/dx | [calculo.md](calculo.md) |
+| Resolver equações | [resolver.md](resolver.md) |
+| Funções embutidas | [funcoes.md](funcoes.md) |
+| Gráficos X-Y | [graficos.md](graficos.md) |

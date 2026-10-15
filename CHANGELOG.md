@@ -14,7 +14,10 @@ versionamento [SemVer](https://semver.org/lang/pt-BR/).
 - Se, por partes, lógica (∧ ∨ ⊕ ¬), comparação em cadeia, textos e verificações "atende / não atende" com utilização (ADR 0013).
 - `bancada lote`: avaliação de folhas em lote. Testes de propriedade e fuzz do conversor LaTeX. Validação do núcleo Kotlin contra o corpus de referência: 22,4% de cobertura, 95,9% de acerto.
 
+- Σ, Π, ∫ e d/dx com unidades e pendências (ADR 0011); resolver/raiz/raizes com unidade deduzida (ADR 0012); funções de números, estatística e interpolação, `n!` (ADR 0018); gráficos X-Y em SVG com trace (ADR 0016).
+
 ### Corrigido (15/10)
+- Interface: resposta antiga do núcleo não pinta mais por cima da nova; desfazer logo depois de digitar pulava dois passos; faixa de teclas cortada em retrato.
 - `10^10^10` travava a folha; recursão infinita e fórmulas fundas derrubavam a conexão; estouro numérico derrubava a folha inteira; cliente lento ou cálculo pesado prendia o servidor; arquivos estáticos aceitavam pasta vizinha com o mesmo prefixo.
 - Raiz de grandeza com unidade e número não real derrubavam a página; Hz × 1/s; índices de vetor; faixas com unidade; redefinição a partir de erro; recálculo ao mover definição; recorrência `v[i] := v[i-1]·2`; `a = b =`; `|x|` no editor; zero com unidade pedida.
 - Regiões abaixo da primeira página saíam do papel; unidade `kN·m` com asterisco; teclas da camada Operadores vinham com um índice vazio.

@@ -20,6 +20,7 @@ criar um novo, use o [modelo](0000-modelo.md).
 | [0014](0014-unidades-da-folha-e-formato.md) | Unidades da folha, temperaturas e formato dos números | Aceita |
 | [0015](0015-folha-como-documento.md) | A folha como memorial: texto, definir e mostrar, substituição e arquivo | Aceita |
 | [0017](0017-limites-de-calculo.md) | Limites de tempo, recursão e tamanho em cada cálculo | Aceita |
-
-Números 0011, 0012, 0016 e 0018 estão reservados para cálculo (Σ, ∫, d/dx), resolver, gráficos e
-funções embutidas, ainda em desenvolvimento.
+| [0011](0011-calculo.md) | Σ, Π, ∫ e d/dx com nomes ligados, unidades e pendências | Aceita |
+| [0012](0012-resolver.md) | Resolver equações e sistemas para a incógnita | Aceita |
+| [0016](0016-graficos.md) | Gráficos X-Y com amostragem no núcleo | Aceita |
+| [0018](0018-funcoes.md) | Biblioteca de funções: números, estatística, interpolação | Aceita |

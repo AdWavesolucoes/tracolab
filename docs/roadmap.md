@@ -40,10 +40,10 @@
 - [x] Vetores e matrizes ([ADR 0010](decisoes/0010-vetores-e-matrizes.md))
 - [x] Condicionais, por partes e verificações "atende / não atende" ([ADR 0013](decisoes/0013-condicionais-logica-e-verificacoes.md))
 - [x] Limites de tempo e recursão em cada cálculo ([ADR 0017](decisoes/0017-limites-de-calculo.md))
-- [ ] Σ, Π, ∫, d/dx e limites (ADR 0011)
-- [ ] Resolver equações e sistemas (ADR 0012)
-- [ ] Gráficos X-Y (ADR 0016)
-- [ ] Biblioteca de funções: interpolação, estatística, complexos (ADR 0018)
+- [x] Σ, Π, ∫ e d/dx ([ADR 0011](decisoes/0011-calculo.md)); falta `lim`
+- [x] Resolver equações e sistemas ([ADR 0012](decisoes/0012-resolver.md))
+- [x] Gráficos X-Y ([ADR 0016](decisoes/0016-graficos.md)); falta zoom e unidade do eixo
+- [x] Funções: números, estatística, interpolação ([ADR 0018](decisoes/0018-funcoes.md)); faltam complexos
 - [ ] Programas (atribuição local, laços): desenho na ADR 0013
 - [x] Várias folhas no aparelho (formato próprio)
 
