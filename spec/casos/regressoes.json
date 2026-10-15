@@ -102,6 +102,18 @@
        {"verificar": "a", "tipo": "erro", "msg_contem": "unidades"},
        {"verificar": "b", "tipo": "erro", "msg_contem": "unidades"},
        {"verificar": "c", "tipo": "parcial", "livres": ["x"]}
+     ]},
+    {"id": "reg-11", "nome": "recorrência numa faixa: cada elemento enxerga os anteriores (v[i] := v[i-1]*2)", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "v0", "texto": "v[0] := 1", "y": 10},
+       {"acao": "adicionar", "id": "i", "texto": "i := 1..4", "y": 20},
+       {"acao": "adicionar", "id": "v", "texto": "v[i] := v[i - 1]*2", "y": 30},
+       {"acao": "adicionar", "id": "e", "texto": "v =", "y": 40},
+       {"acao": "adicionar", "id": "h0", "texto": "h[0] := 0", "y": 50},
+       {"acao": "adicionar", "id": "k", "texto": "k := 0..5", "y": 60},
+       {"acao": "adicionar", "id": "h", "texto": "h[0] := h[0] + k", "y": 70},
+       {"acao": "adicionar", "id": "s", "texto": "h[0] =", "y": 80},
+       {"verificar": "e", "tipo": "numerico", "lista": [1, 2, 4, 8, 16]},
+       {"verificar": "s", "tipo": "numerico", "num": 15}
      ]}
   ]
 }

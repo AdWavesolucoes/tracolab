@@ -163,11 +163,20 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
                 "elemento" -> {   // v[i] := ... e M[i, j] := ... (Matriciais.Gravador)
                     val g = Matriciais.Gravador((env[r.define[0]] as? Valor.Expr)?.e, origem, motor, limites.elementos)
                     var pendente: List<IExpr>? = null
-                    iterar(c) {
-                        val idx = r.indices.map { avaliar(it, c) }
+                    // recorrência (v[i] := v[i-1]*2 com i de faixa): cada passo enxerga o que os
+                    // passos anteriores já gravaram, como numa tabela preenchida linha a linha
+                    val nome = r.define[0]
+                    val envLocal = HashMap(c.env)
+                    val cl = Contexto(envLocal, c.pl, c.livres, c.iter, c.profundidade)
+                    val recorrente = nome in r.usa
+                    iterar(cl) {
+                        val idx = r.indices.map { avaliar(it, cl) }
                         // índice ainda faltando: o vetor fica pendente (v_n), e quem o usa também
                         if (idx.any { motor.temLivres(it) }) pendente = idx
-                        else g.gravar(idx, avaliar(r.expr!!, c))
+                        else {
+                            g.gravar(idx, avaliar(r.expr!!, cl))
+                            if (recorrente) envLocal[nome] = Valor.Expr(g.valor())
+                        }
                         F.C0
                     }
                     pendente?.let { idx -> return estadoDe(F.ast(F.Subscript).also { s -> s.append(g.valor()); idx.forEach { s.append(it) } }, c) }
