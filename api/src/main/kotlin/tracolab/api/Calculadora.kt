@@ -5,10 +5,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import tracolab.nucleo.Matriciais
+import tracolab.nucleo.Formato
 import tracolab.nucleo.Limites
 import tracolab.nucleo.Motor
 import tracolab.nucleo.Planilha
+import tracolab.nucleo.latex.ConfigTela
 import tracolab.nucleo.latex.LatexEntrada
+import tracolab.nucleo.latex.configTela
 import tracolab.nucleo.latex.resultadoTela
 import tracolab.nucleo.latex.substituicaoTela
 import tracolab.nucleo.regiaoDeTexto
@@ -136,11 +139,21 @@ class Calculadora(
         }
     }
 
+    /** `opcoes.formato` (folha) e `opcoes.formatos` ({id: formato}, por resultado, por cima do da folha). */
+    private fun configTela(opcoes: JsonNode?): ConfigTela {
+        fun mapa(n: JsonNode?) = n?.takeIf { it.isObject }?.let { json.convertValue(it, Map::class.java) }
+        val folha = Formato().com(mapa(opcoes?.get("formato")))
+        val regioes = HashMap<String, Formato>()
+        opcoes?.get("formatos")?.takeIf { it.isObject }?.fields()?.forEach { (id, f) -> mapa(f)?.let { regioes[id] = folha.com(it) } }
+        return ConfigTela(folha, regioes)
+    }
+
     private fun calcularCom(motor: Motor, pedido: JsonNode): ObjectNode {
         motor.ativar()
         val t0 = System.nanoTime()
         val origem = pedido["opcoes"]?.get("origem")?.asInt() ?: 0   // primeiro índice de vetores (ADR 0010)
         val pl = Planilha(pedido["modo"]?.asText() ?: "parcial", origem = if (origem == 1) 1 else 0, motor = motor, limites = limites)
+        pl.configTela = configTela(pedido["opcoes"])   // formato dos números e unidades da folha (ADR 0014)
         val saidas = linkedMapOf<String, ObjectNode>()
         val substituir = HashSet<String>()
         for (r in pedido["regioes"] ?: json.createArrayNode()) {
