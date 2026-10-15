@@ -102,5 +102,18 @@ fun verificar(pl: Planilha, v: JsonNode): List<String> {
     v["tela_comeca"]?.let { val t = pl.exibir(r.id); if (!t.startsWith(it.asText())) f += "tela '$t' não começa com '${it.asText()}'" }
     v["msg_contem"]?.let { if (!(e.msg ?: "").contains(it.asText())) f += "msg '${e.msg}' não contém '${it.asText()}'" }
     v["aviso"]?.let { if (e.aviso != it.asText()) f += "aviso '${e.aviso}' != '${it.asText()}'" }
+    // verificação de engenharia (ADR 0013): {"ok": true|false|null, "utilizacao": 0.6|null}; false = não é verificação
+    v["verificacao"]?.let { esp ->
+        val vf = e.verificacao
+        if (esp.isBoolean && !esp.asBoolean()) { if (vf != null) f += "verificacao inesperada $vf" }
+        else if (vf == null) f += "verificacao ausente"
+        else {
+            esp["ok"]?.let { if ((if (it.isNull) null else it.asBoolean()) != vf.ok) f += "verificacao.ok ${vf.ok} != $it" }
+            esp["utilizacao"]?.let {
+                val u = vf.utilizacao
+                if (if (it.isNull) u != null else (u == null || !perto(u, it.asDouble()))) f += "verificacao.utilizacao $u != $it"
+            }
+        }
+    }
     return f
 }

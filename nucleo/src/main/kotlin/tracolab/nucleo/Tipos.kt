@@ -59,6 +59,7 @@ data class Estado(
     var aviso: String? = null,
     val faixa: Faixa? = null,
     val funcao: Valor.Funcao? = null,
+    val verificacao: Verificacao? = null,   // σ ≤ σ_adm =: atende ou não, e a utilização (ADR 0013)
 )
 
 class Regiao(

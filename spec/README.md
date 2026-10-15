@@ -41,6 +41,7 @@ Todos os campos são opcionais e se somam:
 | `tela_comeca` | Prefixo do texto da exibição |
 | `msg_contem` | Trecho da mensagem de erro |
 | `aviso` | Aviso da região (ex.: `Redefinição`) |
+| `verificacao` | Verificação de engenharia: `{"ok": true, "utilizacao": 0.6}` (`ok` pode ser `null`, pendente); `false` = a região não é verificação |
 
 ## Sintaxe de texto das regiões
 
@@ -55,5 +56,7 @@ Todos os campos são opcionais e se somam:
 | `expr ->` ou `expr →` | Avaliação simbólica |
 | `20{mm}`, `{kN/m^2}` | Unidade explícita |
 | `[1, 2; 3, 4]` | Matriz: linhas separadas por `;`, elementos por `,` |
-| `"OK"` | Texto |
+| `"OK"` | Texto (só se compara com `==` e `!=`) |
+| `a ∧ b`, `a ∨ b`, `a ⊕ b`, `¬a` | Lógica (resultado 1 ou 0); `0 < x <= 1` é `(0 < x) ∧ (x <= 1)` |
+| `if(c, a, b)`, `cases(v1, c1, v2, c2, ..., senão)` | Condicional e por partes (só avaliam o ramo escolhido) |
 | `f(a, b)` | Chamada de função do usuário ou embutida (registro em `nucleo/.../embutidos/`) |

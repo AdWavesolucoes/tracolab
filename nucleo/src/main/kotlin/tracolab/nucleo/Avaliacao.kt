@@ -56,6 +56,7 @@ fun avaliar(n: No, c: Contexto): IExpr {
             // M^T com M matriz/vetor é a transposta (T não é avaliado como nome)
             if (n.op == '^' && n.b == No.Id("T") && a.isList) return Matriciais.transposta(a)
             val b = avaliar(n.b, c)
+            if (a.isString || b.isString) throw ErroCalculo("Texto não entra em contas.")
             if (a.isList || b.isList) return Matriciais.binario(n.op, a, b, m)
             when (n.op) {
                 '+' -> { m.checarSoma(a, b); m.ev(F.Plus(a, b)) }
@@ -80,7 +81,7 @@ fun avaliar(n: No, c: Contexto): IExpr {
             if (linhas.all { it.size == 1 }) F.List(*linhas.map { it[0] }.toTypedArray())
             else F.List(*linhas.map { F.List(*it.toTypedArray()) }.toTypedArray())
         }
-        is No.Texto -> throw NaoSuportado("texto")   // sintaxe reservada; a avaliação fica com a área de lógica
+        is No.Texto -> F.stringx(n.valor)   // texto ("OK"): só se compara com = e ≠ (ADR 0013)
     }
 }
 
@@ -105,7 +106,8 @@ private fun avaliarUnidade(n: No, m: Motor): IExpr = when (n) {
     else -> throw ErroSintaxe("unidade")
 }
 
-private fun comparar(op: String, a0: IExpr, b0: IExpr, m: Motor): IExpr {
+internal fun comparar(op: String, a0: IExpr, b0: IExpr, m: Motor): IExpr {
+    if (a0.isString || b0.isString) return tracolab.nucleo.embutidos.Logica.compararTextos(op, a0, b0, m)
     var a = a0; var b = b0
     if ((m.temUnidade(a) || m.temUnidade(b)) && !(m.temLivres(a) || m.temLivres(b))) {
         m.checarSoma(a, b)

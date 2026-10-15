@@ -6,4 +6,5 @@ import tracolab.nucleo.ModuloEmbutidos
 val MODULOS: List<ModuloEmbutidos> = listOf(
     Elementares,
     Matrizes,
+    Logica,
 )

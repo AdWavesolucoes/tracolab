@@ -18,8 +18,8 @@ sealed class No {
 
 class ErroSintaxe(msg: String) : Exception(msg)
 
-/** Parser descendente recursivo: + - * / ^, chamadas f(a, b), índices v[i], comparações,
- *  unidades entre chaves, inclusive coladas no número (20{mm}), matrizes [1, 2; 3, 4] e textos "OK". */
+/** Parser descendente recursivo: + - * / ^, chamadas f(a, b), índices v[i], comparações (também
+ *  em cadeia), lógica (∧ ∨ ⊕ ¬), unidades entre chaves, inclusive coladas no número (20{mm}), matrizes [1, 2; 3, 4] e textos "OK". */
 class Parser(private val s: String) {
     private var p = 0
 
@@ -41,12 +41,41 @@ class Parser(private val s: String) {
         return false
     }
 
+    /**
+     * Expressão completa: lógica sobre comparações (ADR 0013). Precedência, da menor para a maior:
+     * ∨ e ⊕, depois ∧, depois ¬, depois a comparação. Os operadores lógicos viram chamadas dos
+     * embutidos or/xor/and/not (embutidos/Logica.kt).
+     */
     private fun comparacao(): No {
-        val a = soma()
-        for (op in listOf(">=", "<=", "==", "!=", ">", "<")) {
-            if (consome(op)) return No.Cmp(op, a, soma())
+        var a = conjuncao()
+        while (true) {
+            a = when {
+                consome("∨") -> No.Chama("or", listOf(a, conjuncao()))
+                consome("⊕") -> No.Chama("xor", listOf(a, conjuncao()))
+                else -> return a
+            }
         }
+    }
+
+    private fun conjuncao(): No {
+        var a = negacao()
+        while (consome("∧")) a = No.Chama("and", listOf(a, negacao()))
         return a
+    }
+
+    private fun negacao(): No = if (consome("¬")) No.Chama("not", listOf(negacao())) else relacao()
+
+    /** a < b, e em cadeia: 0 < x ≤ 1 é (0 < x) ∧ (x ≤ 1). */
+    private fun relacao(): No {
+        var a = soma()
+        var r: No? = null
+        while (true) {
+            val op = listOf(">=", "<=", "==", "!=", ">", "<").firstOrNull { consome(it) } ?: return r ?: a
+            val b = soma()
+            val cmp = No.Cmp(op, a, b)
+            r = if (r == null) cmp else No.Chama("and", listOf(r, cmp))
+            a = b
+        }
     }
 
     private fun soma(): No {

@@ -158,7 +158,8 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
                     }
                     val v = if (r.tipo == "definicao_simbolica") motor.ev(F.Simplify(avaliar(r.expr!!, c)))
                             else iterar(c) { avaliar(r.expr!!, c) }
-                    return estadoDe(v, c, exato = r.tipo == "definicao_simbolica")
+                    val e = estadoDe(v, c, exato = r.tipo == "definicao_simbolica")
+                    return if (r.mostrar) verificado(r.expr!!, c, e) else e
                 }
                 "elemento" -> {   // v[i] := ... e M[i, j] := ... (Matriciais.Gravador)
                     val g = Matriciais.Gravador((env[r.define[0]] as? Valor.Expr)?.e, origem, motor, limites.elementos)
@@ -185,7 +186,7 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
             }
             throw NaoSuportado("definição ${r.tipoAlvo}")
         }
-        if (r.tipo == "avaliacao_numerica") return estadoDe(iterar(c) { avaliar(r.expr!!, c) }, c)
+        if (r.tipo == "avaliacao_numerica") return verificado(r.expr!!, c, estadoDe(iterar(c) { avaliar(r.expr!!, c) }, c))
         if (r.tipo == "avaliacao_simbolica")
             return estadoDe(motor.ev(F.Simplify(avaliar(r.expr!!, c))), c, exato = true, simbolica = true)
         throw NaoSuportado(r.tipo)
@@ -221,6 +222,7 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         val e = r.estado!!
         if (e.tipo != "numerico" && e.tipo != "parcial") return "[${e.tipo}] ${e.msg}"
         val v = e.valor ?: return "?"
+        if (v.isString) return "\"$v\""
         if (motor.temLivres(v)) return v.toString()
         // número que não é real (2·i) não tem texto "número unidade": mostra a expressão
         fun texto(x: IExpr) = try { exibirValor(x, r) } catch (err: ErroUnidade) { throw err } catch (_: Exception) { x.toString() }
