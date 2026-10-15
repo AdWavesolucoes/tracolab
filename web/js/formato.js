@@ -25,8 +25,8 @@
     <span class="lbl">Números e unidades</span>
     <label class="campo-ajuste">Unidades dos resultados
       <select id="fmt-unidades">
-        <option value="folha">As usadas na folha (20 mm, kN·m, MPa)</option>
-        <option value="si">SI (0,02 m, N·m, Pa)</option>
+        <option value="folha">Da folha (20 mm, kN·m)</option>
+        <option value="si">SI (0,02 m, N·m)</option>
       </select>
     </label>
     <label class="campo-ajuste">Precisão
