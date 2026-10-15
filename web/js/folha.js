@@ -16,6 +16,7 @@ const LARGURA = 794;
 let estado = { nome: "Folha sem título", modo: "parcial", ordem: false, regioes: [] };   // regioes: {id, latex, unidade, x, y}
 let proximoId = 1;
 let temporizador = null;
+let registroPendente = false;   // edição já feita mas ainda não gravada no histórico (espera o debounce)
 let ultimaResposta = null;
 let ultimoCampo = null;
 let motor = "";   // máquina que calculou (versão web de teste com mais de uma instância)
@@ -52,6 +53,14 @@ function registrar() {
   atualizarBotoesHistorico();
 }
 
+/** Grava no histórico a edição que ainda espera o debounce, para desfazer/refazer partirem do estado visto. */
+function fecharEdicao() {
+  if (!registroPendente) return;
+  clearTimeout(temporizador);
+  registroPendente = false;
+  registrar();
+}
+
 function voltarPara(pos) {
   posHist = pos;
   estado.regioes = JSON.parse(historico[pos]);
@@ -65,8 +74,8 @@ function atualizarBotoesHistorico() {
   document.getElementById("btn-refazer").disabled = posHist >= historico.length - 1;
 }
 
-document.getElementById("btn-desfazer").addEventListener("click", () => posHist > 0 && voltarPara(posHist - 1));
-document.getElementById("btn-refazer").addEventListener("click", () => posHist < historico.length - 1 && voltarPara(posHist + 1));
+document.getElementById("btn-desfazer").addEventListener("click", () => { fecharEdicao(); if (posHist > 0) voltarPara(posHist - 1); });
+document.getElementById("btn-refazer").addEventListener("click", () => { fecharEdicao(); if (posHist < historico.length - 1) voltarPara(posHist + 1); });
 
 // ------------------------------------------------------------------ regiões na folha
 

@@ -117,7 +117,7 @@ math-field.campo::part(virtual-keyboard-toggle), math-field.campo::part(menu-tog
 .guia { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--cobalto); pointer-events: none; }
 
 /* Faixa de teclas */
-.faixa { flex: none; height: 76px; padding: 12px 16px; background: var(--papel); border-top: 1px solid var(--borda); display: flex; align-items: center; justify-content: center; gap: 8px; overflow-x: auto; }
+.faixa { flex: none; height: 76px; padding: 12px 16px; background: var(--papel); border-top: 1px solid var(--borda); display: flex; align-items: center; justify-content: safe center; gap: 8px; overflow-x: auto; }
 .key { flex: none; width: 52px; height: 48px; border: 1px solid var(--tecla-borda); border-radius: 12px; background: #FFFFFF; color: var(--nanquim); font: 400 23px "Times New Roman", serif; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .key.def { color: var(--cobalto); }
 .key.eq { color: var(--vermelhao); font-weight: 600; }

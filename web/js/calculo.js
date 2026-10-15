@@ -4,7 +4,8 @@
 function agendar(ms = 220, salvarHist = true) {
   salvar();
   clearTimeout(temporizador);
-  temporizador = setTimeout(() => { if (salvarHist) registrar(); recalcular(); }, ms);
+  registroPendente = registroPendente || salvarHist;
+  temporizador = setTimeout(() => { if (registroPendente) registrar(); registroPendente = false; recalcular(); }, ms);
 }
 
 async function calcular(pedido) {
@@ -16,7 +17,10 @@ async function calcular(pedido) {
   return resp.json();
 }
 
+let seqCalculo = 0;   // só a resposta do último pedido pinta a folha
+
 async function recalcular() {
+  const minha = ++seqCalculo;
   const pedido = {
     modo: estado.modo,
     regioes: estado.regioes.map((r) => {
@@ -34,6 +38,7 @@ async function recalcular() {
   numerarOrdem();
   try {
     const resp = await calcular(pedido);
+    if (minha !== seqCalculo) return;   // resposta velha: já há um pedido mais novo
     ultimaResposta = resp;
     for (const o of resp.regioes) pintar(o);
     pintarResumo(resp);
@@ -41,6 +46,7 @@ async function recalcular() {
     for (const f of TL.aposCalculo) f(resp);
     if (resp.erro) resumo.textContent = resp.erro;
   } catch (e) {
+    if (minha !== seqCalculo) return;
     resumo.textContent = e instanceof TypeError || !e.message ? "sem conexão com o núcleo" : e.message;   // TypeError: rede
   }
 }
