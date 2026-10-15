@@ -25,7 +25,8 @@ internal fun Planilha.diagnosticoUnidade(r: Regiao, v: IExpr): Pair<String, List
     val obtida = m.dims(v)
     val alvo = m.dims(avaliar(pedida, Contexto(emptyMap(), this)))
     val falta = DoubleArray(7) { alvo[it] - obtida[it] }
-    val textoObtido = UnidadesFolha.si(obtida, m)?.texto() ?: "sem unidade"
+    val textoObtido = (UnidadesFolha.si(obtida, m)?.texto() ?: "sem unidade")
+        .replace("^2", "²").replace("^3", "³").replace("^4", "⁴")
     val (grandeza, unidadeSug) = GRANDEZAS.firstOrNull { it.dims.contentEquals(falta) }?.let { it.nome to it.unidade }
         ?: (("a unidade " + (UnidadesFolha.si(falta, m)?.texto() ?: "?")) to null)
     val sugestoes = if (unidadeSug == null) emptyList() else semUnidade(r).filter { confirma(it, falta, unidadeSug) }

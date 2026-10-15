@@ -17,6 +17,7 @@ versionamento [SemVer](https://semver.org/lang/pt-BR/).
 - Σ, Π, ∫ e d/dx com unidades e pendências (ADR 0011); resolver/raiz/raizes com unidade deduzida (ADR 0012); funções de números, estatística e interpolação, `n!` (ADR 0018); gráficos X-Y em SVG com trace (ADR 0016).
 
 ### Corrigido (15/10)
+- Unidade pedida incompatível agora diz o que falta ("σ está em 1/m²; para MPa falta uma força. Sem unidade: F") e o chip "F em kN" acrescenta a unidade no número digitado sem ela (relato do usuário).
 - Interface: resposta antiga do núcleo não pinta mais por cima da nova; desfazer logo depois de digitar pulava dois passos; faixa de teclas cortada em retrato.
 - `10^10^10` travava a folha; recursão infinita e fórmulas fundas derrubavam a conexão; estouro numérico derrubava a folha inteira; cliente lento ou cálculo pesado prendia o servidor; arquivos estáticos aceitavam pasta vizinha com o mesmo prefixo.
 - Raiz de grandeza com unidade e número não real derrubavam a página; Hz × 1/s; índices de vetor; faixas com unidade; redefinição a partir de erro; recálculo ao mover definição; recorrência `v[i] := v[i-1]·2`; `a = b =`; `|x|` no editor; zero com unidade pedida.
