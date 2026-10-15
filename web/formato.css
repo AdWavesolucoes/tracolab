@@ -1,0 +1,9 @@
+/* Unidades e formato dos números (ADR 0014): ajustes da folha e o formato de um resultado. */
+.ajustes-numeros { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px solid var(--borda-clara); }
+.campo-check { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 13px; color: var(--apoio); cursor: pointer; }
+.campo-check input { width: 22px; height: 22px; margin: 0; accent-color: var(--cobalto); }
+.ajustes-numeros .dica { margin: 0; font-size: 12px; line-height: 1.45; color: var(--grafite); }
+.rg .resultado { cursor: pointer; }
+.rg.formato-proprio .resultado { text-decoration: underline dotted var(--grafite-claro); text-underline-offset: 5px; }
+#menu-formato { width: 320px; }
+#menu-formato .alterna { align-self: flex-start; font-family: var(--sans); }

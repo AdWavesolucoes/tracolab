@@ -41,7 +41,7 @@ function abrirMenuUnidade(r, botao) {
   window.mathVirtualKeyboard.hide();   // o teclado cobriria o menu, e escolher unidade não precisa dele
   menuUnidade.innerHTML = "";
   const auto = document.createElement("button");
-  auto.textContent = "Automática (SI)";
+  auto.textContent = "Automática (unidades da folha)";
   auto.className = r.unidade ? "" : "sel";
   auto.addEventListener("click", () => escolherUnidade(r, ""));
   menuUnidade.appendChild(auto);

@@ -14,7 +14,7 @@ import java.math.RoundingMode
  * @param engenharia na notação exponencial, expoente múltiplo de 3 (12,5×10³)
  * @param expMax notação exponencial quando o expoente do número é >= expMax...
  * @param expMin ... ou <= expMin
- * @param milhar separa os milhares com espaço fino quando a parte inteira tem 5 algarismos ou mais
+ * @param milhar separa os milhares com espaço quando a parte inteira tem 5 algarismos ou mais
  * @param zeros mantém os zeros à direita (2,30 com 2 casas)
  * @param unidades "folha" (unidades usadas na folha, ADR 0014) ou "si" (SI com nomes derivados)
  */
@@ -63,9 +63,9 @@ class NumeroFormatado(val negativo: Boolean, val inteiro: String, val fracao: St
     private fun grupos(sep: String, f: Formato) =
         if (f.milhar && inteiro.length >= 5) inteiro.reversed().chunked(3).map { it.reversed() }.reversed().joinToString(sep) else inteiro
 
-    /** 12\thinspace345{,}6, 1{,}5\times10^{6}. O espaço fino não é `\,`: a tela separa número e unidade por `\,`. */
+    /** 12\:345{,}6, 1{,}5\times10^{6}. O espaço entre milhares não é `\,`: a tela separa número e unidade por ele. */
     fun latex(f: Formato): String {
-        val corpo = grupos("\\thinspace ", f) + if (fracao.isEmpty()) "" else "{,}$fracao"
+        val corpo = grupos("\\:", f) + if (fracao.isEmpty()) "" else "{,}$fracao"
         return (if (negativo) "-" else "") + corpo + (expoente?.let { "\\times10^{$it}" } ?: "")
     }
 

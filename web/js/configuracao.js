@@ -66,15 +66,24 @@ const ATALHOS = {
 // "\," antes da unidade: espaço fino entre número e unidade (20 mm); o núcleo ignora o espaço.
 const UN = (rot, latex) => ({ rot, latex: "\\," + (latex || `\\mathrm{${rot}}`) });
 const GRUPOS_UNIDADES = [
-  ["Comprimento", [UN("mm"), UN("cm"), UN("m"), UN("km"), UN("in"), UN("ft")]],
-  ["Área e volume", [UN("mm²", "\\mathrm{mm}^2"), UN("cm²", "\\mathrm{cm}^2"), UN("m²", "\\mathrm{m}^2"), UN("m³", "\\mathrm{m}^3"), UN("L")]],
-  ["Força", [UN("N"), UN("kN"), UN("MN"), UN("kgf"), UN("lbf"), UN("kip")]],
-  ["Momento", [UN("N·m", "\\mathrm{N}\\cdot\\mathrm{m}"), UN("kN·m", "\\mathrm{kN}\\cdot\\mathrm{m}")]],
-  ["Pressão", [UN("Pa"), UN("kPa"), UN("MPa"), UN("GPa"), UN("psi"), UN("ksi")]],
-  ["Massa e tempo", [UN("kg"), UN("g"), UN("s"), UN("min"), UN("hr"), UN("Hz")]],
-  ["Energia e elétrica", [UN("J"), UN("kJ"), UN("W"), UN("kW"), UN("V"), UN("A")]],
-  ["Outras", [UN("K"), UN("rad"), UN("°", "\\mathrm{deg}"), UN("%", "\\mathrm{\\%}"), UN("rpm")]],
+  ["Comprimento", [UN("mm"), UN("cm"), UN("m"), UN("km"), UN("pol"), UN("in"), UN("ft")]],
+  ["Área e volume", [UN("mm²", "\\mathrm{mm}^2"), UN("cm²", "\\mathrm{cm}^2"), UN("m²", "\\mathrm{m}^2"), UN("m³", "\\mathrm{m}^3"), UN("L"), UN("cm⁴", "\\mathrm{cm}^4")]],
+  ["Força", [UN("N"), UN("kN"), UN("MN"), UN("kgf"), UN("tf"), UN("lbf"), UN("kip")]],
+  ["Momento", [UN("N·m", "\\mathrm{N}\\cdot\\mathrm{m}"), UN("kN·m", "\\mathrm{kN}\\cdot\\mathrm{m}"), UN("kN·cm", "\\mathrm{kN}\\cdot\\mathrm{cm}"),
+    UN("kgf·m", "\\mathrm{kgf}\\cdot\\mathrm{m}"), UN("tf·m", "\\mathrm{tf}\\cdot\\mathrm{m}")]],
+  ["Cargas", [UN("kN/m", "\\mathrm{kN}/\\mathrm{m}"), UN("kN/m²", "\\mathrm{kN}/\\mathrm{m}^2"), UN("kN/m³", "\\mathrm{kN}/\\mathrm{m}^3"),
+    UN("tf/m", "\\mathrm{tf}/\\mathrm{m}"), UN("tf/m²", "\\mathrm{tf}/\\mathrm{m}^2"), UN("kgf/m²", "\\mathrm{kgf}/\\mathrm{m}^2")]],
+  ["Pressão e tensão", [UN("Pa"), UN("kPa"), UN("MPa"), UN("GPa"), UN("kgf/cm²", "\\mathrm{kgf}/\\mathrm{cm}^2"), UN("kN/cm²", "\\mathrm{kN}/\\mathrm{cm}^2"),
+    UN("bar"), UN("mca"), UN("psi"), UN("ksi")]],
+  ["Massa e tempo", [UN("kg"), UN("g"), UN("t"), UN("s"), UN("min"), UN("h"), UN("Hz")]],
+  ["Energia e elétrica", [UN("J"), UN("kJ"), UN("kWh"), UN("W"), UN("kW"), UN("cv"), UN("V"), UN("A")]],
+  ["Vazão e velocidade", [UN("L/s", "\\mathrm{L}/\\mathrm{s}"), UN("m³/h", "\\mathrm{m}^3/\\mathrm{h}"), UN("m³/s", "\\mathrm{m}^3/\\mathrm{s}"),
+    UN("m/s", "\\mathrm{m}/\\mathrm{s}"), UN("km/h", "\\mathrm{km}/\\mathrm{h}")]],
+  ["Temperatura e outras", [UN("°C", "\\mathrm{°C}"), UN("°F", "\\mathrm{°F}"), UN("K"), UN("Δ°C", "\\mathrm{Δ°C}"), UN("rad"),
+    UN("°", "\\mathrm{deg}"), UN("%", "\\mathrm{\\%}"), UN("rpm")]],
 ];
+// grupos que só aparecem no menu do chip (no teclado, compõe-se com / e ·)
+const SO_NO_MENU = new Set(["Momento", "Cargas", "Vazão e velocidade"]);
 
 window.mathVirtualKeyboard.layouts = [
   {
@@ -92,7 +101,7 @@ window.mathVirtualKeyboard.layouts = [
   "greek", "alphabetic",
   {
     id: "unidades", label: "Unidades", tooltip: "Unidades (ADR 0007): nunca se confundem com variáveis",
-    rows: GRUPOS_UNIDADES.filter(([g]) => g !== "Momento").map(([, us]) => us.map((u) => ({ latex: u.latex, label: u.rot }))),
+    rows: GRUPOS_UNIDADES.filter(([g]) => !SO_NO_MENU.has(g)).map(([, us]) => us.slice(0, 8).map((u) => ({ latex: u.latex, label: u.rot }))),
   },
 ];
 

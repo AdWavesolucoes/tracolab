@@ -28,7 +28,7 @@ class UnidadesFormatoTest {
 
     @Test fun numeroNoFormato() {
         fun l(x: Double, f: Formato = Formato()) = formatarNumero(x, f).latex(f)
-        assertEquals("12\\thinspace 345{,}6", l(12345.6))
+        assertEquals("12\\:345{,}6", l(12345.6))
         assertEquals("1234{,}5", l(1234.5))                       // 4 algarismos: sem separador
         assertEquals("1{,}5\\times10^{6}", l(1.5e6))
         assertEquals("-0{,}000314159", l(-0.000314159))

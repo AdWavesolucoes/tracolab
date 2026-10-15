@@ -28,7 +28,7 @@ object LatexEntrada {
     private val FUNCOES = setOf("sin", "cos", "tan", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh",
         "exp", "ln", "log", "max", "min", "det")
     private val RENOMEIA_FUNCAO = mapOf("arcsin" to "asin", "arccos" to "acos", "arctan" to "atan")
-    private val IGNORADOS = setOf(",", ";", "!", ":", " ", "quad", "qquad", "thinspace", "left", "right", "displaystyle",
+    private val IGNORADOS = setOf(",", ";", "!", ":", " ", "quad", "qquad", "left", "right", "displaystyle",
         "big", "Big", "bigl", "bigr", "Bigl", "Bigr", "mathstrut", "limits", "nolimits")
 
     // ------------------------------------------------------------------ léxico
