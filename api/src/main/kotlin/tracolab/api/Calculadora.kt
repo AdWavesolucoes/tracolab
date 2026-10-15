@@ -9,6 +9,7 @@ import tracolab.nucleo.Motor
 import tracolab.nucleo.Planilha
 import tracolab.nucleo.latex.LatexEntrada
 import tracolab.nucleo.latex.resultadoTela
+import tracolab.nucleo.latex.substituicaoTela
 import tracolab.nucleo.regiaoDeTexto
 import tracolab.nucleo.textoTempo
 import java.util.concurrent.ArrayBlockingQueue
@@ -61,6 +62,10 @@ data class LimitesPedido(
  *
  * Cada região também traz `define` (nomes que ela define, para o painel de variáveis) e
  * `abaixo` (nomes que faltam mas são definidos mais abaixo na folha: erro de ordem, não dado faltando).
+ *
+ * Folha como documento: `mostra: true` numa definição terminada em "=" (definir e mostrar, a
+ * tela mostra `resultado` como numa avaliação); com `"substituir": true` no pedido de uma região
+ * que mostra valor, a resposta traz `substituicao` (a fórmula com os valores, ver substituicaoTela).
  *
  * `y` é a linha de base da região (ADR 0001). `tipo` pode ser também "erro_sintaxe" (o LaTeX
  * não pôde ser lido) ou "vazia".
@@ -135,11 +140,13 @@ class Calculadora(
         val t0 = System.nanoTime()
         val pl = Planilha(pedido["modo"]?.asText() ?: "parcial", motor = motor, limites = limites)
         val saidas = linkedMapOf<String, ObjectNode>()
+        val substituir = HashSet<String>()
         for (r in pedido["regioes"] ?: json.createArrayNode()) {
             val id = r["id"].asText()
             val latex = r["latex"]?.asText().orEmpty()
             val o = json.createObjectNode().put("id", id)
             saidas[id] = o
+            if (r["substituir"]?.asBoolean() == true) substituir += id
             if (latex.isBlank()) { o.put("tipo", "vazia"); continue }
             if (latex.length > limitesPedido.caracteresLatex) {
                 o.put("tipo", "erro_sintaxe").put("msg", "Fórmula longa demais: ${latex.length} caracteres (máximo ${limitesPedido.caracteresLatex}).")
@@ -181,6 +188,13 @@ class Calculadora(
             }
             o.put("resultado", tela.latex)
             tela.avisoExibicao?.let { o.put("aviso", it) }
+            if (reg.mostrar) {
+                o.put("mostra", true)
+                if (reg.tipoAlvo == "funcao" && e.aviso == null) o.put("aviso", "Uma função não tem valor para mostrar.")
+            }
+            val mostraValor = reg.mostrar || reg.tipo.startsWith("avaliacao")
+            if (reg.id in substituir && mostraValor && (e.tipo == "numerico" || e.tipo == "parcial"))
+                pl.substituicaoTela(reg.id)?.let { o.put("substituicao", it) }
         }
         val resp = json.createObjectNode()
         resp.put("ms", (System.nanoTime() - t0) / 1_000_000)
