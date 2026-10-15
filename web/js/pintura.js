@@ -19,7 +19,8 @@ function pintar(o) {
   const nota = el.querySelector(".nota");
 
   // resultado (avaliações): número em vermelhão e a unidade como chip que troca a exibição
-  const avaliacao = o.papel === "avaliacao_numerica" || o.papel === "avaliacao_simbolica";
+  // avaliação, ou definição terminada em "=" (definir e mostrar: R := qL/2 = 36 kN)
+  const avaliacao = o.papel === "avaliacao_numerica" || o.papel === "avaliacao_simbolica" || !!o.mostra;
   res.innerHTML = ""; un.hidden = true;
   if (avaliacao && o.resultado) {
     const partes = o.tipo === "numerico" ? o.resultado.split("\\,") : [o.resultado];
@@ -89,6 +90,7 @@ function pintarVariaveis() {
       if ((o.abaixo || []).length || o.tipo === "erro" || o.tipo === "erro_sintaxe") { b.classList.add("erro"); valor = "erro"; }
       else if (o.tipo === "parcial") { b.classList.add("pend"); valor = `pendente · falta ${(o.livres || []).map(escapar).join(", ")}`; }
       else if (o.tipo === "nao_suportado") valor = "não suportado";
+      else if (o.forma) valor = o.forma[1] === 1 ? `vetor · ${o.forma[0]}` : `matriz ${o.forma[0]}×${o.forma[1]}`;
       else if (!o.resultado) valor = "função";
       else valor = markup(o.resultado);
       b.innerHTML = `<span class="vs">${escapar(nome).replace(/_(\w+)/, "<sub>$1</sub>")}</span><span class="vv">${valor}</span>`;

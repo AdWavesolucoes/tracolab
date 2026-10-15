@@ -11,7 +11,8 @@ arquivo base e todos os de `casos/`, e o `id` de cada caso precisa ser único en
 
 ## Formato
 
-Cada caso tem `modo` (`parcial` ou `classico`), opcionalmente `unidades_implicitas: true`, e uma
+Cada caso tem `modo` (`parcial` ou `classico`), opcionalmente `unidades_implicitas: true` e
+`origem` (primeiro índice de vetores, 0 ou 1; padrão 0), e uma
 lista de `passos` executados em ordem.
 
 ### Ações
@@ -34,6 +35,7 @@ Todos os campos são opcionais e se somam:
 | `exato` | Valor exato (fração/racional), comparado como texto canônico, ex.: `1/2` |
 | `num` | Valor numérico, com tolerância relativa de 1e-9 |
 | `lista` | Vetor numérico, com a mesma tolerância |
+| `matriz` | Matriz numérica por linhas (`[[1, 2], [3, 4]]`), com a mesma tolerância |
 | `tela` | Texto exato da exibição (`2.3 m`, `200 MPa`) |
 | `tela_comeca` | Prefixo do texto da exibição |
 | `msg_contem` | Trecho da mensagem de erro |

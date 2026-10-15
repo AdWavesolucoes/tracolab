@@ -36,7 +36,8 @@ fun executarSpec(json: String, motor: Motor): ResultadoSpec {
 }
 
 fun rodarCaso(caso: JsonNode, motor: Motor): List<String> {
-    val pl = Planilha(caso["modo"]?.asText() ?: "parcial", unidades = caso["unidades_implicitas"]?.asBoolean() ?: false, motor = motor)
+    val pl = Planilha(caso["modo"]?.asText() ?: "parcial", origem = caso["origem"]?.asInt() ?: 0,
+        unidades = caso["unidades_implicitas"]?.asBoolean() ?: false, motor = motor)
     val falhas = mutableListOf<String>()
     for (p in caso["passos"]) {
         if (p.has("verificar")) { falhas += verificar(pl, p).map { "[${p["verificar"].asText()}] $it" }; continue }
@@ -82,6 +83,13 @@ fun verificar(pl: Planilha, v: JsonNode): List<String> {
             val exp = esp.map { it.asDouble() }
             if (got.size != exp.size || !got.zip(exp).all { (a, b) -> perto(a, b) }) f += "lista $got != $exp"
         }
+    }
+    v["matriz"]?.let { esp ->   // matriz numérica, por linhas: [[1, 2], [3, 4]]
+        val val0 = e.valor
+        val got = try { tracolab.nucleo.Matriciais.linhas(val0!!).map { l -> l.map { m.dbl(it) } } } catch (x: Exception) { null }
+        val exp = esp.map { l -> l.map { it.asDouble() } }
+        if (got == null || got.size != exp.size || got.zip(exp).any { (a, b) -> a.size != b.size || !a.zip(b).all { (x, y) -> perto(x, y) } })
+            f += "matriz $got != $exp ($val0)"
     }
     v["tela"]?.let { val t = pl.exibir(r.id); if (t != it.asText()) f += "tela '$t' != '${it.asText()}'" }
     v["tela_comeca"]?.let { val t = pl.exibir(r.id); if (!t.startsWith(it.asText())) f += "tela '$t' não começa com '${it.asText()}'" }

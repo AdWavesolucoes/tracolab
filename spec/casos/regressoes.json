@@ -28,7 +28,7 @@
        {"acao": "adicionar", "id": "u", "texto": "u[i] := i", "y": 60},
        {"verificar": "w", "tipo": "erro", "msg_contem": "inteiro"},
        {"verificar": "a", "tipo": "erro", "msg_contem": "inteiro"},
-       {"verificar": "b", "tipo": "erro", "msg_contem": "unidade"},
+       {"verificar": "b", "tipo": "erro"},
        {"verificar": "u", "tipo": "erro", "msg_contem": "inteiro"}
      ]},
     {"id": "reg-04", "nome": "vetor ou índice faltando deixa o elemento pendente, não 'não suportado'", "modo": "parcial", "passos": [

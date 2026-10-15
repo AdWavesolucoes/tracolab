@@ -10,7 +10,8 @@ function agendar(ms = 220, salvarHist = true) {
 async function calcular(pedido) {
   if (window.TracoLabNativo) return JSON.parse(window.TracoLabNativo.calcular(JSON.stringify(pedido)));
   const resp = await fetch("api/calcular", { method: "POST", body: JSON.stringify(pedido) });
-  if (!resp.ok) throw new Error(await resp.text());
+  // erro da API vem como {"erro": "..."} (pedido grande demais, servidor ocupado...): mostra na barra
+  if (!resp.ok) throw new Error((await resp.json().catch(() => ({}))).erro || "sem conexão com o núcleo");
   motor = resp.headers.get("X-TracoLab-Motor") || "";
   return resp.json();
 }
@@ -21,7 +22,12 @@ async function recalcular() {
     regioes: estado.regioes.map((r) => {
       const tipo = TL.tipos[r.tipo];
       if (tipo) return tipo.pedido ? tipo.pedido(r) : null;
-      return { id: r.id, latex: r.latex + (r.unidade || ""), x: r.x, y: linhaDeBase(r) };
+      // a unidade do resultado só vale enquanto a fórmula termina em "=": sem ele, numa definição
+      // ela multiplicaria o valor (R := qL/2 kN)
+      const unidade = r.unidade && /=\s*$/.test(r.latex) ? r.unidade : "";
+      const o = { id: r.id, latex: r.latex + unidade, x: r.x, y: linhaDeBase(r) };
+      if (r.substituir) o.substituir = true;
+      return o;
     }).filter(Boolean),
     opcoes: Object.assign({}, ...TL.opcoes.map((f) => f())),
   };
@@ -33,14 +39,17 @@ async function recalcular() {
     pintarResumo(resp);
     pintarVariaveis();
     for (const f of TL.aposCalculo) f(resp);
+    if (resp.erro) resumo.textContent = resp.erro;
   } catch (e) {
-    resumo.textContent = "sem conexão com o núcleo";
+    resumo.textContent = e instanceof TypeError || !e.message ? "sem conexão com o núcleo" : e.message;   // TypeError: rede
   }
 }
 
 /** Ordem de cálculo: linha de base, depois x (ADR 0001). Numera as regiões e devolve a lista. */
 function numerarOrdem() {
-  const ordem = [...estado.regioes].sort((a, b) => linhaDeBase(a) - linhaDeBase(b) || a.x - b.x);
+  // só o que vai ao núcleo entra na numeração (texto não tem ordem de cálculo)
+  const ordem = estado.regioes.filter((r) => !TL.tipos[r.tipo] || TL.tipos[r.tipo].pedido?.(r))
+    .sort((a, b) => linhaDeBase(a) - linhaDeBase(b) || a.x - b.x);
   ordem.forEach((r, i) => { const bd = elementos.get(r.id)?.querySelector(".bd"); if (bd) bd.textContent = i + 1; });
   return ordem;
 }

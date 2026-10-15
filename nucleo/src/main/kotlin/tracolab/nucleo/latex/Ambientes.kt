@@ -14,5 +14,7 @@ internal fun ambiente(nome: String, linhas: List<List<String>>): Peca = when (no
         if (linhas.any { it.size != linhas[0].size }) throw ErroLatex("linhas da matriz com tamanhos diferentes")
         Peca("[" + linhas.joinToString("; ") { it.joinToString(", ") } + "]", true, true)
     }
+    // |A|: determinante escrito com barras
+    "vmatrix" -> Peca("det(" + ambiente("pmatrix", linhas).t + ")", true, true)
     else -> throw ErroLatex("ambiente não suportado: $nome")
 }

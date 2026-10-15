@@ -13,6 +13,7 @@ class Contexto(
     val pl: Planilha,
     val livres: MutableList<String> = mutableListOf(),
     val iter: MutableMap<String, IExpr> = mutableMapOf(),
+    val profundidade: Int = 0,           // chamadas aninhadas de funções do usuário (ADR 0017)
 )
 
 fun numeroExato(t: String): IExpr {
@@ -23,6 +24,7 @@ fun numeroExato(t: String): IExpr {
 
 fun avaliar(n: No, c: Contexto): IExpr {
     val m = c.pl.motor
+    m.verificarPrazo()
     return when (n) {
         is No.Num -> numeroExato(n.texto)
         is No.Id -> {
@@ -44,31 +46,27 @@ fun avaliar(n: No, c: Contexto): IExpr {
         is No.Unidade -> avaliarUnidade(n.expr, m)
         is No.Neg -> m.ev(F.Negate(avaliar(n.a, c)))
         is No.Bin -> {
-            val a = avaliar(n.a, c); val b = avaliar(n.b, c)
+            val a = avaliar(n.a, c)
+            // M^T com M matriz/vetor é a transposta (T não é avaliado como nome)
+            if (n.op == '^' && n.b == No.Id("T") && a.isList) return Matriciais.transposta(a)
+            val b = avaliar(n.b, c)
+            if (a.isList || b.isList) return Matriciais.binario(n.op, a, b, m)
             when (n.op) {
                 '+' -> { m.checarSoma(a, b); m.ev(F.Plus(a, b)) }
                 '-' -> { m.checarSoma(a, b); m.ev(F.Subtract(a, b)) }
-                '*' -> m.ev(F.Times(a, b))
+                '*', '×' -> m.ev(F.Times(a, b))
                 '/' -> { if (b.isZero) throw ErroCalculo("Divisão por zero."); m.ev(F.Divide(a, b)) }
                 '^' -> m.ev(F.Power(a, b))
                 else -> throw NaoSuportado("operador ${n.op}")
             }
         }
-        is No.Cmp -> comparar(n.op, avaliar(n.a, c), avaliar(n.b, c), m)
-        is No.Chama -> chamar(n, c)
-        is No.Indice -> {
-            val base = avaliar(n.base, c)
-            val idx = n.idx.map { avaliar(it, c) }
-            // vetor ou índice ainda faltando: o elemento fica pendente (v_k), como um nome que falta
-            if ((!base.isList && m.temLivres(base)) || idx.any { m.temLivres(it) })
-                return F.ast(F.Subscript).also { s -> s.append(base); idx.forEach { s.append(it) } }
-            if (base.isList && idx.size == 1) {
-                val k = indiceInteiro(idx[0], m) - c.pl.origem
-                val l = base as IAST
-                if (k < 0 || k >= l.argSize()) throw ErroCalculo("Índice fora do intervalo.")
-                l.get(k + 1)
-            } else throw NaoSuportado("índice")
+        is No.Cmp -> {
+            val a = avaliar(n.a, c); val b = avaliar(n.b, c)
+            if (a.isList || b.isList) throw ErroCalculo("A comparação é entre escalares; elemento a elemento, use vec(...).")
+            comparar(n.op, a, b, m)
         }
+        is No.Chama -> chamar(n, c)
+        is No.Indice -> Matriciais.indice(avaliar(n.base, c), n.idx.map { avaliar(it, c) }, c.pl.origem, m)
         // Representação (ADR 0004): uma coluna só ([a; b; c]) é vetor, uma List simples como a de
         // v[i] := ...; senão, List de linhas (List de List). Operações de matriz: embutidos/.
         is No.Matriz -> {
@@ -78,14 +76,6 @@ fun avaliar(n: No, c: Contexto): IExpr {
         }
         is No.Texto -> throw NaoSuportado("texto")   // sintaxe reservada; a avaliação fica com a área de lógica
     }
-}
-
-/** Índice de vetor: número inteiro sem unidade (2 e 2.0 valem; 1.5 e 2{m} não). */
-fun indiceInteiro(x: IExpr, m: Motor): Int {
-    if (m.temUnidade(x)) throw ErroCalculo("O índice não pode ter unidade.")
-    val d = try { m.dbl(x) } catch (_: Exception) { throw ErroCalculo("O índice deve ser um número inteiro.") }
-    if (d != Math.rint(d) || Math.abs(d) > Int.MAX_VALUE) throw ErroCalculo("O índice deve ser um número inteiro.")
-    return d.toInt()
 }
 
 private fun avaliarUnidade(n: No, m: Motor): IExpr = when (n) {
@@ -119,8 +109,10 @@ private fun chamar(n: No.Chama, c: Contexto): IExpr {
     if (f is Valor.Funcao) {
         val vals = n.args.map { avaliar(it, c) }
         if (vals.size != f.params.size) throw ErroCalculo("${n.nome}: número errado de argumentos")
+        if (c.profundidade >= c.pl.limites.profundidade)
+            throw ErroCalculo("Recursão profunda demais: mais de ${c.pl.limites.profundidade} chamadas aninhadas de ${n.nome}.")
         val env = HashMap(f.env); f.params.zip(vals).forEach { (p, v) -> env[p] = Valor.Expr(v) }
-        return avaliar(f.corpo, Contexto(env, c.pl, c.livres))
+        return avaliar(f.corpo, Contexto(env, c.pl, c.livres, profundidade = c.profundidade + 1))
     }
     if (f != null) throw ErroCalculo("${n.nome} não é uma função")
     // embutidos: registro em Embutidos (um arquivo por área em embutidos/)
