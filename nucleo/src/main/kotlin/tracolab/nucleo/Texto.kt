@@ -21,6 +21,7 @@ fun usados(n: No?, ligados: Set<String> = emptySet()): List<String> {
                 if (esp == null) x.args.forEach { anda(it, lig) }
                 else {
                     val novos = esp.ligados.mapNotNull { (x.args.getOrNull(it) as? No.Id)?.nome }
+                    if (esp.usaLigado(x.args.size)) out += novos.filter { it !in lig }
                     x.args.forEachIndexed { i, a -> if (i !in esp.ligados) anda(a, lig + novos) }
                 }
             }

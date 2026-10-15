@@ -1,0 +1,575 @@
+{
+ "descricao": "Operadores de cálculo: Σ, Π, ∫ e d/dx (ADR 0011).",
+ "casos": [
+  {
+   "id": "calc-01",
+   "nome": "Σ com limites numéricos",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "sum(i^2, i, 1, 4) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "sum(1/2^k, k, 0, 3) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "numerico",
+     "num": 30
+    },
+    {
+     "verificar": "b",
+     "num": 1.875
+    }
+   ]
+  },
+  {
+   "id": "calc-02",
+   "nome": "Π com limites numéricos",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "prod(i, i, 1, 5) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "numerico",
+     "num": 120
+    }
+   ]
+  },
+  {
+   "id": "calc-03",
+   "nome": "Σ sem limites percorre a faixa definida acima (e recalcula ao editar a faixa)",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "i",
+     "texto": "i := 1..4",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "s",
+     "texto": "sum(2*i, i) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "p",
+     "texto": "prod(i, i) =",
+     "y": 30,
+     "x": 0
+    },
+    {
+     "verificar": "s",
+     "tipo": "numerico",
+     "num": 20
+    },
+    {
+     "verificar": "p",
+     "num": 24
+    },
+    {
+     "acao": "editar",
+     "id": "i",
+     "texto": "i := 1..3",
+     "y": 10,
+     "recalculadas": [
+      "i",
+      "s",
+      "p"
+     ]
+    },
+    {
+     "verificar": "s",
+     "num": 12
+    }
+   ]
+  },
+  {
+   "id": "calc-04",
+   "nome": "sum(v) e prod(v) somam os elementos do vetor, com unidade",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "v := [1; 2; 3]",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "s",
+     "texto": "sum(v) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "p",
+     "texto": "prod(v) =",
+     "y": 30,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "F",
+     "texto": "F := [1{kN}; 2{kN}]",
+     "y": 40,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "t",
+     "texto": "sum(F) = {kN}",
+     "y": 50,
+     "x": 0
+    },
+    {
+     "verificar": "s",
+     "num": 6
+    },
+    {
+     "verificar": "p",
+     "num": 6
+    },
+    {
+     "verificar": "t",
+     "tipo": "numerico",
+     "tela": "3 kN"
+    }
+   ]
+  },
+  {
+   "id": "calc-05",
+   "nome": "Σ com limite faltando: soma simbólica pendente",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "sum(i, i, 1, n) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "parcial",
+     "livres": [
+      "n"
+     ],
+     "expr": "n*(n+1)/2"
+    }
+   ]
+  },
+  {
+   "id": "calc-06",
+   "nome": "o i definido acima não entra na soma",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "i",
+     "texto": "i := 10",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "sum(i, i, 1, 3) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "num": 6
+    }
+   ]
+  },
+  {
+   "id": "calc-07",
+   "nome": "∫ definida simbólica",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "int(x^2, x, 0, 3) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "int(sin(x), x, 0, π) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "numerico",
+     "num": 9
+    },
+    {
+     "verificar": "b",
+     "num": 2
+    }
+   ]
+  },
+  {
+   "id": "calc-08",
+   "nome": "∫ com unidades: kN/m ao longo de m dá kN",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "q",
+     "texto": "q := 10{kN/m}",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "L",
+     "texto": "L := 2{m}",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "R",
+     "texto": "int(q, x, 0, L) =",
+     "y": 30,
+     "x": 0
+    },
+    {
+     "verificar": "R",
+     "tipo": "numerico",
+     "tela_folha": "20 kN"
+    }
+   ]
+  },
+  {
+   "id": "calc-09",
+   "nome": "∫ pendente: q e L faltando",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "R",
+     "texto": "int(q*x, x, 0, L) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "R",
+     "tipo": "parcial",
+     "livres": [
+      "q",
+      "L"
+     ],
+     "expr": "q*L^2/2"
+    }
+   ]
+  },
+  {
+   "id": "calc-10",
+   "nome": "∫ sem primitiva cai na integral numérica",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "int(x^x, x, 0, 1) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "numerico",
+     "num": 0.7834305107121344
+    }
+   ]
+  },
+  {
+   "id": "calc-11",
+   "nome": "∫ indefinida: a primitiva fica em função de x",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "int(2*x, x) ->",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "parcial",
+     "livres": [
+      "x"
+     ],
+     "expr": "x^2"
+    }
+   ]
+  },
+  {
+   "id": "calc-12",
+   "nome": "d/dx sem x definido: derivada simbólica pendente",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "deriv(x^3, x) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "parcial",
+     "livres": [
+      "x"
+     ],
+     "expr": "3*x^2"
+    }
+   ]
+  },
+  {
+   "id": "calc-13",
+   "nome": "d/dx com x definido: avalia no ponto (1ª e 2ª ordem)",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := 2",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "deriv(x^3, x) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "deriv(x^3, x, 2) =",
+     "y": 30,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "numerico",
+     "num": 12
+    },
+    {
+     "verificar": "b",
+     "num": 12
+    }
+   ]
+  },
+  {
+   "id": "calc-14",
+   "nome": "d/dx com unidades: divide pela unidade de x",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "t",
+     "texto": "t := 2{s}",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "deriv(5{m/s^2}*t^2/2, t) = {m/s}",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "numerico",
+     "tela": "10 m/s"
+    }
+   ]
+  },
+  {
+   "id": "calc-15",
+   "nome": "d/dx no ponto com outro nome faltando",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := 2",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "deriv(a*x^2, x) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "parcial",
+     "livres": [
+      "a"
+     ],
+     "expr": "4*a"
+    }
+   ]
+  },
+  {
+   "id": "calc-16",
+   "nome": "d/dx com x faixa: um valor por ponto",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := 1..3",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "deriv(x^2, x) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "lista": [
+      2,
+      4,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "calc-17",
+   "nome": "d/dx recalcula ao editar o x de cima",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := 2",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "deriv(x^2, x) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "num": 4
+    },
+    {
+     "acao": "editar",
+     "id": "x",
+     "texto": "x := 3",
+     "y": 10,
+     "recalculadas": [
+      "x",
+      "a"
+     ]
+    },
+    {
+     "verificar": "a",
+     "num": 6
+    }
+   ]
+  },
+  {
+   "id": "calc-18",
+   "nome": "limites conhecidos não inteiros são erro",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "sum(i, i, 1.5, 3) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "erro",
+     "msg_contem": "inteiros"
+    }
+   ]
+  },
+  {
+   "id": "calc-19",
+   "nome": "∫ com limites em mm",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "int(1, x, 0{mm}, 10{mm}) = {mm}",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tela": "10 mm"
+    }
+   ]
+  },
+  {
+   "id": "calc-20",
+   "nome": "sum(v) com v faltando fica pendente",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "sum(v) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "parcial",
+     "livres": [
+      "v"
+     ]
+    }
+   ]
+  }
+ ]
+}

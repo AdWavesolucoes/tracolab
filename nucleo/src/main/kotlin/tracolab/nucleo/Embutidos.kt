@@ -12,8 +12,14 @@ fun interface Embutida {
  * Operador especial: recebe a chamada sem avaliar os argumentos (Σ, ∫, d/dx, resolver...).
  * [ligados] são as posições (a partir de 0) dos argumentos que são nomes ligados, como o `i` de
  * `sum(i^2, i, 1, n)`: não contam como nomes usados da folha ([usados]) e nunca ficam "faltando".
+ * [usaLigado] (pela quantidade de argumentos) diz quando o nome ligado também lê a definição de
+ * cima e por isso conta como usado: Σ sem limites percorre a faixa `i`, d/dx avalia no `x` atual.
  */
-class Especial(val ligados: Set<Int> = emptySet(), val fn: (n: No.Chama, c: Contexto) -> IExpr)
+class Especial(
+    val ligados: Set<Int> = emptySet(),
+    val usaLigado: (nArgs: Int) -> Boolean = { false },
+    val fn: (n: No.Chama, c: Contexto) -> IExpr,
+)
 
 /** Uma área de embutidos: um arquivo em `embutidos/`, listado em [MODULOS]. */
 interface ModuloEmbutidos {
