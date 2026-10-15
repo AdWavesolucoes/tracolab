@@ -194,7 +194,11 @@ class Calculadora(
             }
             val mostraValor = reg.mostrar || reg.tipo.startsWith("avaliacao")
             if (reg.id in substituir && mostraValor && (e.tipo == "numerico" || e.tipo == "parcial"))
-                pl.substituicaoTela(reg.id)?.let { o.put("substituicao", it) }
+                try {   // mesma proteção da exibição: sem substituição, mas a folha sai (ADR 0017)
+                    motor.prazo.com(limites.msRegiao, "Substituição demorou demais.") { pl.substituicaoTela(reg.id) }?.let { o.put("substituicao", it) }
+                } catch (e: Throwable) {
+                    if (e is Error && e !is StackOverflowError && e !is OutOfMemoryError) throw e
+                }
         }
         val resp = json.createObjectNode()
         resp.put("ms", (System.nanoTime() - t0) / 1_000_000)
