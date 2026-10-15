@@ -118,7 +118,13 @@ class Motor {
      * positivas, mas o Symja não supõe isso e deixa √(m²) sem simplificar (aí o número não sai).
      * Só vale para valor sem nome faltando, para não transformar √(x²) em x.
      */
-    fun expandirUnidades(e: IExpr): IExpr = if (temUnidade(e) && !temLivres(e)) ev(F.PowerExpand(e)) else e
+    fun expandirUnidades(e: IExpr): IExpr {
+        if (!temUnidade(e) || temLivres(e)) return e
+        // o PowerExpand desce um nível por vez: √(kg²/m²) → √(kg²)·√(1/m²) → kg/m
+        var x = e
+        repeat(6) { val y = ev(F.PowerExpand(x)); if (y == x) return x; x = y }
+        return x
+    }
 
     /**
      * Valor numérico que não dá para mostrar nem usar: estouro (`10^400`, `10^10^10`), indeterminado

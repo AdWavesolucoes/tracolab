@@ -51,10 +51,14 @@
        {"acao": "adicionar", "id": "e", "texto": "c = {cm}", "y": 40},
        {"acao": "adicionar", "id": "f", "texto": "sqrt(4{m^2}) > 1{m} =", "y": 50},
        {"acao": "adicionar", "id": "g", "texto": "(8{m^3})^(1/3) + 1{m} =", "y": 60},
+       {"acao": "adicionar", "id": "h", "texto": "s := sqrt((14{MPa})^2/4)", "y": 70},
+       {"acao": "adicionar", "id": "k", "texto": "sqrt(6{MPa}) =", "y": 80},
        {"verificar": "c", "tipo": "numerico", "tela": "5 m"},
        {"verificar": "e", "tela": "500 cm"},
        {"verificar": "f", "tipo": "numerico", "num": 1},
-       {"verificar": "g", "tela": "3 m"}
+       {"verificar": "g", "tela": "3 m"},
+       {"verificar": "h", "tela": "7e+06 Pa"},
+       {"verificar": "k", "tela": "2449.49 m^-0.5·kg^0.5·s^-1"}
      ]},
     {"id": "reg-06", "nome": "redefinir a partir de uma definição com erro propaga o erro (não vira 'falta x')", "modo": "parcial", "passos": [
        {"acao": "adicionar", "id": "a", "texto": "x := 1/0", "y": 10},
