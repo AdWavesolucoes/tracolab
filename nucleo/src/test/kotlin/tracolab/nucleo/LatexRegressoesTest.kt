@@ -19,4 +19,12 @@ class LatexRegressoesTest {
             assertTrue(LatexEntrada.regiao("$tex=").endsWith("=")) { tex }
         }
     }
+
+    /** a = b = (comparação avaliada) dava erro de sintaxe: o '=' do meio não virava comparação. */
+    @Test fun comparacaoAvaliada() {
+        assertTrue(LatexEntrada.regiao("a=b=") == "a == b =") { LatexEntrada.regiao("a=b=") }
+        val pl = Planilha()
+        pl.adicionar(regiaoDeTexto("c", LatexEntrada.regiao("2+2=4="), 10.0))
+        assertTrue(pl.exibir("c") == "1") { pl.exibir("c") }
+    }
 }

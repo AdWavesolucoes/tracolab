@@ -357,7 +357,8 @@ object LatexEntrada {
             val depois = pecas.subList(iIgual + 1, pecas.size)
             val soUnidade = depois.all { it.t.startsWith("{") || it.t == "*" || it.t == "/" }
             if (depois.isEmpty() || (soUnidade && depois.any { it.t.startsWith("{") })) {
-                val antes = juntar(pecas.subList(0, iIgual))
+                // um '=' antes do último é comparação: a = b = mostra 1 ou 0
+                val antes = juntar(pecas.subList(0, iIgual).map { if (it.t == "=") it.copy(t = "==") else it })
                 // {mm}^(2) → mm^2: dentro das chaves da unidade, nomes sem chaves e expoente simples
                 val unidade = if (depois.isEmpty()) "" else " {" + depois.joinToString("") { it.t }
                     .replace(Regex("\\{([^{}]*)\\}"), "$1")
