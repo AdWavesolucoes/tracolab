@@ -236,12 +236,19 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
             val alvo = avaliar(r.unidadeExibicao, Contexto(emptyMap(), this))
             // zero combina com qualquer unidade (elementos nulos de uma matriz em kN, por exemplo)
             if (!v.isZero && !motor.dims(v).contentEquals(motor.dims(alvo))) throw ErroUnidade("A unidade pedida não é compatível com o resultado.")
-            "${g6(motor.dbl(motor.ev(F.Divide(v, alvo))))} ${r.unidadeExibicaoTexto}"
+            "${g6(valorNaUnidade(v, alvo, r.unidadeExibicao))} ${r.unidadeExibicaoTexto}"
         } else if (!motor.temUnidade(v)) g6(motor.dbl(v))
         else {
             val d = motor.dims(v)
             "${g6(motor.dbl(motor.ev(F.Divide(v, motor.monomio(d)))))} ${textoUnidade(d)}"
         }
+
+    /** v na unidade pedida; em °C/°F (escala absoluta) desconta o zero da escala (ADR 0014). */
+    fun valorNaUnidade(v: IExpr, alvo: IExpr, unidade: No?): Double {
+        val x = motor.dbl(motor.ev(F.Divide(v, alvo)))
+        val t = unidade?.let { temperaturaAbsoluta(it) } ?: return x
+        return x - motor.dbl(motor.avaliador.eval(t.zero))
+    }
 
     private val derivadas = listOf(
         "N" to intArrayOf(1, 1, -2, 0, 0, 0, 0), "Pa" to intArrayOf(-1, 1, -2, 0, 0, 0, 0),

@@ -6,7 +6,8 @@ package tracolab.nucleo
 class Unid(val fator: String, val dims: IntArray)
 
 object TabelaUnidades {
-    val tabela: Map<String, Unid> = mapOf(
+    /** Unidades do modo compatível: também valem sem chaves quando o nome não é variável (ADR 0007). */
+    private val basicas: Map<String, Unid> = mapOf(
         "m" to Unid("1", intArrayOf(1, 0, 0, 0, 0, 0, 0)),
         "meter" to Unid("1", intArrayOf(1, 0, 0, 0, 0, 0, 0)),
         "cm" to Unid("1/100", intArrayOf(1, 0, 0, 0, 0, 0, 0)),
@@ -202,5 +203,52 @@ object TabelaUnidades {
         "gpm" to Unid("157725491/2500000000000", intArrayOf(3, 0, -1, 0, 0, 0, 0)),
         "gallons_per_minute" to Unid("157725491/2500000000000", intArrayOf(3, 0, -1, 0, 0, 0, 0)),
     )
-    val naoSuportadas: Set<String> = setOf("DMS", "FIF", "base_currency", "degC", "degF", "ft·in", "hhmmss", "°C", "°F")
+
+    /**
+     * Unidades da prática brasileira (ADR 0014). Só valem entre chaves: no modo compatível, `t`,
+     * `h` ou `cv` sem chaves continuam sendo nomes de variável.
+     */
+    private val brasileiras: Map<String, Unid> = mapOf(
+        "t" to Unid("1000", intArrayOf(0, 1, 0, 0, 0, 0, 0)),                       // tonelada (massa)
+        "tf" to Unid("196133/20", intArrayOf(1, 1, -2, 0, 0, 0, 0)),                // tonelada-força = 1000 kgf
+        "mca" to Unid("196133/20", intArrayOf(-1, 1, -2, 0, 0, 0, 0)),              // metro de coluna d'água (ρ = 1000 kg/m³, g padrão)
+        "mmca" to Unid("196133/20000", intArrayOf(-1, 1, -2, 0, 0, 0, 0)),
+        "cv" to Unid("588399/800", intArrayOf(2, 1, -3, 0, 0, 0, 0)),               // cavalo-vapor = 75 kgf·m/s
+        "h" to Unid("3600", intArrayOf(0, 0, 1, 0, 0, 0, 0)),
+        "pol" to Unid("127/5000", intArrayOf(1, 0, 0, 0, 0, 0, 0)),                 // polegada
+        "dm" to Unid("1/10", intArrayOf(1, 0, 0, 0, 0, 0, 0)),
+        "mW" to Unid("1/1000", intArrayOf(2, 1, -3, 0, 0, 0, 0)),
+        "Wh" to Unid("3600", intArrayOf(2, 1, -2, 0, 0, 0, 0)),
+        "MWh" to Unid("3600000000", intArrayOf(2, 1, -2, 0, 0, 0, 0)),
+        "VA" to Unid("1", intArrayOf(2, 1, -3, 0, 0, 0, 0)),
+        "kVA" to Unid("1000", intArrayOf(2, 1, -3, 0, 0, 0, 0)),
+        "MVA" to Unid("1000000", intArrayOf(2, 1, -3, 0, 0, 0, 0)),
+        "var" to Unid("1", intArrayOf(2, 1, -3, 0, 0, 0, 0)),
+        "kvar" to Unid("1000", intArrayOf(2, 1, -3, 0, 0, 0, 0)),
+        "μA" to Unid("1/1000000", intArrayOf(0, 0, 0, 1, 0, 0, 0)),
+        "Ah" to Unid("3600", intArrayOf(0, 0, 1, 1, 0, 0, 0)),
+        "mAh" to Unid("18/5", intArrayOf(0, 0, 1, 1, 0, 0, 0)),
+        "lm" to Unid("1", intArrayOf(0, 0, 0, 0, 0, 0, 1)),                         // lúmen = cd·sr
+        "lx" to Unid("1", intArrayOf(-2, 0, 0, 0, 0, 0, 1)),                        // lux = lm/m²
+        // dentro de unidades compostas (W/(m·°C)), °C e °F são intervalos de temperatura;
+        // 20{°C} (número com a unidade) é temperatura absoluta: ver [absolutas]
+        "°C" to Unid("1", intArrayOf(0, 0, 0, 0, 1, 0, 0)),
+        "degC" to Unid("1", intArrayOf(0, 0, 0, 0, 1, 0, 0)),
+        "°F" to Unid("5/9", intArrayOf(0, 0, 0, 0, 1, 0, 0)),
+        "degF" to Unid("5/9", intArrayOf(0, 0, 0, 0, 1, 0, 0)),
+    )
+
+    val tabela: Map<String, Unid> = basicas + brasileiras
+    val implicitas: Set<String> = basicas.keys
+
+    /** Escala de temperatura absoluta: T[K] = (x + zero) · fator. */
+    class Absoluta(val zero: String, val fator: String)
+
+    /** `20{°C}` = 293,15 K; `68{°F}` = 293,15 K. A diferença de temperaturas usa Δ°C / Δ°F. */
+    val absolutas: Map<String, Absoluta> = mapOf(
+        "°C" to Absoluta("27315/100", "1"), "degC" to Absoluta("27315/100", "1"),
+        "°F" to Absoluta("45967/100", "5/9"), "degF" to Absoluta("45967/100", "5/9"),
+    )
+
+    val naoSuportadas: Set<String> = setOf("DMS", "FIF", "base_currency", "ft·in", "hhmmss")
 }

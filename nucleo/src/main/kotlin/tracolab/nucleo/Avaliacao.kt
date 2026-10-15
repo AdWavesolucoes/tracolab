@@ -39,13 +39,19 @@ fun avaliar(n: No, c: Contexto): IExpr {
                 "π" -> return F.Pi
                 "e" -> return F.E
             }
-            if (c.pl.unidades && n.nome in TabelaUnidades.tabela) return m.unidade(n.nome)
+            if (c.pl.unidades && n.nome in TabelaUnidades.implicitas) return m.unidade(n.nome)
             if (n.nome !in c.livres) c.livres += n.nome
             m.sym(n.nome)
         }
         is No.Unidade -> avaliarUnidade(n.expr, m)
-        is No.Neg -> m.ev(F.Negate(avaliar(n.a, c)))
+        is No.Neg -> {
+            // -10{°C}: o sinal é do número, não da temperatura absoluta (263,15 K, não -283,15 K)
+            if (n.a is No.Bin && n.a.op == '*' && temperaturaAbsoluta(n.a.b) != null)
+                return avaliar(No.Bin('*', No.Neg(n.a.a), n.a.b), c)
+            m.ev(F.Negate(avaliar(n.a, c)))
+        }
         is No.Bin -> {
+            if (n.op == '*') temperaturaAbsoluta(n.b)?.let { return absoluta(avaliar(n.a, c), it, m) }
             val a = avaliar(n.a, c)
             // M^T com M matriz/vetor é a transposta (T não é avaliado como nome)
             if (n.op == '^' && n.b == No.Id("T") && a.isList) return Matriciais.transposta(a)
@@ -76,6 +82,16 @@ fun avaliar(n: No, c: Contexto): IExpr {
         }
         is No.Texto -> throw NaoSuportado("texto")   // sintaxe reservada; a avaliação fica com a área de lógica
     }
+}
+
+/** `{°C}` / `{°F}` sozinhos depois de um valor: escala absoluta (ADR 0014). */
+fun temperaturaAbsoluta(n: No): TabelaUnidades.Absoluta? =
+    if (n is No.Unidade && n.expr is No.Id) TabelaUnidades.absolutas[n.expr.nome] else null
+
+/** x{°C} → (x + 273,15) K. O valor tem que ser adimensional (ou ainda faltar). */
+private fun absoluta(x: IExpr, t: TabelaUnidades.Absoluta, m: Motor): IExpr {
+    if (m.temUnidade(x) && !m.temLivres(x)) throw ErroUnidade("A temperatura em °C ou °F se aplica a um número: 20{°C}.")
+    return m.ev(F.Times(F.Plus(x, m.avaliador.eval(t.zero)), m.avaliador.eval(t.fator), m.bases[4]))
 }
 
 private fun avaliarUnidade(n: No, m: Motor): IExpr = when (n) {

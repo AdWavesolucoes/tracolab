@@ -1,0 +1,511 @@
+{
+ "descricao": "Unidades da prática brasileira, temperaturas absolutas e exibição (ADR 0014).",
+ "casos": [
+  {
+   "id": "uni-01",
+   "nome": "tonelada-força em kN",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "p",
+     "texto": "P := 20{tf}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "P = {kN}",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tela": "196.133 kN"
+    }
+   ]
+  },
+  {
+   "id": "uni-02",
+   "nome": "kgf/cm² em kPa",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "1{kgf/cm^2} = {kPa}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "98.0665 kPa"
+    }
+   ]
+  },
+  {
+   "id": "uni-03",
+   "nome": "N/mm² é MPa",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "s",
+     "texto": "σ := 250{N/mm^2}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "σ = {MPa}",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tela": "250 MPa"
+    }
+   ]
+  },
+  {
+   "id": "uni-04",
+   "nome": "metro de coluna d'água",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "10{mca} = {kPa}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "98.0665 kPa"
+    }
+   ]
+  },
+  {
+   "id": "uni-05",
+   "nome": "cavalo-vapor",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "1{cv} = {W}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "735.499 W"
+    }
+   ]
+  },
+  {
+   "id": "uni-06",
+   "nome": "momento em kgf·m e kN·cm",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "1{kgf*m} = {N*m}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "1{kN*cm} = {N*m}",
+     "y": 20
+    },
+    {
+     "verificar": "a",
+     "tela": "9.80665 N*m"
+    },
+    {
+     "verificar": "b",
+     "tela": "10 N*m"
+    }
+   ]
+  },
+  {
+   "id": "uni-07",
+   "nome": "vazão m³/h em L/s, com hora",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "36{m^3/h} = {L/s}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "10 L/s"
+    }
+   ]
+  },
+  {
+   "id": "uni-08",
+   "nome": "inércia em cm⁴",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "i",
+     "texto": "I := 8356{cm^4}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "I = {mm^4}",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tela": "8.356e+07 mm^4"
+    }
+   ]
+  },
+  {
+   "id": "uni-09",
+   "nome": "peso específico vezes espessura",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "g",
+     "texto": "γ := 25{kN/m^3}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "γ*0.2{m} = {kN/m^2}",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tela": "5 kN/m^2"
+    }
+   ]
+  },
+  {
+   "id": "uni-10",
+   "nome": "tf/m² em kPa",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "2{tf/m^2} = {kPa}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "19.6133 kPa"
+    }
+   ]
+  },
+  {
+   "id": "uni-11",
+   "nome": "temperatura absoluta em °C",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "t",
+     "texto": "T := 20{°C}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "T =",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "T = {°C}",
+     "y": 30
+    },
+    {
+     "acao": "adicionar",
+     "id": "c",
+     "texto": "T = {°F}",
+     "y": 40
+    },
+    {
+     "verificar": "a",
+     "tela": "293.15 K"
+    },
+    {
+     "verificar": "b",
+     "tela": "20 °C"
+    },
+    {
+     "verificar": "c",
+     "tela": "68 °F"
+    }
+   ]
+  },
+  {
+   "id": "uni-12",
+   "nome": "temperatura negativa",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "-10{°C} = {K}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "263.15 K"
+    }
+   ]
+  },
+  {
+   "id": "uni-13",
+   "nome": "diferença de temperaturas usa Δ°C",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "T1 := 20{°C}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "T2 := 35{°C}",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "c",
+     "texto": "T2 - T1 = {Δ°C}",
+     "y": 30
+    },
+    {
+     "acao": "adicionar",
+     "id": "d",
+     "texto": "T1 + 10{Δ°C} = {°C}",
+     "y": 40
+    },
+    {
+     "verificar": "c",
+     "tela": "15 Δ°C"
+    },
+    {
+     "verificar": "d",
+     "tela": "30 °C"
+    }
+   ]
+  },
+  {
+   "id": "uni-14",
+   "nome": "armadilha: somar duas temperaturas absolutas soma em kelvin",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "20{°C} + 10{°C} = {°C}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "303.15 °C"
+    }
+   ]
+  },
+  {
+   "id": "uni-15",
+   "nome": "°C dentro de unidade composta é intervalo",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "0.6{W/(m*°C)} = {W/(m*K)}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "0.6 W/(m*K)"
+    }
+   ]
+  },
+  {
+   "id": "uni-16",
+   "nome": "Fahrenheit absoluto",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "98.6{°F} = {°C}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "37 °C"
+    }
+   ]
+  },
+  {
+   "id": "uni-17",
+   "nome": "°C aplicado a valor com unidade é erro",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := 2{m}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "x{°C} =",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tipo": "erro",
+     "msg_contem": "°C"
+    }
+   ]
+  },
+  {
+   "id": "uni-18",
+   "nome": "temperatura com valor faltando fica pendente",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "t{°C} = {°C}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tipo": "parcial",
+     "livres": [
+      "t"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "uni-19",
+   "nome": "modo compatível: unidades novas só entre chaves",
+   "modo": "parcial",
+   "unidades_implicitas": true,
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "t",
+     "texto": "t := 3",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "t*2 =",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "h*2 =",
+     "y": 30
+    },
+    {
+     "verificar": "a",
+     "tela": "6"
+    },
+    {
+     "verificar": "b",
+     "tipo": "parcial",
+     "livres": [
+      "h"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "uni-20",
+   "nome": "polegada e km/h",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "1{pol} = {mm}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "90{km/h} = {m/s}",
+     "y": 20
+    },
+    {
+     "verificar": "a",
+     "tela": "25.4 mm"
+    },
+    {
+     "verificar": "b",
+     "tela": "25 m/s"
+    }
+   ]
+  },
+  {
+   "id": "uni-21",
+   "nome": "energia e carga elétrica",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "1{kWh} = {Wh}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "2{Ah} = {C}",
+     "y": 20
+    },
+    {
+     "verificar": "a",
+     "tela": "1000 Wh"
+    },
+    {
+     "verificar": "b",
+     "tela": "7200 C"
+    }
+   ]
+  },
+  {
+   "id": "uni-22",
+   "nome": "tonelada (massa) vezes gravidade em kN",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "2{t}*9.80665{m/s^2} = {kN}",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela": "19.6133 kN"
+    }
+   ]
+  }
+ ]
+}

@@ -135,7 +135,7 @@ object LatexEntrada {
                     if (!ult.nome) throw ErroLatex("índice só em nomes")
                     out += ult.copy(t = ult.t + "_" + textoBruto(arg).filter { it.isLetterOrDigit() })
                 } else if (arg.size == 1 && arg[0] == Tok.Cmd("circ")) {
-                    out += Peca("{deg}", true, true)
+                    out += Peca(grauOuTemperatura(l), true, true)
                 } else if (arg.size >= 2 && arg.first() == Tok.Cmd("langle") && arg.last() == Tok.Cmd("rangle")) {
                     // M^{⟨j⟩}: coluna j da matriz
                     val ult = out.removeLastOrNull() ?: throw ErroLatex("coluna sem matriz")
@@ -281,7 +281,7 @@ object LatexEntrada {
             nome == "lparen" -> out += Peca("(", true, false)
             nome == "rparen" -> out += Peca(")", false, true)
             nome == "%" -> out += Peca("{%}", true, true)
-            nome == "degree" || nome == "circ" -> out += Peca("{deg}", true, true)
+            nome == "degree" || nome == "circ" -> out += Peca(grauOuTemperatura(l), true, true)
             nome == "{" || nome == "}" -> {}
             nome == "begin" -> out += lerAmbiente(l)
             else -> throw ErroLatex("comando não suportado: \\$nome")
@@ -324,6 +324,14 @@ object LatexEntrada {
         }
         if (celula.isNotEmpty() || linha.isNotEmpty()) { fechaCelula(); linhas += linha }
         return ambiente(nome, linhas)
+    }
+
+    /** `20^{\circ}C`: grau seguido só da letra C ou F é temperatura (°C, °F); senão é ângulo. */
+    private fun grauOuTemperatura(l: Leitor): String {
+        val letra = (l.olha() as? Tok.Ch)?.c
+        val depois = (l.toks.getOrNull(l.p + 1) as? Tok.Ch)?.c
+        if ((letra == 'C' || letra == 'F') && (depois == null || !depois.isLetter())) { l.prox(); return "{°$letra}" }
+        return "{deg}"
     }
 
     /** Junta as peças inserindo '*' na multiplicação implícita (exceto nome seguido de '(' ou '['). */
