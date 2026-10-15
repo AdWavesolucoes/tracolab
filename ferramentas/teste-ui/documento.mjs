@@ -85,7 +85,7 @@ await tocar(".tecla-texto");
 await p.keyboard.type("Memorial de cálculo"); await esperar(200);
 await p.locator(".rg.texto .txt-ferr button[data-estilo=titulo]").first().tap(); await esperar(300);
 const caixa = await p.locator("#pagina").boundingBox();
-await p.touchscreen.tap(caixa.x + 700, caixa.y + 700); await esperar(900);
+await p.touchscreen.tap(caixa.x + 700, caixa.y + 560); await esperar(900);
 v = await regioes();
 const t = v.find((x) => x.txt !== null);
 confere("texto: título criado pela tecla T", t && /t-titulo/.test(t.cls) && t.txt === "Memorial de cálculo", JSON.stringify(t));
