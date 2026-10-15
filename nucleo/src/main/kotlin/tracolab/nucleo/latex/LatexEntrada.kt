@@ -17,7 +17,7 @@ object LatexEntrada {
 
     class ErroLatex(msg: String) : Exception(msg)
 
-    private val GREGAS = mapOf(
+    internal val GREGAS = mapOf(
         "alpha" to "α", "beta" to "β", "gamma" to "γ", "delta" to "δ", "epsilon" to "ε", "varepsilon" to "ε",
         "zeta" to "ζ", "eta" to "η", "theta" to "θ", "vartheta" to "θ", "iota" to "ι", "kappa" to "κ",
         "lambda" to "λ", "mu" to "μ", "nu" to "ν", "xi" to "ξ", "rho" to "ρ", "sigma" to "σ", "tau" to "τ",
@@ -236,9 +236,10 @@ object LatexEntrada {
         when {
             nome in IGNORADOS -> {}
             nome == "frac" || nome == "dfrac" || nome == "tfrac" -> {
-                val a = juntar(converterSeq(argumento(l))); val b = juntar(converterSeq(argumento(l)))
-                out += Peca("(($a)/($b))", true, true)
+                val na = argumento(l); val nb = argumento(l)
+                out += derivadaFrac(na, nb, l) ?: Peca("((${juntar(converterSeq(na))})/(${juntar(converterSeq(nb))}))", true, true)
             }
+            nome in OPERADORES_CALCULO -> out += lerOperadorCalculo(nome, l)   // Σ Π ∫ (EntradaCalculo.kt)
             nome == "sqrt" -> {
                 var indice: String? = null
                 if (l.olha() == Tok.Ch('[')) {
