@@ -19,8 +19,9 @@ class PropriedadesTest {
     private val nomes = listOf("a", "b", "c", "d", "F", "L", "σ")
     private val unidades = listOf("", "", "{m}", "{mm}", "{kN}", "{s}", "{MPa}")
 
-    private fun Random.expr(prof: Int = 0): String = when (if (prof > 2) nextInt(2) else nextInt(6)) {
+    private fun Random.expr(prof: Int = 0): String = when (if (prof > 2) nextInt(2) else nextInt(7)) {
         0 -> "${nextInt(1, 50)}${unidades.random(this)}"
+        6 -> "f(${nextInt(1, 5)})"
         1 -> nomes.random(this)
         2 -> "(${expr(prof + 1)} + ${expr(prof + 1)})"
         3 -> "${expr(prof + 1)}*${expr(prof + 1)}"
@@ -28,8 +29,12 @@ class PropriedadesTest {
         else -> "(${expr(prof + 1)})^2"
     }
 
-    private fun Random.regiao(): String =
-        if (nextInt(3) == 0) "${expr()} =" else "${nomes.random(this)} := ${expr()}"
+    private fun Random.regiao(): String = when (nextInt(7)) {
+        0, 1 -> "${expr()} ="
+        2 -> "${nomes.random(this)} ≡ ${expr()}"          // global: vale na folha toda
+        3 -> "f(t) := t*${expr()}"
+        else -> "${nomes.random(this)} := ${expr()}"
+    }
 
     /** Estado comparável de uma região. */
     private fun assinatura(r: Regiao): String = r.estado!!.let { "${it.tipo}|${it.valor}|${it.livres.sorted()}|${it.msg}" }
@@ -85,6 +90,7 @@ class PropriedadesTest {
             p2.recalcular()
             val cheio = p2.regioes.last().estado!!
             if (pendente.tipo != "parcial" && pendente.tipo != "numerico") return@repeat
+            if ("f" in pendente.livres) return@repeat   // função sem definição: não há o que substituir
             if (cheio.tipo == "erro") return@repeat   // unidades incompatíveis com os valores sorteados
             // substitui os nomes no pendente e compara com o calculado
             val ctx = Contexto(emptyMap(), p2)
@@ -127,6 +133,7 @@ class PropriedadesTest {
             pl.recalcular()
             val est = pl.regioes.last().estado!!
             if (est.tipo != "numerico" && est.tipo != "parcial") return@repeat
+            if ("f" in est.livres) return@repeat   // f(1) sem definição: a comparação numérica não se aplica
             val tela = pl.resultadoTela("v").latex ?: return@repeat
             val texto = LatexEntrada.regiao("$tela=")
             val p2 = Planilha("parcial", motor = motor)
