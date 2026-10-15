@@ -28,22 +28,17 @@ internal fun Planilha.matrizTela(v: IExpr, r: Regiao): ResultadoTela {
     var unidade = ""
     val celulas: List<List<String>> = if (ls.any { l -> l.any { motor.temLivres(it) } }) ls.map { l -> l.map { valorSimples(it) } }
     else {
-        val textos = try { ls.map { l -> l.map { exibirValor(it, r) } } }
+        // ADR 0014: unidade comum escolhida pelas unidades da folha, números no formato da folha
+        val (cel, comum) = try { celulasTela(ls, r, formatoTela(r.id)) }
         catch (e: ErroUnidade) { return ResultadoTela(null, e.message) }
         catch (e: Exception) {
             if (motor.interrompido(e)) throw e
             return ResultadoTela(pmatrix(pontos(ls.map { l -> l.map { valorSimples(it) } }, iLin, iCol)), aviso)
         }
-        val unids = textos.flatten().filter { ' ' in it }.map { it.substringAfter(' ') }.toSet()
-        val comum = unids.size == 1 && textos.flatten().all { ' ' in it || it == "0" }
-        if (comum) unidade = unids.first()
-        textos.map { l -> l.map { t ->
-            val num = LatexSaida.numero(t.substringBefore(' '))
-            val un = t.substringAfter(' ', "")
-            if (comum || un.isEmpty()) num else "$num~${LatexSaida.unidade(un)}"
-        } }
+        if (comum != null) unidade = comum
+        cel
     }
-    return ResultadoTela(pmatrix(pontos(celulas, iLin, iCol)) + if (unidade.isEmpty()) "" else "\\," + LatexSaida.unidade(unidade), aviso)
+    return ResultadoTela(pmatrix(pontos(celulas, iLin, iCol)) + if (unidade.isEmpty()) "" else "\\,$unidade", aviso)
 }
 
 /** Índices mostrados: todos, ou os primeiros e o último. */

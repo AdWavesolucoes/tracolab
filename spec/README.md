@@ -36,7 +36,8 @@ Todos os campos são opcionais e se somam:
 | `num` | Valor numérico, com tolerância relativa de 1e-9 |
 | `lista` | Vetor numérico, com a mesma tolerância |
 | `matriz` | Matriz numérica por linhas (`[[1, 2], [3, 4]]`), com a mesma tolerância |
-| `tela` | Texto exato da exibição (`2.3 m`, `200 MPa`) |
+| `tela` | Texto exato da exibição em SI ou na unidade pedida (`2.3 m`, `200 MPa`), sem as unidades da folha |
+| `tela_folha` | Texto da exibição da tela (pt-BR, com as unidades da folha e o formato, ADR 0014): `20 mm`, `36 kN·m`, `2,3 m`. Com `formato` (ex.: `{"casas": 2, "zeros": true}`) no mesmo passo |
 | `tela_comeca` | Prefixo do texto da exibição |
 | `msg_contem` | Trecho da mensagem de erro |
 | `aviso` | Aviso da região (ex.: `Redefinição`) |

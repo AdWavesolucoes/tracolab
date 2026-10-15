@@ -9,6 +9,7 @@ import tracolab.nucleo.Motor
 import tracolab.nucleo.Parser
 import tracolab.nucleo.Planilha
 import tracolab.nucleo.avaliar
+import tracolab.nucleo.latex.exibirFolha
 import tracolab.nucleo.regiaoDeTexto
 import kotlin.math.abs
 import kotlin.math.max
@@ -92,6 +93,12 @@ fun verificar(pl: Planilha, v: JsonNode): List<String> {
             f += "matriz $got != $exp ($val0)"
     }
     v["tela"]?.let { val t = pl.exibir(r.id); if (t != it.asText()) f += "tela '$t' != '${it.asText()}'" }
+    // tela da interface (ADR 0014): unidades da folha e formato, em texto pt-BR ("20 mm", "36 kN·m")
+    v["tela_folha"]?.let {
+        val fmt = tracolab.nucleo.Formato().com(v["formato"]?.let { n -> ObjectMapper().convertValue(n, Map::class.java) })
+        val t = pl.exibirFolha(r.id, fmt)
+        if (t != it.asText()) f += "tela_folha '$t' != '${it.asText()}'"
+    }
     v["tela_comeca"]?.let { val t = pl.exibir(r.id); if (!t.startsWith(it.asText())) f += "tela '$t' não começa com '${it.asText()}'" }
     v["msg_contem"]?.let { if (!(e.msg ?: "").contains(it.asText())) f += "msg '${e.msg}' não contém '${it.asText()}'" }
     v["aviso"]?.let { if (e.aviso != it.asText()) f += "aviso '${e.aviso}' != '${it.asText()}'" }

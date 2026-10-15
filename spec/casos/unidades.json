@@ -506,6 +506,552 @@
      "tela": "19.6133 kN"
     }
    ]
+  },
+  {
+   "id": "uni-23",
+   "nome": "folha: valor digitado aparece como foi digitado",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "d",
+     "texto": "d := 20{mm}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "d =",
+     "y": 20
+    },
+    {
+     "verificar": "d",
+     "tela": "0.02 m",
+     "tela_folha": "20 mm"
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "20 mm"
+    }
+   ]
+  },
+  {
+   "id": "uni-24",
+   "nome": "folha: área a partir de mm sai em mm²",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "d",
+     "texto": "d := 20{mm}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "A := π*d^2/4",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "A =",
+     "y": 30
+    },
+    {
+     "verificar": "e",
+     "tela": "0.000314159 m^2",
+     "tela_folha": "314,159 mm^2"
+    }
+   ]
+  },
+  {
+   "id": "uni-25",
+   "nome": "folha: momento com kN e m sai em kN·m, não em J",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "f",
+     "texto": "F := 10{kN}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "l",
+     "texto": "L := 6{m}",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "F*L =",
+     "y": 30
+    },
+    {
+     "verificar": "e",
+     "tela": "60000 J",
+     "tela_folha": "60 kN·m"
+    }
+   ]
+  },
+  {
+   "id": "uni-26",
+   "nome": "folha: carga distribuída e momento de viga",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "q",
+     "texto": "q := 12{kN/m}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "l",
+     "texto": "L := 6{m}",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "q*L^2/8 =",
+     "y": 30
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "54 kN·m"
+    }
+   ]
+  },
+  {
+   "id": "uni-27",
+   "nome": "folha: tensão de kN e mm² sai em MPa",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "f",
+     "texto": "F := 31.4159265{kN}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "A := 314.159265{mm^2}",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "F/A =",
+     "y": 30
+    },
+    {
+     "verificar": "e",
+     "tela": "1e+08 Pa",
+     "tela_folha": "100 MPa"
+    }
+   ]
+  },
+  {
+   "id": "uni-28",
+   "nome": "folha: tensão de kN e cm sai em kN/cm² (prática do aço)",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "m",
+     "texto": "M := 50{kN*m}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "w",
+     "texto": "W := 557{cm^3}",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "M/W =",
+     "y": 30
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "8,97666 kN/cm^2"
+    }
+   ]
+  },
+  {
+   "id": "uni-29",
+   "nome": "folha: sem unidades de força escritas, força em N ou kN pela grandeza",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "m",
+     "texto": "m := 2{kg}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "m*9.81{m/s^2} =",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "g",
+     "texto": "m*9810{m/s^2} =",
+     "y": 30
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "19,62 N"
+    },
+    {
+     "verificar": "g",
+     "tela_folha": "19,62 kN"
+    }
+   ]
+  },
+  {
+   "id": "uni-30",
+   "nome": "folha: dentre m e cm, a que aparece primeiro no empate",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "l",
+     "texto": "L := 2{m}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "L + 30{cm} =",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tela": "2.3 m",
+     "tela_folha": "2,3 m"
+    }
+   ]
+  },
+  {
+   "id": "uni-31",
+   "nome": "folha: unidade pedida em outro resultado vira a da folha",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "f",
+     "texto": "F := 1{kN}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "A := 50{mm^2}",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "p",
+     "texto": "F/A = {kgf/cm^2}",
+     "y": 30
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "2*F/A =",
+     "y": 40
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "407,886 kgf/cm^2"
+    }
+   ]
+  },
+  {
+   "id": "uni-32",
+   "nome": "folha: velocidade digitada m/s",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "v := 3{m}/2{s}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "v =",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tela": "1.5 m·s^-1",
+     "tela_folha": "1,5 m/s"
+    }
+   ]
+  },
+  {
+   "id": "uni-33",
+   "nome": "folha: SI coerente com barra quando nada da folha serve",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "3{m}/2{s} + 0*1{m/s} =",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "1,5 m/s"
+    }
+   ]
+  },
+  {
+   "id": "uni-34",
+   "nome": "folha: diferença de temperaturas em K, nunca em °C",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "T1 := 20{°C}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "T2 := 35{°C}",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "T2 - T1 =",
+     "y": 30
+    },
+    {
+     "acao": "adicionar",
+     "id": "t",
+     "texto": "T1 =",
+     "y": 40
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "15 K"
+    },
+    {
+     "verificar": "t",
+     "tela_folha": "20 °C"
+    }
+   ]
+  },
+  {
+   "id": "uni-35",
+   "nome": "folha: modo SI desliga a regra",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "d",
+     "texto": "d := 20{mm}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "d =",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "0,02 m",
+     "formato": {
+      "unidades": "si"
+     }
+    }
+   ]
+  },
+  {
+   "id": "uni-36",
+   "nome": "folha: vetor com uma unidade só",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "v := [1500{mm}; 2.5{m}]",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "v =",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tela": "[1.5 m; 2.5 m]"
+    }
+   ]
+  },
+  {
+   "id": "uni-37",
+   "nome": "formato: casas decimais com zeros",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "2/3 =",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "0,67",
+     "formato": {
+      "casas": 2
+     }
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "0,6667",
+     "formato": {
+      "casas": 4
+     }
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "0,667",
+     "formato": {
+      "algarismos": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "uni-38",
+   "nome": "formato: separador de milhar e notação exponencial",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "123456.7 =",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "1234567 =",
+     "y": 20
+    },
+    {
+     "acao": "adicionar",
+     "id": "c",
+     "texto": "0.00001234 =",
+     "y": 30
+    },
+    {
+     "verificar": "a",
+     "tela_folha": "123 457"
+    },
+    {
+     "verificar": "a",
+     "tela_folha": "123457",
+     "formato": {
+      "milhar": false
+     }
+    },
+    {
+     "verificar": "b",
+     "tela_folha": "1,23457×10^6"
+    },
+    {
+     "verificar": "c",
+     "tela_folha": "1,234×10^-5"
+    },
+    {
+     "verificar": "b",
+     "tela_folha": "1 234 567",
+     "formato": {
+      "limite": 9,
+      "algarismos": 7
+     }
+    },
+    {
+     "verificar": "a",
+     "tela_folha": "123,457×10^3",
+     "formato": {
+      "limite": 3,
+      "engenharia": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "uni-39",
+   "nome": "formato: zeros à direita e casas fixas com unidade",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "l",
+     "texto": "L := 2.5{m}",
+     "y": 10
+    },
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "L =",
+     "y": 20
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "2,500 m",
+     "formato": {
+      "casas": 3,
+      "zeros": true
+     }
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "2,5 m",
+     "formato": {
+      "casas": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "uni-40",
+   "nome": "formato: número pequeno demais para as casas vai para exponencial",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "e",
+     "texto": "0.0004 =",
+     "y": 10
+    },
+    {
+     "verificar": "e",
+     "tela_folha": "4,0×10^-4",
+     "formato": {
+      "casas": 1,
+      "zeros": true
+     }
+    }
+   ]
   }
  ]
 }

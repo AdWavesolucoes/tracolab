@@ -3,6 +3,7 @@ package tracolab.nucleo.latex
 import org.matheclipse.core.expression.F
 import org.matheclipse.core.interfaces.IAST
 import org.matheclipse.core.interfaces.IExpr
+import tracolab.nucleo.ErroUnidade
 import tracolab.nucleo.Matriciais
 import tracolab.nucleo.Motor
 import tracolab.nucleo.PU
@@ -87,15 +88,16 @@ fun Planilha.resultadoTela(id: String): ResultadoTela {
     if (v.leafCount() > MAX_FOLHAS_TELA && !v.isList)
         return ResultadoTela(null, "Expressão grande demais para mostrar (${v.leafCount()} termos).")
     if (v.isList) return matrizTela(v, r)
-    if (e.tipo == "parcial" || r.tipo == "avaliacao_simbolica" || r.tipo == "definicao_simbolica" || motor.temLivres(v))
-        return ResultadoTela(LatexSaida.expressao(v, motor))
-    val tela = exibir(id)
-    if (tela.startsWith("[erro]")) return ResultadoTela(null, tela.removePrefix("[erro]").trim())
-    val num = tela.substringBefore(' ')
-    // número que não é real (2·i): não há texto "número unidade", mostra a expressão
-    if (!Regex("^-?[0-9.]+(e[+-][0-9]+)?$").matches(num)) return ResultadoTela(LatexSaida.expressao(v, motor))
-    val un = tela.substringAfter(' ', "")
-    return ResultadoTela(LatexSaida.numero(num) + if (un.isEmpty()) "" else "\\," + LatexSaida.unidade(un))
+    if (r.tipo == "avaliacao_simbolica" || r.tipo == "definicao_simbolica") return ResultadoTela(LatexSaida.expressao(v, motor))
+    // ADR 0014: unidades da folha e formato dos números (TelaUnidades.kt)
+    val f = formatoTela(id)
+    if (e.tipo == "parcial" || motor.temLivres(v)) return ResultadoTela(pendenteTela(v, f))
+    return try { ResultadoTela(escalarTela(v, r, f)) }
+    catch (err: ErroUnidade) { ResultadoTela(null, err.message) }
+    catch (err: Exception) {
+        if (motor.interrompido(err)) throw err
+        ResultadoTela(LatexSaida.expressao(v, motor))   // número que não é real (2·i): mostra a expressão
+    }
 }
 
 internal fun Planilha.valorSimples(x: IExpr): String =
