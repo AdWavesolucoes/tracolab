@@ -12,7 +12,8 @@ import tracolab.nucleo.Planilha
 import tracolab.nucleo.decodificar
 
 /** Resultado de uma região pronto para a tela. */
-data class ResultadoTela(val latex: String?, val avisoExibicao: String? = null)
+data class ResultadoTela(val latex: String?, val avisoExibicao: String? = null,
+                         val sugestoesUnidade: List<SugestaoUnidade> = emptyList())
 
 /** Converte valores do núcleo para LaTeX (exibição no editor de fórmulas). */
 object LatexSaida {
@@ -95,7 +96,10 @@ fun Planilha.resultadoTela(id: String): ResultadoTela {
     logicaTela(v, r, f)?.let { return ResultadoTela(it) }   // textos, relações, por partes (SaidaLogica.kt)
     if (e.tipo == "parcial" || motor.temLivres(v)) return ResultadoTela(pendenteTela(v, f))
     return try { ResultadoTela(escalarTela(v, r, f)) }
-    catch (err: ErroUnidade) { ResultadoTela(null, err.message) }
+    catch (err: ErroUnidade) {
+        if (r.unidadeExibicao == null) ResultadoTela(null, err.message)
+        else diagnosticoUnidade(r, v).let { (msg, sug) -> ResultadoTela(null, msg, sug) }   // o que falta (DiagnosticoUnidades.kt)
+    }
     catch (err: Exception) {
         if (motor.interrompido(err)) throw err
         ResultadoTela(LatexSaida.expressao(v, motor))   // número que não é real (2·i): mostra a expressão

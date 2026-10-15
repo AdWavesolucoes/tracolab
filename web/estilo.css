@@ -142,3 +142,6 @@ math-field.campo::part(virtual-keyboard-toggle), math-field.campo::part(menu-tog
 
 @media (max-width: 1100px) { .painel, .ajustes { width: 240px; } }
 @media (max-width: 860px) { .painel, .ajustes { position: absolute; z-index: 20; left: 72px; top: 64px; bottom: 76px; box-shadow: 0 12px 30px rgba(14, 23, 38, .25); } }
+
+/* Número sem unidade numa conta com unidade pedida (js/unidade-falta.js) */
+.sug-unidade { display: flex; align-items: center; gap: 6px; margin-top: 6px; }

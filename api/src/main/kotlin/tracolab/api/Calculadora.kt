@@ -250,6 +250,9 @@ class Calculadora(
             }
             o.put("resultado", tela.latex)
             tela.avisoExibicao?.let { o.put("aviso", it) }
+            if (tela.sugestoesUnidade.isNotEmpty()) o.putArray("sugestoesUnidade").apply {
+                tela.sugestoesUnidade.forEach { addObject().put("nome", it.nome).put("regiao", it.regiao).put("unidade", it.unidade).put("latex", it.latex) }
+            }
             e.verificacao?.let { v ->   // σ ≤ σ_adm =: atende, utilização e os dois lados (ADR 0013)
                 val ov = o.putObject("verificacao")
                 if (v.ok == null) ov.putNull("ok") else ov.put("ok", v.ok)
