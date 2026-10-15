@@ -60,6 +60,7 @@ data class Estado(
     val faixa: Faixa? = null,
     val funcao: Valor.Funcao? = null,
     val verificacao: Verificacao? = null,   // σ ≤ σ_adm =: atende ou não, e a utilização (ADR 0013)
+    val grafico: DadosGrafico? = null,      // região de gráfico: pontos amostrados (ADR 0016)
 )
 
 class Regiao(
@@ -76,6 +77,7 @@ class Regiao(
     val unidadeExibicao: No? = null,
     val unidadeExibicaoTexto: String? = null,
     val mostrar: Boolean = false,        // definir e mostrar: R := q*L/2 = (o valor aparece na definição)
+    val grafico: EspecGrafico? = null,   // tipo "grafico": expressões em x e intervalo (ADR 0016)
 ) {
     var estado: Estado? = null
 }

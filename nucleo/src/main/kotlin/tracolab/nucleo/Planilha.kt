@@ -133,6 +133,7 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
     }
 
     private fun calcular(r: Regiao, c: Contexto): Estado {
+        r.grafico?.let { return Amostragem.amostrar(it, c, ::textoUnidade) }
         if (r.tipo.startsWith("definicao")) {
             when (r.tipoAlvo) {
                 "funcao" -> {
@@ -259,7 +260,7 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         "Ω" to intArrayOf(2, 1, -3, -2, 0, 0, 0), "Hz" to intArrayOf(0, 0, -1, 0, 0, 0, 0),
     )
 
-    private fun textoUnidade(d: DoubleArray): String {
+    internal fun textoUnidade(d: DoubleArray): String {
         derivadas.firstOrNull { (_, v) -> v.indices.all { v[it].toDouble() == d[it] } }?.let { return it.first }
         val nomes = listOf("m", "kg", "s", "A", "K", "mol", "cd")
         return d.indices.filter { d[it] != 0.0 }.joinToString("·") {

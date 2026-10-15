@@ -1,0 +1,36 @@
+/* Gráfico X-Y (ADR 0016): região em SVG, com a paleta da identidade. */
+.rg.grafico { width: 560px; padding: 8px 12px 10px; background: #FFFFFF; border: 1px solid var(--borda-clara); }
+.rg.grafico:focus-within { border-color: var(--cobalto); background: #FFFFFF; }
+.rg.grafico.parcial { border-style: dashed; border-color: var(--grafite-claro); }
+.gr-cab { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.gr-editar, .gr-mais, .gr-apagar { height: 34px; padding: 0 14px; border: 1px solid var(--tecla-borda); border-radius: 10px; background: #FFFFFF; color: var(--cobalto); font: 500 13px var(--sans); cursor: pointer; }
+.gr-apagar { color: var(--vermelhao); align-self: flex-start; }
+.gr-svg { display: block; width: 100%; height: auto; touch-action: none; user-select: none; cursor: crosshair; }
+.gr-svg[hidden], .gr-vazio[hidden], .gr-leg[hidden], .gr-edicao[hidden] { display: none; }
+.gr-grade line { stroke: var(--linha); stroke-width: 1; }
+.gr-num text { font: 400 11px var(--mono); fill: var(--grafite); }
+.gr-eixo { font: 500 12px var(--sans); fill: var(--nanquim); }
+.gr-zero { stroke: var(--grafite-claro); stroke-width: 1.2; }
+.gr-moldura { fill: none; stroke: var(--nanquim); stroke-width: 1.2; }
+.gr-curva { fill: none; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.gr-trace[hidden] { display: none; }
+.gr-trace line { stroke: var(--grafite); stroke-width: 1; stroke-dasharray: 4 3; }
+.gr-dica { fill: var(--nanquim); }
+.gr-dica-t { font: 500 11px var(--mono); fill: var(--papel); }
+.gr-vazio { height: 120px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--borda); border-radius: 8px; color: var(--grafite); font: 400 13px var(--mono); }
+.gr-leg { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; font-size: 15px; }
+.gr-item { display: inline-flex; align-items: center; gap: 6px; }
+.gr-cor { display: inline-block; width: 14px; height: 4px; border-radius: 2px; flex: none; }
+.gr-edicao { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linha); }
+.gr-serie, .gr-intervalo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+math-field.gr-campo { flex: 1; min-width: 80px; font-size: 19px; padding: 4px 8px; border: 1px solid var(--borda-clara); border-radius: 8px; background: #FFFFFF; color: var(--nanquim);
+  --caret-color: var(--cobalto); --selection-background-color: rgba(39, 72, 201, .18); --primary-color: var(--cobalto); outline: none; }
+math-field.gr-campo:focus-within { border-color: var(--cobalto); }
+.gr-intervalo math-field.gr-campo { flex: 0 1 110px; }
+.gr-n { width: 78px; height: 36px; border: 1px solid var(--borda-clara); border-radius: 8px; padding: 0 8px; font: 400 14px var(--mono); }
+.gr-tira { width: 36px; height: 36px; border: 1px solid var(--tecla-borda); border-radius: 18px; background: #FFFFFF; color: var(--vermelhao); font-size: 20px; cursor: pointer; }
+.key.tecla-grafico { color: var(--nanquim); }
+@media print { .gr-edicao, .gr-cab .gr-editar, .gr-mais { display: none; } .rg.grafico { border-color: transparent; } .gr-trace { display: none; } }
+math-field.gr-campo::part(virtual-keyboard-toggle), math-field.gr-campo::part(menu-toggle) { display: none; }
+math-field.gr-campo { padding: 2px 8px; min-height: 40px; box-sizing: border-box; }
+.gr-intervalo math-field.gr-campo { flex: 0 1 130px; min-width: 100px; }

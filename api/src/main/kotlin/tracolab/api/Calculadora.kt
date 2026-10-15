@@ -15,7 +15,11 @@ import tracolab.nucleo.latex.configTela
 import tracolab.nucleo.latex.resultadoTela
 import tracolab.nucleo.latex.substituicaoTela
 import tracolab.nucleo.latex.verificacaoTela
+import tracolab.nucleo.EspecGrafico
+import tracolab.nucleo.Parser
+import tracolab.nucleo.Regiao
 import tracolab.nucleo.regiaoDeTexto
+import tracolab.nucleo.usados
 import tracolab.nucleo.textoTempo
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ExecutionException
@@ -71,6 +75,11 @@ data class LimitesPedido(
  * Folha como documento: `mostra: true` numa definição terminada em "=" (definir e mostrar, a
  * tela mostra `resultado` como numa avaliação); com `"substituir": true` no pedido de uma região
  * que mostra valor, a resposta traz `substituicao` (a fórmula com os valores, ver substituicaoTela).
+ *
+ * Gráfico (ADR 0016): região `{"id", "tipo": "grafico", "series": ["\\sin(x)"], "a": "0", "b": "6", "n": 100, "x", "y"}`
+ * no mesmo pedido, para enxergar as definições acima dela. A resposta traz `grafico`:
+ * `{"xu", "yu", "x": [...], "series": [{"texto", "y": [... null = buraco]}]}`, ou `tipo: "parcial"`
+ * com `livres` se falta algum nome além de x.
  *
  * Verificação (ADR 0013): uma comparação avaliada (`σ ≤ σ_adm =`) traz `verificacao`:
  * `{"ok": true|false|null, "utilizacao": 0.6, "lados": "150\\,\\mathrm{MPa}\\le 250\\,\\mathrm{MPa}"}`.
@@ -152,6 +161,27 @@ class Calculadora(
         return ConfigTela(folha, regioes)
     }
 
+    /** Região de gráfico do pedido: lê as expressões e o intervalo; erro de leitura vira erro_sintaxe só nela. */
+    private fun regiaoGrafico(id: String, r: JsonNode, o: ObjectNode, textos: MutableMap<String, List<String>>): Regiao? {
+        try {
+            val series = r["series"]?.takeIf { it.isArray }?.map { it.asText() }?.filter { it.isNotBlank() }.orEmpty()
+            if (series.size > 8) throw PedidoInvalido("Gráfico com mais de 8 curvas.")
+            if (series.sumOf { it.length } > limitesPedido.caracteresLatex || series.any { profundidade(it) > limitesPedido.niveis })
+                throw IllegalArgumentException("Expressão longa ou aninhada demais.")
+            val exprs = series.map { Parser.parse(LatexEntrada.regiao(it)) }
+            val a = Parser.parse(LatexEntrada.regiao(r["a"]?.asText().orEmpty().ifBlank { "0" }))
+            val b = Parser.parse(LatexEntrada.regiao(r["b"]?.asText().orEmpty().ifBlank { "1" }))
+            textos[id] = series.map { LatexEntrada.regiao(it) }
+            val usa = (exprs.flatMap { usados(it) }.filter { it != "x" } + usados(a) + usados(b)).distinct()
+            o.put("papel", "grafico")
+            val esp = EspecGrafico(exprs, a, b, r["n"]?.asInt(tracolab.nucleo.Amostragem.PADRAO) ?: tracolab.nucleo.Amostragem.PADRAO)
+            return Regiao(id, r["y"]?.asDouble() ?: 0.0, r["x"]?.asDouble() ?: 0.0, "grafico", usa = usa, grafico = esp)
+        } catch (e: PedidoInvalido) { throw e
+        } catch (e: StackOverflowError) { o.put("tipo", "erro_sintaxe").put("msg", "Fórmula aninhada demais.")
+        } catch (e: Exception) { o.put("tipo", "erro_sintaxe").put("msg", e.message ?: e.javaClass.simpleName) }
+        return null
+    }
+
     private fun calcularCom(motor: Motor, pedido: JsonNode): ObjectNode {
         motor.ativar()
         val t0 = System.nanoTime()
@@ -160,12 +190,14 @@ class Calculadora(
         pl.configTela = configTela(pedido["opcoes"])   // formato dos números e unidades da folha (ADR 0014)
         val saidas = linkedMapOf<String, ObjectNode>()
         val substituir = HashSet<String>()
+        val textos = HashMap<String, List<String>>()
         for (r in pedido["regioes"] ?: json.createArrayNode()) {
             val id = r["id"].asText()
             val latex = r["latex"]?.asText().orEmpty()
             val o = json.createObjectNode().put("id", id)
             saidas[id] = o
             if (r["substituir"]?.asBoolean() == true) substituir += id
+            if (r["tipo"]?.asText() == "grafico") { regiaoGrafico(id, r, o, textos)?.let { pl.regioes += it }; continue }
             if (latex.isBlank()) { o.put("tipo", "vazia"); continue }
             if (latex.length > limitesPedido.caracteresLatex) {
                 o.put("tipo", "erro_sintaxe").put("msg", "Fórmula longa demais: ${latex.length} caracteres (máximo ${limitesPedido.caracteresLatex}).")
@@ -194,6 +226,14 @@ class Calculadora(
             val o = saidas.getValue(reg.id)
             val e = reg.estado!!
             o.put("tipo", e.tipo).put("msg", e.msg).put("aviso", e.aviso)
+            e.grafico?.let { g ->
+                val og = o.putObject("grafico")
+                og.put("xu", g.xu).put("yu", g.yu)
+                fun vetor(a: DoubleArray) = json.createArrayNode().also { arr -> a.forEach { v -> if (v.isNaN()) arr.addNull() else arr.add(v) } }
+                og.set<JsonNode>("x", vetor(g.x))
+                val ss = og.putArray("series")
+                g.series.forEachIndexed { i, y -> ss.addObject().put("texto", textos[reg.id]?.getOrNull(i)).set<JsonNode>("y", vetor(y!!)) }
+            }
             o.putArray("livres").apply { e.livres.forEach { add(it) } }
             o.putArray("define").apply { reg.define.forEach { add(it) } }
             o.putArray("abaixo").apply { e.livres.filter { it in definidos }.forEach { add(it) } }
