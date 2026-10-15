@@ -68,7 +68,7 @@ fun regiaoDeTexto(id: String, texto: String, y: Double, x: Double = 0.0): Regiao
         val corpo = Parser.parse(rhs)
         return when (alvo) {
             is No.Chama -> {
-                val params = alvo.args.map { (it as No.Id).nome }
+                val params = alvo.args.map { (it as? No.Id)?.nome ?: throw ErroSintaxe("lado esquerdo inválido: $lhs") }
                 Regiao(id, y, x, tipo0, corpo, define = listOf(alvo.nome), params = params, tipoAlvo = "funcao",
                     usa = usados(corpo, params.toSet()), mostrar = mostrar)
             }

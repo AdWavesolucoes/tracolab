@@ -19,9 +19,10 @@ object Elementares : ModuloEmbutidos {
     override fun registrar(r: Embutidos) {
         // transcendentais exigem argumento adimensional (sin(2 m) é erro; sin(90°) = 1)
         for ((nome, fn) in TRANSC) r.funcao(nome) { a, c ->
-            aridade(nome, a, 1)
-            c.pl.motor.exigirAdimensional(a[0], nome)
-            c.pl.motor.ev(fn(a[0]))
+            if (nome == "log") aridade(nome, a, 1, 2) else aridade(nome, a, 1)
+            a.forEach { c.pl.motor.exigirAdimensional(it, nome) }
+            // log(x, b): logaritmo de x na base b
+            if (a.size == 2) c.pl.motor.ev(F.Log(a[1], a[0])) else c.pl.motor.ev(fn(a[0]))
         }
         val uma: Map<String, (IExpr) -> IExpr> = mapOf(
             "sqrt" to { x -> F.Sqrt(x) },   // abs (|x|, que também é norma e determinante) fica em Matrizes

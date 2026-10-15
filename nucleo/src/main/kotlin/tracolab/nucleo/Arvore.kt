@@ -114,6 +114,7 @@ class Parser(private val s: String) {
             a = when (olha()) {
                 '[' -> { p++; val idx = lista(']'); No.Indice(a, idx) }
                 '{' -> No.Bin('*', a, unidade())          // 20{mm}
+                '!' -> if (s.startsWith("!=", p)) return a else { p++; No.Chama("fact", listOf(a)) }   // n! (≠ é !=)
                 else -> return a
             }
         }

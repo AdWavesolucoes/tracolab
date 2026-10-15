@@ -26,7 +26,7 @@ object LatexEntrada {
         "Phi" to "Φ", "Psi" to "Ψ", "Omega" to "Ω",
     )
     private val FUNCOES = setOf("sin", "cos", "tan", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh",
-        "exp", "ln", "log", "max", "min", "det")
+        "exp", "ln", "log", "max", "min", "det", "sec", "csc", "cot")
     private val RENOMEIA_FUNCAO = mapOf("arcsin" to "asin", "arccos" to "acos", "arctan" to "atan")
     private val IGNORADOS = setOf(",", ";", "!", ":", " ", "quad", "qquad", "left", "right", "displaystyle",
         "big", "Big", "bigl", "bigr", "Bigl", "Bigr", "mathstrut", "limits", "nolimits")
@@ -226,6 +226,7 @@ object LatexEntrada {
                 if (l.olha() == Tok.Ch('=')) { l.prox(); out += Peca(":=", false, false) }
             }
             c == '|' -> out += Peca("|", true, true)
+            c == '!' -> out += Peca("!", false, true)   // fatorial pós-fixo: n!, (n+1)!
             c == '\'' -> {}
             c == '"' -> out += textoEntreAspas(l)   // "OK" digitado no modo de fórmula (EntradaLogica.kt)
             else -> throw ErroLatex("caractere não suportado: '$c'")

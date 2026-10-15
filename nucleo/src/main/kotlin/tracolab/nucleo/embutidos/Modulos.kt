@@ -9,4 +9,7 @@ val MODULOS: List<ModuloEmbutidos> = listOf(
     Logica,
     Calculo,
     Resolver,
+    Numericas,
+    Estatistica,
+    Interpolacao,
 )
