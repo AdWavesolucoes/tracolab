@@ -27,4 +27,11 @@ class RegressoesTest {
             pl.exibir(r.id)
         }
     }
+
+    /** Texto malformado dava exceções cruas (NumberFormatException, índice fora da string) ou
+     *  era ignorado em silêncio ({m) kg} lia só m): agora é ErroSintaxe com mensagem. */
+    @Test fun sintaxeMalformadaEErroDeSintaxe() {
+        for (t in listOf(". =", "x := .", "2{} =", "2{m^} =", "2{(m} =", "2{m) kg} =", "2{*m} =", "2{m^-} ="))
+            org.junit.jupiter.api.Assertions.assertThrows(ErroSintaxe::class.java, { regiaoDeTexto("r", t, 0.0) }, t)
+    }
 }

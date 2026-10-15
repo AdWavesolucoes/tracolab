@@ -27,4 +27,29 @@ class LatexRegressoesTest {
         pl.adicionar(regiaoDeTexto("c", LatexEntrada.regiao("2+2=4="), 10.0))
         assertTrue(pl.exibir("c") == "1") { pl.exibir("c") }
     }
+
+    /**
+     * Fuzz: LaTeX qualquer (pedaços do que o editor produz, em ordem aleatória) só pode virar
+     * texto ou dar ErroLatex; o texto só pode virar região ou dar ErroSintaxe. Qualquer outra
+     * exceção é bug (o servidor responderia "erro interno" para a região).
+     */
+    @Test fun fuzzDoConversor() {
+        val pedacos = listOf("x", "2", "{,}", "5", "\\frac{", "}{", "}", "{", "\\sqrt{", "\\sqrt[3]{", "^{", "_{", "^2", "_1",
+            "\\left(", "\\right)", "(", ")", "+", "-", "\\cdot", "\\times", "=", "\\tldef", "\\coloneq", "\\equiv", "\\to",
+            "\\mathrm{mm}", "\\mathrm{kN}", "\\,", "\\sin", "\\pi", "\\alpha", "\\lbrack", "\\rbrack", "[", "]", "|",
+            "\\begin{pmatrix}", "&", "\\\\", "\\end{pmatrix}", ",", ";", "<", "\\le", "\\ne", "\\placeholder{}", "\\operatorname{f}",
+            "\\text{a}", "\\%", "^{\\circ}", "e", "10^{-3}", ":", "!", "'", "\\textcolor{#2748C9}{", "\\mathrm{m}^2")
+        val rnd = kotlin.random.Random(3)
+        val falhas = mutableListOf<String>()
+        repeat(4000) {
+            val latex = (1..rnd.nextInt(1, 9)).joinToString("") { pedacos.random(rnd) }
+            val texto = try { LatexEntrada.regiao(latex) } catch (e: LatexEntrada.ErroLatex) { return@repeat } catch (e: Exception) {
+                falhas += "LaTeX '$latex': ${e.javaClass.simpleName} ${e.message}"; return@repeat
+            }
+            try { regiaoDeTexto("r", texto, 0.0) } catch (e: ErroSintaxe) { } catch (e: Exception) {
+                falhas += "texto '$texto' (de '$latex'): ${e.javaClass.simpleName} ${e.message}"
+            }
+        }
+        assertTrue(falhas.isEmpty()) { falhas.distinct().take(25).joinToString("\n") }
+    }
 }
