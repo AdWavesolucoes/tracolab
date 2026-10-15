@@ -21,11 +21,33 @@ sealed class Valor {
 
 class Faixa(val inicio: IExpr, val passo: IExpr, val fim: IExpr) {
     fun valores(m: Motor, maximo: Int = Limites().elementos): List<IExpr> {
-        val a = m.dbl(inicio); val d = m.dbl(passo); val b = m.dbl(fim)
+        val (a, d, b) = numeros(m, inicio, passo, fim)
         if (d == 0.0 || (b - a) / d < 0 || !((b - a) / d).isFinite()) throw ErroCalculo("Faixa inválida")
         val n = ((b - a) / d + 1e-9).toLong() + 1
         if (n > maximo) throw ErroCalculo("Faixa grande demais: $n valores (máximo $maximo).")
         return (0 until n.toInt()).map { k -> if (k % 1024 == 0) m.verificarPrazo(); m.ev(F.Plus(inicio, F.Times(F.ZZ(k.toLong()), passo))) }
+    }
+
+    companion object {
+        /** Unidade comum dos limites de uma faixa (0 combina com qualquer uma); 1 se não têm unidade. */
+        fun unidade(m: Motor, vararg xs: IExpr): IExpr {
+            val com = xs.filter { !it.isZero && m.temUnidade(it) }
+            if (com.isEmpty()) return F.C1
+            val d = m.dims(com[0])
+            if (xs.any { !it.isZero && !m.dims(it).contentEquals(d) }) throw ErroUnidade("As unidades dos limites da faixa não são compatíveis.")
+            return m.monomio(d)
+        }
+
+        /** Números dos limites na unidade comum: 0{m}, 0.5{m}..2{m} dá 0, 0.5 e 2. */
+        fun numeros(m: Motor, vararg xs: IExpr): List<Double> {
+            val u = unidade(m, *xs)
+            return xs.map { x ->
+                try { m.dbl(m.ev(F.Divide(x, u))) } catch (e: Exception) {
+                    if (m.interrompido(e)) throw e
+                    throw ErroCalculo("Os limites da faixa devem ser números.")
+                }
+            }
+        }
     }
 }
 

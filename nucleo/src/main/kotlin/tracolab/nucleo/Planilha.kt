@@ -96,7 +96,9 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         for (n in r.usa) {
             val dep = regioes.firstOrNull { it.id == origemNome[n] } ?: continue
             val t = dep.estado?.tipo
-            if ((t == "erro" || t == "nao_suportado") && !(n in r.define && r.tipoAlvo != "elemento"))
+            // só a função recursiva (f(n) := ... f(n-1)) não depende da definição anterior de f;
+            // x := x + 1 depende do x de cima, e herda o erro dele
+            if ((t == "erro" || t == "nao_suportado") && !(n in r.define && r.tipoAlvo == "funcao"))
                 return if (t == "erro") Estado("erro", msg = "Depende de '$n', que está com erro.")
                 else Estado("nao_suportado", msg = "Depende de '$n' (não suportado)")
         }
@@ -141,7 +143,15 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
                         val a = avaliar(ini[0], c)
                         val passo = if (ini.size == 2) motor.ev(F.Subtract(avaliar(ini[1], c), a)) else null
                         val b = avaliar(fim, c)
-                        val p = passo ?: if (motor.dbl(b) >= motor.dbl(a)) F.C1 else F.CN1
+                        // limite ainda faltando: a faixa fica pendente, e quem a usa também
+                        val faltam = listOfNotNull(a, passo, b).flatMap { motor.nomesLivres(it) }.distinct()
+                        if (faltam.isNotEmpty()) {
+                            if (modo == "classico") throw ErroCalculo("Variável não definida.")
+                            return Estado("parcial", valor = F.List(a, b), livres = faltam)
+                        }
+                        val (na, nb) = Faixa.numeros(motor, a, b)
+                        val p = passo ?: if (nb >= na) (if (motor.temUnidade(b)) Faixa.unidade(motor, a, b) else F.C1)
+                                         else (if (motor.temUnidade(b)) motor.ev(F.Negate(Faixa.unidade(motor, a, b))) else F.CN1)
                         return Estado("numerico", faixa = Faixa(a, p, b))
                     }
                     val v = if (r.tipo == "definicao_simbolica") motor.ev(F.Simplify(avaliar(r.expr!!, c)))

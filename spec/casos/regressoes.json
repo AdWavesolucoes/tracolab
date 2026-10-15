@@ -55,6 +55,32 @@
        {"verificar": "e", "tela": "500 cm"},
        {"verificar": "f", "tipo": "numerico", "num": 1},
        {"verificar": "g", "tela": "3 m"}
+     ]},
+    {"id": "reg-06", "nome": "redefinir a partir de uma definição com erro propaga o erro (não vira 'falta x')", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "a", "texto": "x := 1/0", "y": 10},
+       {"acao": "adicionar", "id": "b", "texto": "x := x + 1", "y": 20},
+       {"acao": "adicionar", "id": "c", "texto": "x =", "y": 30},
+       {"acao": "adicionar", "id": "f", "texto": "f(n) := 1/0", "y": 40},
+       {"acao": "adicionar", "id": "g", "texto": "f(n) := n*2", "y": 50},
+       {"acao": "adicionar", "id": "h", "texto": "f(3) =", "y": 60},
+       {"verificar": "b", "tipo": "erro", "msg_contem": "'x'"},
+       {"verificar": "c", "tipo": "erro"},
+       {"verificar": "h", "tipo": "numerico", "num": 6}
+     ]},
+    {"id": "reg-07", "nome": "faixa com unidade percorre os valores com unidade", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "x", "texto": "x := 0{m}, 0.5{m}..2{m}", "y": 10},
+       {"acao": "adicionar", "id": "a", "texto": "x/{m} =", "y": 20},
+       {"acao": "adicionar", "id": "j", "texto": "j := 1..2{m}", "y": 30},
+       {"verificar": "a", "tipo": "numerico", "lista": [0, 0.5, 1, 1.5, 2]},
+       {"verificar": "j", "tipo": "erro", "msg_contem": "unidades"}
+     ]},
+    {"id": "reg-08", "nome": "faixa com limite faltando fica pendente, e quem a usa também", "modo": "parcial", "passos": [
+       {"acao": "adicionar", "id": "i", "texto": "i := 0..n", "y": 10},
+       {"acao": "adicionar", "id": "a", "texto": "i*2 =", "y": 20},
+       {"verificar": "i", "tipo": "parcial", "livres": ["n"]},
+       {"verificar": "a", "tipo": "parcial", "livres": ["n"]},
+       {"acao": "adicionar", "id": "n", "texto": "n := 2", "y": 5},
+       {"verificar": "a", "tipo": "numerico", "lista": [0, 2, 4]}
      ]}
   ]
 }
