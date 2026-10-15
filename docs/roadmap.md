@@ -33,18 +33,26 @@
 - [x] Chips "falta F", erro de ordem, unidade do resultado como chip, desfazer
 - [x] Versão web de teste em uso diário ([ADR 0009](decisoes/0009-versao-web-de-teste.md))
 - [ ] Ajustes a partir do uso da versão de teste
-- [ ] Definir e mostrar na mesma região (`R := qL/2 = 36 kN`)
-- [ ] Painel de variáveis nas unidades usadas na folha (hoje mostra SI)
-- [ ] Regiões de texto; exportar/importar a folha em arquivo
+- [x] Definir e mostrar na mesma região (`R := qL/2 = 36 kN`)
+- [x] Resultados e painel de variáveis nas unidades da folha ([ADR 0014](decisoes/0014-unidades-da-folha-e-formato.md))
+- [x] Regiões de texto; exportar/importar a folha em arquivo `.tlab`; impressão/PDF ([ADR 0015](decisoes/0015-folha-como-documento.md))
 - [ ] APK: a mesma página numa WebView, com a ponte `TracoLabNativo`
-- [ ] Salvar e abrir páginas (formato próprio)
+- [x] Vetores e matrizes ([ADR 0010](decisoes/0010-vetores-e-matrizes.md))
+- [x] Condicionais, por partes e verificações "atende / não atende" ([ADR 0013](decisoes/0013-condicionais-logica-e-verificacoes.md))
+- [x] Limites de tempo e recursão em cada cálculo ([ADR 0017](decisoes/0017-limites-de-calculo.md))
+- [ ] Σ, Π, ∫, d/dx e limites (ADR 0011)
+- [ ] Resolver equações e sistemas (ADR 0012)
+- [ ] Gráficos X-Y (ADR 0016)
+- [ ] Biblioteca de funções: interpolação, estatística, complexos (ADR 0018)
+- [ ] Programas (atribuição local, laços): desenho na ADR 0013
+- [x] Várias folhas no aparelho (formato próprio)
 
 ## Fase 4 — Outras plataformas (depois do Android)
 
 Possível graças ao núcleo único ([ADR 0006](decisoes/0006-nucleo-unico-multiplataforma.md)):
 
 - [ ] App Linux (Compose Multiplatform, reaproveitando a interface)
-- [ ] Webservice (Ktor) com limites de tempo/memória por cálculo + página web
+- [ ] Webservice (Ktor) + página web (os limites por cálculo já existem: ADR 0017)
 
 ## Antes de publicar no GitHub
 

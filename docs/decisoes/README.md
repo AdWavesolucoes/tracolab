@@ -15,3 +15,11 @@ criar um novo, use o [modelo](0000-modelo.md).
 | [0007](0007-unidades-explicitas.md) | Unidades de medida explícitas | Aceita |
 | [0008](0008-interface-web-mathlive.md) | Interface em página web com MathLive, ligada ao núcleo | Aceita |
 | [0009](0009-versao-web-de-teste.md) | Versão web de teste antes do APK | Aceita |
+| [0010](0010-vetores-e-matrizes.md) | Vetores e matrizes: representação, operadores e unidades por elemento | Aceita |
+| [0013](0013-condicionais-logica-e-verificacoes.md) | Condicionais, lógica, textos e verificações de engenharia | Aceita |
+| [0014](0014-unidades-da-folha-e-formato.md) | Unidades da folha, temperaturas e formato dos números | Aceita |
+| [0015](0015-folha-como-documento.md) | A folha como memorial: texto, definir e mostrar, substituição e arquivo | Aceita |
+| [0017](0017-limites-de-calculo.md) | Limites de tempo, recursão e tamanho em cada cálculo | Aceita |
+
+Números 0011, 0012, 0016 e 0018 estão reservados para cálculo (Σ, ∫, d/dx), resolver, gráficos e
+funções embutidas, ainda em desenvolvimento.

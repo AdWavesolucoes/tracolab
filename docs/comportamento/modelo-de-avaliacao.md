@@ -135,3 +135,16 @@ x =        → 5
 | Precisão | Ponto flutuante (15 dígitos) | Exata (frações, `π`, `√2`) |
 | Nome sem valor | Parcial (app) / erro (clássico) | Sempre parcial |
 | Pós-processamento | — | `simplify`, `expand`, `factor`, `float` |
+
+## 12. Áreas detalhadas
+
+Cada área tem o seu documento, com os casos em `spec/casos/<área>.json`:
+
+| Área | Documento |
+|---|---|
+| Vetores e matrizes | [matrizes.md](matrizes.md) |
+| Condicionais, lógica e verificações | [logica.md](logica.md) |
+| Unidades da folha e formato | [unidades.md](unidades.md) |
+| Folha como documento | [documento.md](documento.md) |
+| Limites de cálculo | [robustez.md](robustez.md) |
+| Regressões do núcleo | [regressoes.md](regressoes.md) |

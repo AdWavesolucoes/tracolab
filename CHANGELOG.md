@@ -5,6 +5,20 @@ versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+### Adicionado (15/10, áreas feitas por agentes em paralelo)
+- Pontos de extensão para trabalho em paralelo: núcleo em arquivos, registro de embutidos, `spec/casos/` por área, interface em `web/js/` com `TL`.
+- Folha como documento (ADR 0015): regiões de texto, definir e mostrar (`R := qL/2 = 36 kN`), substituição explícita dos valores (memorial), várias folhas, arquivo `.tlab`, páginas A4, impressão/PDF.
+- Limites de cálculo (ADR 0017): prazo por região e por folha, recursão, tamanho e limites do Symja. O que passa vira erro só na região. Pool de motores na API; CSP e cabeçalhos de segurança; unit systemd endurecida.
+- Vetores e matrizes (ADR 0010): índices, produto, transposta, inversa, determinante, `lsolve` com unidades, autovalores, ordenação, `vec`; primeiro índice 0/1 nos ajustes; teclas de matriz.
+- Unidades da prática brasileira (tf, mca, cv, h, pol...) e °C/°F absolutas; resultados nas unidades da folha; formato dos números por folha e por resultado (ADR 0014).
+- Se, por partes, lógica (∧ ∨ ⊕ ¬), comparação em cadeia, textos e verificações "atende / não atende" com utilização (ADR 0013).
+- `bancada lote`: avaliação de folhas em lote. Testes de propriedade e fuzz do conversor LaTeX. Validação do núcleo Kotlin contra o corpus de referência: 22,4% de cobertura, 95,9% de acerto.
+
+### Corrigido (15/10)
+- `10^10^10` travava a folha; recursão infinita e fórmulas fundas derrubavam a conexão; estouro numérico derrubava a folha inteira; cliente lento ou cálculo pesado prendia o servidor; arquivos estáticos aceitavam pasta vizinha com o mesmo prefixo.
+- Raiz de grandeza com unidade e número não real derrubavam a página; Hz × 1/s; índices de vetor; faixas com unidade; redefinição a partir de erro; recálculo ao mover definição; recorrência `v[i] := v[i-1]·2`; `a = b =`; `|x|` no editor; zero com unidade pedida.
+- Regiões abaixo da primeira página saíam do papel; unidade `kN·m` com asterisco; teclas da camada Operadores vinham com um índice vazio.
+
 ### Corrigido
 - 2026-10-13: na interface, o texto digitado não era lido e a região sumia ao tocar fora. O `<math-field>` era preenchido antes de o MathLive ativá-lo, e a atribuição encobria a propriedade `value`. O Enter agora confirma e abre uma região abaixo. Teste de interface em `ferramentas/teste-ui/` (11 verificações).
 
