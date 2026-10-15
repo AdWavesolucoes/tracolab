@@ -13,6 +13,7 @@ class Contexto(
     val pl: Planilha,
     val livres: MutableList<String> = mutableListOf(),
     val iter: MutableMap<String, IExpr> = mutableMapOf(),
+    val profundidade: Int = 0,           // chamadas aninhadas de funções do usuário (ADR 0017)
 )
 
 fun numeroExato(t: String): IExpr {
@@ -23,6 +24,7 @@ fun numeroExato(t: String): IExpr {
 
 fun avaliar(n: No, c: Contexto): IExpr {
     val m = c.pl.motor
+    m.verificarPrazo()
     return when (n) {
         is No.Num -> numeroExato(n.texto)
         is No.Id -> {
@@ -44,28 +46,27 @@ fun avaliar(n: No, c: Contexto): IExpr {
         is No.Unidade -> avaliarUnidade(n.expr, m)
         is No.Neg -> m.ev(F.Negate(avaliar(n.a, c)))
         is No.Bin -> {
-            val a = avaliar(n.a, c); val b = avaliar(n.b, c)
+            val a = avaliar(n.a, c)
+            // M^T com M matriz/vetor é a transposta (T não é avaliado como nome)
+            if (n.op == '^' && n.b == No.Id("T") && a.isList) return Matriciais.transposta(a)
+            val b = avaliar(n.b, c)
+            if (a.isList || b.isList) return Matriciais.binario(n.op, a, b, m)
             when (n.op) {
                 '+' -> { m.checarSoma(a, b); m.ev(F.Plus(a, b)) }
                 '-' -> { m.checarSoma(a, b); m.ev(F.Subtract(a, b)) }
-                '*' -> m.ev(F.Times(a, b))
+                '*', '×' -> m.ev(F.Times(a, b))
                 '/' -> { if (b.isZero) throw ErroCalculo("Divisão por zero."); m.ev(F.Divide(a, b)) }
                 '^' -> m.ev(F.Power(a, b))
                 else -> throw NaoSuportado("operador ${n.op}")
             }
         }
-        is No.Cmp -> comparar(n.op, avaliar(n.a, c), avaliar(n.b, c), m)
-        is No.Chama -> chamar(n, c)
-        is No.Indice -> {
-            val base = avaliar(n.base, c)
-            val idx = n.idx.map { avaliar(it, c) }
-            if (base.isList && idx.size == 1 && idx[0].isInteger) {
-                val k = m.dbl(idx[0]).toInt() - c.pl.origem
-                val l = base as IAST
-                if (k < 0 || k >= l.argSize()) throw ErroCalculo("Índice fora do intervalo.")
-                l.get(k + 1)
-            } else throw NaoSuportado("índice")
+        is No.Cmp -> {
+            val a = avaliar(n.a, c); val b = avaliar(n.b, c)
+            if (a.isList || b.isList) throw ErroCalculo("A comparação é entre escalares; elemento a elemento, use vec(...).")
+            comparar(n.op, a, b, m)
         }
+        is No.Chama -> chamar(n, c)
+        is No.Indice -> Matriciais.indice(avaliar(n.base, c), n.idx.map { avaliar(it, c) }, c.pl.origem, m)
         // Representação (ADR 0004): uma coluna só ([a; b; c]) é vetor, uma List simples como a de
         // v[i] := ...; senão, List de linhas (List de List). Operações de matriz: embutidos/.
         is No.Matriz -> {
@@ -93,7 +94,7 @@ private fun comparar(op: String, a0: IExpr, b0: IExpr, m: Motor): IExpr {
     if ((m.temUnidade(a) || m.temUnidade(b)) && !(m.temLivres(a) || m.temLivres(b))) {
         m.checarSoma(a, b)
         val mono = m.monomio(m.dims(if (m.temUnidade(a)) a else b))
-        a = m.ev(F.Divide(a, mono)); b = m.ev(F.Divide(b, mono))
+        a = m.ev(F.PowerExpand(F.Divide(a, mono))); b = m.ev(F.PowerExpand(F.Divide(b, mono)))
     }
     val r = m.ev(when (op) {
         ">" -> F.Greater(a, b); "<" -> F.Less(a, b); ">=" -> F.GreaterEqual(a, b)
@@ -108,8 +109,10 @@ private fun chamar(n: No.Chama, c: Contexto): IExpr {
     if (f is Valor.Funcao) {
         val vals = n.args.map { avaliar(it, c) }
         if (vals.size != f.params.size) throw ErroCalculo("${n.nome}: número errado de argumentos")
+        if (c.profundidade >= c.pl.limites.profundidade)
+            throw ErroCalculo("Recursão profunda demais: mais de ${c.pl.limites.profundidade} chamadas aninhadas de ${n.nome}.")
         val env = HashMap(f.env); f.params.zip(vals).forEach { (p, v) -> env[p] = Valor.Expr(v) }
-        return avaliar(f.corpo, Contexto(env, c.pl, c.livres))
+        return avaliar(f.corpo, Contexto(env, c.pl, c.livres, profundidade = c.profundidade + 1))
     }
     if (f != null) throw ErroCalculo("${n.nome} não é uma função")
     // embutidos: registro em Embutidos (um arquivo por área em embutidos/)

@@ -65,6 +65,7 @@ class Parser(private val s: String) {
         while (true) {
             a = when {
                 consome("*") || consome("·") -> No.Bin('*', a, unario())
+                consome("×") -> No.Bin('×', a, unario())   // produto vetorial entre vetores; senão, produto
                 consome("/") -> No.Bin('/', a, unario())
                 else -> return a
             }
@@ -159,7 +160,7 @@ class Parser(private val s: String) {
             while (p < s.length && s[p].isDigit()) p++
         }
         val t = s.substring(i, p)
-        BigDecimal(t) // valida
+        try { BigDecimal(t) } catch (_: NumberFormatException) { throw ErroSintaxe("número inválido: '$t'") }
         return No.Num(t)
     }
 
@@ -170,7 +171,7 @@ class Parser(private val s: String) {
         if (fim < 0) throw ErroSintaxe("falta '}'")
         val dentro = s.substring(p, fim)
         p = fim + 1
-        return No.Unidade(ParserUnidade(dentro).expr())
+        return No.Unidade(ParserUnidade(dentro).tudo())
     }
 }
 
@@ -192,23 +193,39 @@ private class ParserUnidade(private val s: String) {
         }
     }
 
+    /** A unidade inteira: o que sobrar (ex.: "m) kg") é erro, e não ignorado. */
+    fun tudo(): No {
+        val e = expr(); esp()
+        if (p != s.length) throw ErroSintaxe("unidade: sobra em '${s.substring(p)}'")
+        return e
+    }
+
+    private fun numero(): No.Num {
+        val i = p; while (p < s.length && (s[p].isDigit() || s[p] == '.')) p++
+        val t = s.substring(i, p)
+        if (t.isEmpty() || t.toBigDecimalOrNull() == null) throw ErroSintaxe("unidade: número inválido em '$s'")
+        return No.Num(t)
+    }
+
     private fun fator(): No {
         esp()
+        if (p >= s.length) throw ErroSintaxe(if (s.isBlank()) "unidade vazia" else "unidade incompleta: '$s'")
         var base: No = if (s[p] == '(') {
-            p++; val e = expr(); esp(); p++; e
-        } else if (s[p].isDigit()) {
-            val i = p; while (p < s.length && (s[p].isDigit() || s[p] == '.')) p++; No.Num(s.substring(i, p))
-        } else {
+            p++; val e = expr(); esp()
+            if (p >= s.length || s[p] != ')') throw ErroSintaxe("unidade: falta ')'")
+            p++; e
+        } else if (s[p].isDigit()) numero()
+        else {
             val i = p
             while (p < s.length && !s[p].isWhitespace() && s[p] !in "*/^()·") p++
+            if (p == i) throw ErroSintaxe("unidade: '${s[p]}' fora de lugar")
             No.Id(s.substring(i, p))
         }
         esp()
         if (p < s.length && s[p] == '^') {
             p++; esp()
             val neg = if (p < s.length && s[p] == '-') { p++; true } else false
-            val i = p; while (p < s.length && (s[p].isDigit() || s[p] == '.')) p++
-            val n: No = No.Num(s.substring(i, p))
+            val n = numero()
             base = No.Bin('^', base, if (neg) No.Neg(n) else n)
         }
         return base

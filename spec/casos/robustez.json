@@ -1,0 +1,68 @@
+{
+  "descricao": "Limites do cálculo (ADR 0017): o que passa do limite vira erro só na região, e o resto da folha continua.",
+  "casos": [
+    {
+      "id": "rob-01", "nome": "recursão sem fim é erro claro e a folha continua", "modo": "parcial",
+      "passos": [
+        {"acao": "adicionar", "id": "f", "texto": "f(x) := f(x) + 1", "y": 10},
+        {"acao": "adicionar", "id": "a", "texto": "f(1) =", "y": 20},
+        {"acao": "adicionar", "id": "b", "texto": "2 + 2 =", "y": 30},
+        {"verificar": "a", "tipo": "erro", "msg_contem": "Recursão profunda demais"},
+        {"verificar": "b", "tipo": "numerico", "num": 4}
+      ]
+    },
+    {
+      "id": "rob-02", "nome": "torre de potências é recusada na hora, sem travar", "modo": "parcial",
+      "passos": [
+        {"acao": "adicionar", "id": "x", "texto": "x := 10^10^10", "y": 10},
+        {"acao": "adicionar", "id": "y", "texto": "x =", "y": 20},
+        {"acao": "adicionar", "id": "b", "texto": "2 + 2 =", "y": 30},
+        {"verificar": "x", "tipo": "erro", "msg_contem": "Número grande demais"},
+        {"verificar": "y", "tipo": "erro", "msg_contem": "Depende de 'x'"},
+        {"verificar": "b", "tipo": "numerico", "num": 4}
+      ]
+    },
+    {
+      "id": "rob-03", "nome": "estouro do ponto flutuante é erro da região", "modo": "parcial",
+      "passos": [
+        {"acao": "adicionar", "id": "a", "texto": "10^400 =", "y": 10},
+        {"acao": "adicionar", "id": "b", "texto": "9^9^9^9 =", "y": 20},
+        {"verificar": "a", "tipo": "erro", "msg_contem": "maior número"},
+        {"verificar": "b", "tipo": "erro", "msg_contem": "Número grande demais"}
+      ]
+    },
+    {
+      "id": "rob-04", "nome": "faixa enorme é erro, não 'não suportado'", "modo": "parcial",
+      "passos": [
+        {"acao": "adicionar", "id": "i", "texto": "i := 0..1000000000", "y": 10},
+        {"acao": "adicionar", "id": "a", "texto": "i =", "y": 20},
+        {"verificar": "a", "tipo": "erro", "msg_contem": "Faixa grande demais"}
+      ]
+    },
+    {
+      "id": "rob-05", "nome": "elemento de vetor com índice enorme não aloca o vetor", "modo": "parcial",
+      "passos": [
+        {"acao": "adicionar", "id": "v", "texto": "v[1000000000] := 1", "y": 10},
+        {"verificar": "v", "tipo": "erro", "msg_contem": "Índice grande demais"}
+      ]
+    },
+    {
+      "id": "rob-06", "nome": "duas faixas grandes juntas passam do limite de valores", "modo": "parcial",
+      "passos": [
+        {"acao": "adicionar", "id": "i", "texto": "i := 0..999", "y": 10},
+        {"acao": "adicionar", "id": "j", "texto": "j := 0..999", "y": 20},
+        {"acao": "adicionar", "id": "a", "texto": "i + j =", "y": 30},
+        {"verificar": "a", "tipo": "erro", "msg_contem": "Resultado grande demais"}
+      ]
+    },
+    {
+      "id": "rob-07", "nome": "simbólico também recusa inteiro gigante, sem travar", "modo": "parcial",
+      "passos": [
+        {"acao": "adicionar", "id": "a", "texto": "10^10^10 ->", "y": 10},
+        {"acao": "adicionar", "id": "b", "texto": "2^100 ->", "y": 20},
+        {"verificar": "a", "tipo": "erro", "msg_contem": "Número grande demais"},
+        {"verificar": "b", "tipo": "numerico", "exato": "1267650600228229401496703205376"}
+      ]
+    }
+  ]
+}

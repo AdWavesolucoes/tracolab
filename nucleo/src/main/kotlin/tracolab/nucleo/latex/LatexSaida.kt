@@ -3,6 +3,7 @@ package tracolab.nucleo.latex
 import org.matheclipse.core.expression.F
 import org.matheclipse.core.interfaces.IAST
 import org.matheclipse.core.interfaces.IExpr
+import tracolab.nucleo.Matriciais
 import tracolab.nucleo.Motor
 import tracolab.nucleo.PU
 import tracolab.nucleo.PV
@@ -34,19 +35,24 @@ object LatexSaida {
         return if (indice.isEmpty()) b else "${b}_{$indice}"
     }
 
-    private val SIMBOLO = Regex("(zz[vu])((?:[0-9a-f]{4})+)")
+    private val SIMBOLO = Regex("(zz[vub])((?:[0-9a-f]{4})+)")
 
     /** LaTeX de uma expressão do Symja, trocando os nomes codificados pelos nomes reais. */
     fun expressao(e: IExpr, m: Motor): String {
         val tex = m.ev(F.TeXForm(e)).toString()
         val comNomes = SIMBOLO.replace(tex) { mr ->
             val n = decodificar(mr.groupValues[2])
-            if (mr.groupValues[1] == PU) "\\mathrm{$n}" else nome(n)
+            when (mr.groupValues[1]) {
+                PU -> "\\mathrm{$n}"
+                Matriciais.PB -> "\\operatorname{$n}"   // embutido pendente: rows(x)
+                else -> nome(n)
+            }
         }
         return comNomes
             .replace(Regex("\\^\\{(-?\\d+)\\.0\\}"), "^{$1}")      // m^{2.0} → m^{2}
             .replace(Regex("(\\d)\\.(\\d)"), "$1{,}$2")                // vírgula decimal
             .replace(Regex("(\\d)\\.(?!\\d)"), "$1")                    // 2. → 2
+            .replace(Regex("(\\d)\\*10\\^\\{"), "$1\\\\times10^{")        // 5*10^{6} → 5\times10^{6}
     }
 
     /** "8787.21" → "8787{,}21"; "5e-05" → "5\times10^{-5}". */
@@ -56,14 +62,18 @@ object LatexSaida {
         return if (m == null) base else "$base\\times10^{${if (m.groupValues[2] == "-") "-" else ""}${m.groupValues[3]}}"
     }
 
-    /** "kN", "m^2", "kg·m^-1" → LaTeX de unidade. */
-    fun unidade(t: String): String = t.split("·").joinToString("\\cdot ") { parte ->
+    /** "kN", "m^2", "kg·m^-1", "kN*m" (unidade pedida pelo teclado) → LaTeX de unidade. */
+    fun unidade(t: String): String = t.split("·", "*").joinToString("\\cdot ") { parte ->
         val nomeU = parte.substringBefore('^'); val pot = parte.substringAfter('^', "")
         "\\mathrm{$nomeU}" + if (pot.isEmpty()) "" else "^{$pot}"
     }
 
     init { check(PV != PU) }
 }
+
+/** Linhas de um vetor e tamanho de uma expressão que a tela ainda desenha sem travar (ADR 0017). */
+const val MAX_LINHAS_TELA = 100
+const val MAX_FOLHAS_TELA = 3_000
 
 /** O que a tela mostra para a região `id` (null quando não há valor a mostrar). */
 fun Planilha.resultadoTela(id: String): ResultadoTela {
@@ -73,19 +83,21 @@ fun Planilha.resultadoTela(id: String): ResultadoTela {
     e.faixa?.let { return ResultadoTela("${LatexSaida.expressao(it.inicio, motor)}\\,..\\,${LatexSaida.expressao(it.fim, motor)}") }
     if (e.funcao != null) return ResultadoTela(null)
     val v = e.valor ?: return ResultadoTela(null)
-    if (v.isList) {
-        val itens = (1 until (v as IAST).size()).map { valorSimples(v.get(it)) }
-        return ResultadoTela("\\begin{pmatrix}" + itens.joinToString("\\\\") + "\\end{pmatrix}")
-    }
+    // ADR 0017: a tela não recebe o que não consegue desenhar (expressão gigante); listas: matrizTela resume
+    if (v.leafCount() > MAX_FOLHAS_TELA && !v.isList)
+        return ResultadoTela(null, "Expressão grande demais para mostrar (${v.leafCount()} termos).")
+    if (v.isList) return matrizTela(v, r)
     if (e.tipo == "parcial" || r.tipo == "avaliacao_simbolica" || r.tipo == "definicao_simbolica" || motor.temLivres(v))
         return ResultadoTela(LatexSaida.expressao(v, motor))
     val tela = exibir(id)
     if (tela.startsWith("[erro]")) return ResultadoTela(null, tela.removePrefix("[erro]").trim())
     val num = tela.substringBefore(' ')
+    // número que não é real (2·i): não há texto "número unidade", mostra a expressão
+    if (!Regex("^-?[0-9.]+(e[+-][0-9]+)?$").matches(num)) return ResultadoTela(LatexSaida.expressao(v, motor))
     val un = tela.substringAfter(' ', "")
     return ResultadoTela(LatexSaida.numero(num) + if (un.isEmpty()) "" else "\\," + LatexSaida.unidade(un))
 }
 
-private fun Planilha.valorSimples(x: IExpr): String =
+internal fun Planilha.valorSimples(x: IExpr): String =
     if (motor.temLivres(x) || motor.temUnidade(x)) LatexSaida.expressao(x, motor)
     else try { LatexSaida.numero(tracolab.nucleo.g6(motor.dbl(x))) } catch (_: Exception) { LatexSaida.expressao(x, motor) }

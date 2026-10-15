@@ -16,9 +16,10 @@ import java.math.RoundingMode
  *             "classico" (variável que falta em := ou = é erro). Ver ADR 0002.
  * @param unidades true trata nomes como m, s, kg como unidades quando não são variáveis
  *             (modo compatível). No app a unidade é explícita: 20{mm}. Ver ADR 0007.
+ * @param limites tempo, recursão e tamanho máximos (ADR 0017).
  */
 class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: Boolean = false,
-               val motor: Motor = Motor()) {
+               val motor: Motor = Motor(), val limites: Limites = Limites()) {
     init { require(modo == "parcial" || modo == "classico") { "modo deve ser 'parcial' ou 'classico'" } }
     val regioes = mutableListOf<Regiao>()
     private var env = HashMap<String, Valor>()
@@ -34,12 +35,14 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
 
     fun editar(id: String, nova: Regiao): List<String> {
         val i = regioes.indexOfFirst { it.id == id }
+        require(i >= 0) { "região inexistente: $id" }
         val antiga = regioes[i]; regioes[i] = nova
-        return recalcular(nova, antiga.define.toSet(), global = antiga.tipo == "definicao_global")
+        // a região pode ter mudado de lugar: quem está entre a posição antiga e a nova também conta
+        return recalcular(nova, antiga.define.toSet(), antiga.y to antiga.x, global = antiga.tipo == "definicao_global")
     }
 
     fun remover(id: String): List<String> {
-        val antiga = regioes.first { it.id == id }; regioes.remove(antiga)
+        val antiga = requireNotNull(regioes.firstOrNull { it.id == id }) { "região inexistente: $id" }; regioes.remove(antiga)
         return recalcular(null, antiga.define.toSet(), antiga.y to antiga.x, antiga.tipo == "definicao_global")
     }
 
@@ -51,7 +54,7 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         if (aPartirDe != null || nomesExtra.isNotEmpty()) {
             val nomes = nomesExtra.toMutableSet().apply { aPartirDe?.let { addAll(it.define) } }
             sujos = mutableSetOf<String>().apply { aPartirDe?.let { add(it.id) } }
-            var ini = aPartirDe?.let { it.y to it.x } ?: posicao!!
+            var ini = listOfNotNull(aPartirDe?.let { it.y to it.x }, posicao).minWith(compareBy({ it.first }, { it.second }))
             if (global || aPartirDe?.tipo == "definicao_global") ini = Double.NEGATIVE_INFINITY to Double.NEGATIVE_INFINITY
             for (r in ordem) {
                 val depois = r.y > ini.first || (r.y == ini.first && r.x >= ini.second) ||
@@ -61,9 +64,18 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         }
         env = HashMap(); origemNome = HashMap()
         val recalc = mutableListOf<String>()
-        for (r in ordem) {
-            if (sujos == null || r.id in sujos || r.estado == null) { r.estado = avaliarRegiao(r); recalc += r.id }
-            publicar(r)
+        motor.ativar()
+        // ADR 0017: cada região tem um prazo, e a folha inteira também; o que passar vira erro
+        val folha = "Não calculada: a folha passou de ${textoTempo(limites.msFolha)}."
+        motor.prazo.com(limites.msFolha, folha) {
+            for (r in ordem) {
+                if (sujos == null || r.id in sujos || r.estado == null) {
+                    r.estado = if (motor.prazo.esgotado()) Estado("erro", msg = folha)
+                               else motor.prazo.com(limites.msRegiao, "Cálculo interrompido: passou de ${textoTempo(limites.msRegiao)}.") { avaliarRegiao(r) }
+                    recalc += r.id
+                }
+                publicar(r)
+            }
         }
         return recalc
     }
@@ -86,19 +98,38 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         for (n in r.usa) {
             val dep = regioes.firstOrNull { it.id == origemNome[n] } ?: continue
             val t = dep.estado?.tipo
-            if ((t == "erro" || t == "nao_suportado") && !(n in r.define && r.tipoAlvo != "elemento"))
+            // só a função recursiva (f(n) := ... f(n-1)) não depende da definição anterior de f;
+            // x := x + 1 depende do x de cima, e herda o erro dele
+            if ((t == "erro" || t == "nao_suportado") && !(n in r.define && r.tipoAlvo == "funcao"))
                 return if (t == "erro") Estado("erro", msg = "Depende de '$n', que está com erro.")
                 else Estado("nao_suportado", msg = "Depende de '$n' (não suportado)")
         }
         val aviso = if (r.define.any { it in env } && r.tipoAlvo != "elemento") "Redefinição" else null
         val c = Contexto(HashMap(env), this)
+        elementosRegiao = 0
         return try {
             calcular(r, c).also { if (it.aviso == null) it.aviso = aviso }
-        } catch (e: ErroUnidade) { Estado("erro", msg = e.message)
-        } catch (e: ErroCalculo) { Estado("erro", msg = e.message)
-        } catch (e: NaoSuportado) { Estado("nao_suportado", msg = e.message)
-        } catch (e: UsaFaixa) { Estado("erro", msg = "Faixa '${e.nome}' usada fora de contexto")
-        } catch (e: Exception) { Estado("nao_suportado", msg = "interno ${e.javaClass.simpleName}: ${e.message}") }
+        } catch (e: Throwable) {
+            // limites e falhas graves (ADR 0017): só esta região fica com erro
+            mensagemDeLimite(e, motor.prazo.motivo)?.let { return Estado("erro", msg = it) }
+            erroComum(e)
+        }
+    }
+
+    private fun erroComum(e: Throwable): Estado = when (e) {
+        is ErroUnidade, is ErroCalculo -> Estado("erro", msg = e.message)
+        is NaoSuportado -> Estado("nao_suportado", msg = e.message)
+        is UsaFaixa -> Estado("erro", msg = "Faixa '${e.nome}' usada fora de contexto")
+        is Exception -> Estado("nao_suportado", msg = "interno ${e.javaClass.simpleName}: ${e.message}")
+        else -> throw e
+    }
+
+    /** Valores produzidos pela região em andamento (faixas, v[i] :=), contra [Limites.elementos]. */
+    private var elementosRegiao = 0
+    private fun contarElementos(n: Int) {
+        elementosRegiao += n
+        if (elementosRegiao > limites.elementos)
+            throw ErroCalculo("Resultado grande demais: mais de ${limites.elementos} valores.")
     }
 
     private fun calcular(r: Regiao, c: Contexto): Estado {
@@ -114,27 +145,42 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
                         val a = avaliar(ini[0], c)
                         val passo = if (ini.size == 2) motor.ev(F.Subtract(avaliar(ini[1], c), a)) else null
                         val b = avaliar(fim, c)
-                        val p = passo ?: if (motor.dbl(b) >= motor.dbl(a)) F.C1 else F.CN1
+                        // limite ainda faltando: a faixa fica pendente, e quem a usa também
+                        val faltam = listOfNotNull(a, passo, b).flatMap { motor.nomesLivres(it) }.distinct()
+                        if (faltam.isNotEmpty()) {
+                            if (modo == "classico") throw ErroCalculo("Variável não definida.")
+                            return Estado("parcial", valor = F.List(a, b), livres = faltam)
+                        }
+                        val (na, nb) = Faixa.numeros(motor, a, b)
+                        val p = passo ?: if (nb >= na) (if (motor.temUnidade(b)) Faixa.unidade(motor, a, b) else F.C1)
+                                         else (if (motor.temUnidade(b)) motor.ev(F.Negate(Faixa.unidade(motor, a, b))) else F.CN1)
                         return Estado("numerico", faixa = Faixa(a, p, b))
                     }
                     val v = if (r.tipo == "definicao_simbolica") motor.ev(F.Simplify(avaliar(r.expr!!, c)))
                             else iterar(c) { avaliar(r.expr!!, c) }
                     return estadoDe(v, c, exato = r.tipo == "definicao_simbolica")
                 }
-                "elemento" -> {
-                    val atual = (env[r.define[0]] as? Valor.Expr)?.e
-                    val lista: MutableList<IExpr> =
-                        if (atual != null && atual.isList) (1 until (atual as IAST).size()).map { atual.get(it) }.toMutableList()
-                        else mutableListOf()
-                    iterar(c) {
-                        val k = motor.dbl(avaliar(r.indices[0], c)).toInt() - origem
-                        if (k < 0) throw ErroCalculo("Índice fora do intervalo.")
-                        val v = avaliar(r.expr!!, c)
-                        while (lista.size <= k) lista += F.C0
-                        lista[k] = v
+                "elemento" -> {   // v[i] := ... e M[i, j] := ... (Matriciais.Gravador)
+                    val g = Matriciais.Gravador((env[r.define[0]] as? Valor.Expr)?.e, origem, motor, limites.elementos)
+                    var pendente: List<IExpr>? = null
+                    // recorrência (v[i] := v[i-1]*2 com i de faixa): cada passo enxerga o que os
+                    // passos anteriores já gravaram, como numa tabela preenchida linha a linha
+                    val nome = r.define[0]
+                    val envLocal = HashMap(c.env)
+                    val cl = Contexto(envLocal, c.pl, c.livres, c.iter, c.profundidade)
+                    val recorrente = nome in r.usa
+                    iterar(cl) {
+                        val idx = r.indices.map { avaliar(it, cl) }
+                        // índice ainda faltando: o vetor fica pendente (v_n), e quem o usa também
+                        if (idx.any { motor.temLivres(it) }) pendente = idx
+                        else {
+                            g.gravar(idx, avaliar(r.expr!!, cl))
+                            if (recorrente) envLocal[nome] = Valor.Expr(g.valor())
+                        }
                         F.C0
                     }
-                    return estadoDe(F.List(*lista.toTypedArray()), c)
+                    pendente?.let { idx -> return estadoDe(F.ast(F.Subscript).also { s -> s.append(g.valor()); idx.forEach { s.append(it) } }, c) }
+                    return estadoDe(g.valor(), c)
                 }
             }
             throw NaoSuportado("definição ${r.tipoAlvo}")
@@ -148,7 +194,9 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
     /** Se a expressão usa uma variável de faixa, repete para cada valor e devolve uma lista. */
     private fun iterar(c: Contexto, fn: () -> IExpr): IExpr = try { fn() } catch (u: UsaFaixa) {
         if (u.nome in c.iter) throw u
-        val res = u.faixa.valores(motor).map { v -> c.iter[u.nome] = v; iterar(c, fn) }
+        val vals = u.faixa.valores(motor, limites.elementos)
+        contarElementos(vals.size)
+        val res = vals.map { v -> c.iter[u.nome] = v; iterar(c, fn) }
         c.iter.remove(u.nome)
         F.List(*res.toTypedArray())
     }
@@ -161,7 +209,9 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
             if (modo == "classico" && !simbolica) throw ErroCalculo("Variável não definida.")
             return Estado("parcial", valor = v, livres = livres)
         }
-        return Estado("numerico", valor = if (exato) v else motor.ev(F.N(v)))
+        val valor = if (exato) v else motor.ev(F.N(v))
+        motor.problemaNumerico(valor, exato)?.let { throw ErroCalculo(it) }
+        return Estado("numerico", valor = motor.expandirUnidades(valor))
     }
 
     // ---- exibição
@@ -171,19 +221,27 @@ class Planilha(val modo: String = "parcial", val origem: Int = 0, val unidades: 
         val e = r.estado!!
         if (e.tipo != "numerico" && e.tipo != "parcial") return "[${e.tipo}] ${e.msg}"
         val v = e.valor ?: return "?"
-        if (v.isList || motor.temLivres(v)) return v.toString()
-        return try {
-            if (r.unidadeExibicao != null) {
-                val alvo = avaliar(r.unidadeExibicao, Contexto(emptyMap(), this))
-                if (!motor.dims(v).contentEquals(motor.dims(alvo))) throw ErroUnidade("A unidade pedida não é compatível com o resultado.")
-                "${g6(motor.dbl(motor.ev(F.Divide(v, alvo))))} ${r.unidadeExibicaoTexto}"
-            } else if (!motor.temUnidade(v)) g6(motor.dbl(v))
-            else {
-                val d = motor.dims(v)
-                "${g6(motor.dbl(motor.ev(F.Divide(v, motor.monomio(d)))))} ${textoUnidade(d)}"
-            }
+        if (motor.temLivres(v)) return v.toString()
+        // número que não é real (2·i) não tem texto "número unidade": mostra a expressão
+        fun texto(x: IExpr) = try { exibirValor(x, r) } catch (err: ErroUnidade) { throw err } catch (_: Exception) { x.toString() }
+        if (v.isList) return try {   // [1 kN; 2 kN] e [1, 2; 3, 4]
+            Matriciais.linhas(v).joinToString("; ", "[", "]") { l -> l.joinToString(", ") { texto(it) } }
         } catch (err: ErroUnidade) { "[erro] ${err.message}" }
+        return try { texto(v) } catch (err: ErroUnidade) { "[erro] ${err.message}" }
     }
+
+    /** Texto "número unidade" de um valor escalar numérico, na unidade pedida pela região ou no SI. */
+    fun exibirValor(v: IExpr, r: Regiao): String =
+        if (r.unidadeExibicao != null) {
+            val alvo = avaliar(r.unidadeExibicao, Contexto(emptyMap(), this))
+            // zero combina com qualquer unidade (elementos nulos de uma matriz em kN, por exemplo)
+            if (!v.isZero && !motor.dims(v).contentEquals(motor.dims(alvo))) throw ErroUnidade("A unidade pedida não é compatível com o resultado.")
+            "${g6(motor.dbl(motor.ev(F.Divide(v, alvo))))} ${r.unidadeExibicaoTexto}"
+        } else if (!motor.temUnidade(v)) g6(motor.dbl(v))
+        else {
+            val d = motor.dims(v)
+            "${g6(motor.dbl(motor.ev(F.Divide(v, motor.monomio(d)))))} ${textoUnidade(d)}"
+        }
 
     private val derivadas = listOf(
         "N" to intArrayOf(1, 1, -2, 0, 0, 0, 0), "Pa" to intArrayOf(-1, 1, -2, 0, 0, 0, 0),

@@ -25,6 +25,19 @@ class Motor {
     val bases: List<ISymbol> = listOf("m", "kg", "s", "A", "K", "mol", "cd").map { F.symbol(PU + codificar(it)) }
     private val cacheUnid = HashMap<String, IExpr>()
 
+    /** Prazo do cálculo em andamento (ADR 0017): `verificarPrazo()` nos laços longos, `prazo.tentarPor(ms) { }`. */
+    val prazo = Prazo(this)
+    fun verificarPrazo() = prazo.verificar()
+
+    /** A interrupção por prazo não deve ser engolida por quem captura erros para tentar outro caminho. */
+    fun interrompido(e: Throwable) = e is TempoEsgotado || e is org.matheclipse.core.eval.exception.TimeoutException
+
+    /** O Symja consulta o motor da thread (`EvalEngine.get()`) em muitos pontos internos: antes de
+     *  calcular numa thread que não é a que criou o motor, ele tem que ser o desta thread. */
+    fun ativar() = EvalEngine.set(engine)
+
+    init { LimitesSymja.garantir() }
+
     fun ev(e: IExpr): IExpr = engine.evaluate(e)
     fun dbl(e: IExpr): Double = engine.evalDouble(e)
     fun sym(nome: String): ISymbol = F.symbol(PV + codificar(nome))
@@ -60,7 +73,8 @@ class Motor {
         if (e.isPower) {
             val ex = e.exponent()
             if (temUnidade(ex) || !ex.isNumber) throw ErroUnidade("Expoente com unidade ou simbólico.")
-            val k = dbl(ex); return dims(e.base()).map { it * k }.toDoubleArray()
+            // + 0.0: 0 * (-1) dá -0.0, e contentEquals distingue -0.0 de 0.0 (1/{s} ≠ {Hz})
+            val k = dbl(ex); return dims(e.base()).map { it * k + 0.0 }.toDoubleArray()
         }
         if (e.isPlus) {
             val ds = (1 until (e as IAST).size()).map { dims(e.get(it)) }
@@ -71,11 +85,20 @@ class Motor {
         throw ErroUnidade("Este valor deve ser adimensional.")
     }
 
+    /**
+     * Soma e subtração só entre grandezas de mesma dimensão. Termo com nome faltando tem dimensão
+     * desconhecida e não acusa nada (x + 5 m fica pendente); mas os termos conhecidos dos dois
+     * lados têm de combinar entre si: (34 + L) + 5 MPa já é erro, qualquer que seja L.
+     */
     fun checarSoma(a: IExpr, b: IExpr) {
         if (!(temUnidade(a) || temUnidade(b))) return
-        if (temLivres(a) || temLivres(b) || a.isZero || b.isZero) return
-        if (!dims(a).contentEquals(dims(b))) throw ErroUnidade("As unidades não são compatíveis.")
+        val conhecidos = (termos(a) + termos(b)).filter { !it.isZero && !temLivres(it) }
+        if (conhecidos.size < 2) return
+        val d = dims(conhecidos[0])
+        if (conhecidos.any { !dims(it).contentEquals(d) }) throw ErroUnidade("As unidades não são compatíveis.")
     }
+
+    private fun termos(e: IExpr): List<IExpr> = if (e.isPlus) (1 until (e as IAST).size()).map { e.get(it) } else listOf(e)
 
     fun exigirAdimensional(e: IExpr, onde: String) {
         if (temUnidade(e) && !temLivres(e) && dims(e).any { it != 0.0 })
@@ -89,6 +112,43 @@ class Motor {
     }
 
     private fun numero(p: Double): IExpr = if (p == Math.rint(p)) F.ZZ(p.toLong()) else F.num(p)
+
+    /**
+     * Raízes e potências fracionárias de unidades: √(25 m²) → 5 m. As unidades de base são
+     * positivas, mas o Symja não supõe isso e deixa √(m²) sem simplificar (aí o número não sai).
+     * Só vale para valor sem nome faltando, para não transformar √(x²) em x.
+     */
+    fun expandirUnidades(e: IExpr): IExpr {
+        if (!temUnidade(e) || temLivres(e)) return e
+        // o PowerExpand desce um nível por vez: √(kg²/m²) → √(kg²)·√(1/m²) → kg/m
+        var x = e
+        repeat(6) { val y = ev(F.PowerExpand(x)); if (y == x) return x; x = y }
+        return x
+    }
+
+    /**
+     * Valor numérico que não dá para mostrar nem usar: estouro (`10^400`, `10^10^10`), indeterminado
+     * (`0/0` depois de simplificar), infinito, ou conta que o Symja devolveu sem fazer (`Hold`,
+     * limite de iterações). Devolve a mensagem do erro, ou null se o valor é bom.
+     */
+    fun problemaNumerico(v: IExpr, exato: Boolean = false): String? {
+        var msg: String? = null
+        fun anda(x: IExpr) {
+            if (msg != null) return
+            val cabeca = (x as? IAST)?.head()
+            msg = when {
+                cabeca == F.Overflow -> "O resultado passa do maior número que dá para calcular (cerca de 1,8×10³⁰⁸)."
+                cabeca == F.Hold -> "Cálculo grande demais para o motor (limite de repetições)."
+                x.isIndeterminate -> "Resultado indeterminado."
+                !exato && (x.isComplexInfinity || x.isDirectedInfinity) -> "Resultado infinito."
+                x is org.matheclipse.core.interfaces.INum && !x.doubleValue().isFinite() -> "O resultado passa do maior número que dá para calcular (cerca de 1,8×10³⁰⁸)."
+                else -> null
+            }
+            if (msg == null && x is IAST) for (i in 1 until x.size()) anda(x.get(i))
+        }
+        anda(v)
+        return msg
+    }
 
     /** Nomes ainda não fornecidos dentro de um valor. */
     fun nomesLivres(e: IExpr): List<String> {

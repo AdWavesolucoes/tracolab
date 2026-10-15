@@ -26,7 +26,7 @@ object LatexEntrada {
         "Phi" to "Φ", "Psi" to "Ψ", "Omega" to "Ω",
     )
     private val FUNCOES = setOf("sin", "cos", "tan", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh",
-        "exp", "ln", "log", "max", "min")
+        "exp", "ln", "log", "max", "min", "det")
     private val RENOMEIA_FUNCAO = mapOf("arcsin" to "asin", "arccos" to "acos", "arctan" to "atan")
     private val IGNORADOS = setOf(",", ";", "!", ":", " ", "quad", "qquad", "left", "right", "displaystyle",
         "big", "Big", "bigl", "bigr", "Bigl", "Bigr", "mathstrut", "limits", "nolimits")
@@ -109,14 +109,19 @@ object LatexEntrada {
     internal fun converterSeq(toks: List<Tok>): List<Peca> {
         val l = Leitor(toks)
         val out = mutableListOf<Peca>()
+        val colchetes = ArrayDeque<Boolean>()   // true: índice (v[i, j]); false: matriz literal ([1; 2])
         while (!l.fim()) {
-            when (val t = l.prox()) {
+            val t = l.prox()
+            if (colchete(t, l, out, colchetes)) { /* [ ] ; | tratados (matrizes) */ }
+            else when (t) {
                 is Tok.Ch -> lerCaractere(t.c, l, out)
                 is Tok.Cmd -> lerComando(t.nome, l, out)
                 Tok.Abre -> {   // grupo solto {..}: vírgula decimal {,} ou só agrupamento
                     l.p--
                     val dentro = argumento(l)
-                    if (dentro == listOf(Tok.Ch(','))) anexarNumero('.', out)
+                    // dentro de v[...] a vírgula separa índices: M[0,1] digitado em pt-BR
+                    if (dentro == listOf(Tok.Ch(',')) && colchetes.lastOrNull() == true) out += Peca(",", false, false)
+                    else if (dentro == listOf(Tok.Ch(','))) anexarNumero('.', out)
                     else out += Peca("(" + juntar(converterSeq(dentro)) + ")", true, true)
                 }
                 Tok.Fecha -> throw ErroLatex("'}' sem abrir")
@@ -131,6 +136,11 @@ object LatexEntrada {
                     out += ult.copy(t = ult.t + "_" + textoBruto(arg).filter { it.isLetterOrDigit() })
                 } else if (arg.size == 1 && arg[0] == Tok.Cmd("circ")) {
                     out += Peca("{deg}", true, true)
+                } else if (arg.size >= 2 && arg.first() == Tok.Cmd("langle") && arg.last() == Tok.Cmd("rangle")) {
+                    // M^{⟨j⟩}: coluna j da matriz
+                    val ult = out.removeLastOrNull() ?: throw ErroLatex("coluna sem matriz")
+                    if (!ult.nome && !ult.t.startsWith("[")) throw ErroLatex("coluna ⟨j⟩ só depois do nome da matriz")
+                    out += Peca("col(" + ult.t + ", " + juntar(converterSeq(arg.subList(1, arg.size - 1))) + ")", ult.inicia, true)
                 } else {
                     val ult = out.removeLastOrNull() ?: throw ErroLatex("potência sem base")
                     out += Peca(ult.t + "^(" + juntar(converterSeq(arg)) + ")", ult.inicia, true)
@@ -141,6 +151,47 @@ object LatexEntrada {
     }
 
     private val NUMERO = Regex("[0-9.]+")
+
+    private val BARRAS = setOf(Tok.Ch('|'), Tok.Cmd("vert"), Tok.Cmd("lvert"), Tok.Cmd("rvert"),
+        Tok.Cmd("|"), Tok.Cmd("Vert"), Tok.Cmd("lVert"), Tok.Cmd("rVert"))
+
+    /**
+     * Matrizes (ADR 0010): colchetes e barras. `[` depois de um operando abre índice (v[i, j]);
+     * senão abre matriz literal, em que `;` separa linhas ([1; 2; 3]). `|x|` (ou `\left|x\right|`)
+     * vira abs(x): módulo, comprimento de vetor ou determinante. Devolve false se não tratou.
+     */
+    private fun colchete(t: Tok, l: Leitor, out: MutableList<Peca>, pilha: ArrayDeque<Boolean>): Boolean {
+        when {
+            t == Tok.Ch('[') || t == Tok.Cmd("lbrack") -> { pilha.addLast(out.lastOrNull()?.termina == true); return false }
+            t == Tok.Ch(']') || t == Tok.Cmd("rbrack") -> { pilha.removeLastOrNull(); return false }
+            t == Tok.Ch(';') && pilha.isNotEmpty() -> out += Peca(if (pilha.last()) "," else ";", false, false)
+            t == Tok.Cmd("left") && l.olha() in BARRAS -> { l.prox(); out += barras(l, true) }
+            t in BARRAS -> out += barras(l, false)
+            else -> return false
+        }
+        return true
+    }
+
+    /** Conteúdo entre barras (a de abertura já foi lida) → abs(...). */
+    private fun barras(l: Leitor, comLeft: Boolean): Peca {
+        val dentro = mutableListOf<Tok>()
+        var nivel = 1; var chaves = 0
+        while (true) {
+            if (l.fim()) throw ErroLatex("barra '|' sem fechar")
+            val t = l.prox()
+            if (comLeft) {
+                if (t == Tok.Cmd("left")) nivel++
+                if (t == Tok.Cmd("right") && --nivel == 0) { l.prox(); break }
+            } else {
+                if (t == Tok.Abre) chaves++
+                if (t == Tok.Fecha) chaves--
+                if (chaves == 0 && t in BARRAS) break
+            }
+            dentro += t
+        }
+        if (dentro.isEmpty()) throw ErroLatex("barras vazias")
+        return Peca("abs(" + juntar(converterSeq(dentro)) + ")", true, true)
+    }
 
     /** Dígitos chegam um a um no LaTeX: junta com o número anterior. */
     private fun anexarNumero(c: Char, out: MutableList<Peca>) {
@@ -212,7 +263,10 @@ object LatexEntrada {
             }
             nome in GREGAS -> out += Peca(GREGAS.getValue(nome), true, true, nome = true)
             nome == "pi" -> out += Peca("π", true, true, nome = true)
-            nome == "cdot" || nome == "times" || nome == "ast" -> out += Peca("*", false, false)
+            nome == "cdot" || nome == "ast" -> out += Peca("*", false, false)
+            nome == "times" -> out += Peca("×", false, false)   // produto vetorial entre vetores; senão, produto
+            nome == "top" || nome == "intercal" -> out += Peca("T", true, true, nome = true)   // M^⊤: transposta
+            nome == "overrightarrow" -> out += Peca("vec(" + juntar(converterSeq(argumento(l))) + ")", true, true)
             nome == "div" -> out += Peca("/", false, false)
             nome == "coloneq" || nome == "coloneqq" || nome == "Coloneq" || nome == "tldef" -> out += Peca(":=", false, false)
             nome == "equiv" -> out += Peca("≡", false, false)
@@ -291,6 +345,7 @@ object LatexEntrada {
             .replace(Regex("(?<=[\\p{L}\\p{N}_)\\]])\\s+(?=[(\\[])"), "") // f(t), v[i]
             .replace(Regex("([(\\[])\\s+"), "$1")
             .replace(Regex("\\s+([)\\]])"), "$1")
+            .replace(Regex("\\s+([,;])"), "$1")                        // [1; 2], M[i, j]
             .trim()
     }
 
@@ -302,7 +357,8 @@ object LatexEntrada {
             val depois = pecas.subList(iIgual + 1, pecas.size)
             val soUnidade = depois.all { it.t.startsWith("{") || it.t == "*" || it.t == "/" }
             if (depois.isEmpty() || (soUnidade && depois.any { it.t.startsWith("{") })) {
-                val antes = juntar(pecas.subList(0, iIgual))
+                // um '=' antes do último é comparação: a = b = mostra 1 ou 0
+                val antes = juntar(pecas.subList(0, iIgual).map { if (it.t == "=") it.copy(t = "==") else it })
                 // {mm}^(2) → mm^2: dentro das chaves da unidade, nomes sem chaves e expoente simples
                 val unidade = if (depois.isEmpty()) "" else " {" + depois.joinToString("") { it.t }
                     .replace(Regex("\\{([^{}]*)\\}"), "$1")

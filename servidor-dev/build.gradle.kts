@@ -7,7 +7,14 @@ plugins {
 
 kotlin { jvmToolchain(21) }
 
-dependencies { implementation(project(":api")) }
+dependencies {
+    implementation(project(":api"))
+    testImplementation(platform("org.junit:junit-bom:5.11.3"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test { useJUnitPlatform() }
 
 application { mainClass.set("tracolab.servidordev.ServidorKt") }
 tasks.named<JavaExec>("run") { workingDir = rootProject.projectDir }

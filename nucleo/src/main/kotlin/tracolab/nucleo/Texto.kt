@@ -31,6 +31,9 @@ fun usados(n: No?, ligados: Set<String> = emptySet()): List<String> {
     anda(n, ligados); return out.toList()
 }
 
+/** `expr =` ou `expr = {unidade}` no fim do texto: avaliação (grupo 1: a expressão; grupo 2: a unidade pedida). */
+private val AVALIACAO = Regex("^(.*?)=\\s*(\\{[^}]*\\})?\\s*$")
+
 fun regiaoDeTexto(id: String, texto: String, y: Double, x: Double = 0.0): Regiao {
     val s = texto.trim()
     for ((sim, tipo0) in listOf(":=" to "definicao", "≡" to "definicao_global")) {
@@ -38,6 +41,14 @@ fun regiaoDeTexto(id: String, texto: String, y: Double, x: Double = 0.0): Regiao
         if (i < 0) continue
         val lhs = s.substring(0, i).trim()
         var rhs = s.substring(i + sim.length).trim()
+        // definir e mostrar: R := q*L/2 = {kN} define R e mostra o valor na mesma região.
+        // O '=' colado num operador (>=, <=, ==, !=) não conta; o de "expr -> =" conta.
+        val aval = AVALIACAO.find(rhs)?.takeIf { it.groupValues[1].lastOrNull() !in setOf('<', '>', '=', '!') }
+        val un = aval?.groupValues?.get(2)?.takeIf { it.isNotEmpty() }
+        if (aval != null) rhs = aval.groupValues[1].trim()
+        val mostrar = aval != null
+        val unidade = un?.let { Parser.parse(it) }
+        val unidadeTexto = un?.removeSurrounding("{", "}")
         val simb = rhs.endsWith("->") || rhs.endsWith("→")
         if (simb) rhs = rhs.removeSuffix("->").removeSuffix("→").trim()
         val alvo = Parser.parse(lhs)
@@ -45,19 +56,22 @@ fun regiaoDeTexto(id: String, texto: String, y: Double, x: Double = 0.0): Regiao
             val (esq, fim) = rhs.split("..", limit = 2)
             val ini = esq.split(",").map { Parser.parse(it.trim()) }
             return Regiao(id, y, x, tipo0, faixa = ini to Parser.parse(fim.trim()), define = listOf((alvo as No.Id).nome),
-                tipoAlvo = "variavel", usa = ini.flatMap { usados(it) } + usados(Parser.parse(fim.trim())))
+                tipoAlvo = "variavel", usa = ini.flatMap { usados(it) } + usados(Parser.parse(fim.trim())),
+                unidadeExibicao = unidade, unidadeExibicaoTexto = unidadeTexto, mostrar = mostrar)
         }
         val corpo = Parser.parse(rhs)
         return when (alvo) {
             is No.Chama -> {
                 val params = alvo.args.map { (it as No.Id).nome }
                 Regiao(id, y, x, tipo0, corpo, define = listOf(alvo.nome), params = params, tipoAlvo = "funcao",
-                    usa = usados(corpo, params.toSet()))
+                    usa = usados(corpo, params.toSet()), mostrar = mostrar)
             }
             is No.Indice -> Regiao(id, y, x, tipo0, corpo, define = listOf((alvo.base as No.Id).nome), tipoAlvo = "elemento",
-                indices = alvo.idx, usa = (alvo.idx.flatMap { usados(it) } + usados(corpo)).distinct())
+                indices = alvo.idx, usa = (alvo.idx.flatMap { usados(it) } + usados(corpo)).distinct(),
+                unidadeExibicao = unidade, unidadeExibicaoTexto = unidadeTexto, mostrar = mostrar)
             is No.Id -> Regiao(id, y, x, if (simb && tipo0 == "definicao") "definicao_simbolica" else tipo0, corpo,
-                define = listOf(alvo.nome), tipoAlvo = "variavel", usa = usados(corpo))
+                define = listOf(alvo.nome), tipoAlvo = "variavel", usa = usados(corpo),
+                unidadeExibicao = unidade, unidadeExibicaoTexto = unidadeTexto, mostrar = mostrar)
             else -> throw ErroSintaxe("lado esquerdo inválido: $lhs")
         }
     }
@@ -65,7 +79,7 @@ fun regiaoDeTexto(id: String, texto: String, y: Double, x: Double = 0.0): Regiao
         val e = Parser.parse(s.removeSuffix("->").removeSuffix("→").trim())
         return Regiao(id, y, x, "avaliacao_simbolica", e, usa = usados(e))
     }
-    val m = Regex("^(.*?)=\\s*(\\{[^}]*\\})?\\s*$").find(s) ?: throw ErroSintaxe("não entendi: $texto")
+    val m = AVALIACAO.find(s) ?: throw ErroSintaxe("não entendi: $texto")
     val e = Parser.parse(m.groupValues[1].trim())
     val un = m.groupValues[2].takeIf { it.isNotEmpty() }
     return Regiao(id, y, x, "avaliacao_numerica", e, usa = usados(e),
