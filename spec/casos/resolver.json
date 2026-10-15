@@ -1,0 +1,427 @@
+{
+ "descricao": "Resolver equações: dimensionamento (ADR 0012).",
+ "casos": [
+  {
+   "id": "res-01",
+   "nome": "Dimensionamento: o diâmetro que atende a tensão admissível (unidade deduzida)",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "s",
+     "texto": "σ := 200{MPa}",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "f",
+     "texto": "F := 50{kN}",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "d",
+     "texto": "d := resolver(σ == F/(π*d^2/4), d)",
+     "y": 30,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "k",
+     "texto": "d/(1{mm}) =",
+     "y": 40,
+     "x": 0
+    },
+    {
+     "verificar": "d",
+     "tipo": "numerico"
+    },
+    {
+     "verificar": "k",
+     "tipo": "numerico",
+     "num": 17.841241161527712
+    }
+   ]
+  },
+  {
+   "id": "res-02",
+   "nome": "Nome faltando: a solução fica simbólica, pendente com chips (a raiz positiva do par ±)",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "d",
+     "texto": "d := resolver(σ == F/(π*d^2/4), d)",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "d",
+     "tipo": "parcial",
+     "livres": [
+      "F",
+      "σ"
+     ],
+     "expr": "2*sqrt(F)/(sqrt(π)*sqrt(σ))"
+    }
+   ]
+  },
+  {
+   "id": "res-03",
+   "nome": "Várias raízes: sem unidade, vetor das reais em ordem; com unidade, a única positiva",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := resolver(x^2 == 4, x)",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "x =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "L",
+     "texto": "L := resolver(L^2 == 4{m^2}, L)",
+     "y": 30,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "L/(1{m}) =",
+     "y": 40,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "numerico",
+     "lista": [
+      -2,
+      2
+     ]
+    },
+    {
+     "verificar": "b",
+     "num": 2
+    }
+   ]
+  },
+  {
+   "id": "res-04",
+   "nome": "Palpite escolhe a raiz mais próxima",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "resolver(x^2 == 4, x, -1) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "num": -2
+    }
+   ]
+  },
+  {
+   "id": "res-05",
+   "nome": "Sem solução simbólica: numérico (FindRoot) a partir do palpite",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "resolver(cos(x) == x, x) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "resolver(x*exp(x) == 2, x, 1) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "numerico",
+     "num": 0.7390851332151607
+    },
+    {
+     "verificar": "b",
+     "num": 0.8526055020137255
+    }
+   ]
+  },
+  {
+   "id": "res-06",
+   "nome": "Sistema: resolver([eq1; eq2], [x; y]) devolve o vetor [x; y], com unidades",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "s",
+     "texto": "s := resolver([x + y == 3; x - y == 1], [x; y])",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "s =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "t",
+     "texto": "t := resolver([p + q == 3{m}; p - q == 1{m}], [p; q])",
+     "y": 30,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "t/(1{m}) =",
+     "y": 40,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "numerico",
+     "lista": [
+      2,
+      1
+     ]
+    },
+    {
+     "verificar": "b",
+     "lista": [
+      2,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "res-07",
+   "nome": "raiz(f, x, a, b) no intervalo e raiz(f, x) a partir do x de cima",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "raiz(x^3 - 2*x - 5, x, 2, 3) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := 1",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "root(cos(x) - x, x) =",
+     "y": 30,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "num": 2.0945514815423265
+    },
+    {
+     "verificar": "b",
+     "num": 0.7390851332151607
+    }
+   ]
+  },
+  {
+   "id": "res-08",
+   "nome": "raizes(v): raízes do polinômio v0 + v1·x + v2·x² (também polyroots)",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "raizes([-6; 1; 1]) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "polyroots([2; -3; 1]) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "lista": [
+      -3,
+      2
+     ]
+    },
+    {
+     "verificar": "b",
+     "lista": [
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "id": "res-09",
+   "nome": "Erros claros: sem solução, infinitas soluções, só complexas",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "resolver(x == x + 1, x) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "resolver(2*x == x + x, x) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "c",
+     "texto": "resolver(x^2 == -1, x) =",
+     "y": 30,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "erro",
+     "msg_contem": "não tem solução"
+    },
+    {
+     "verificar": "b",
+     "tipo": "erro",
+     "msg_contem": "infinitas soluções"
+    },
+    {
+     "verificar": "c",
+     "tipo": "erro",
+     "msg_contem": "só tem soluções complexas"
+    }
+   ]
+  },
+  {
+   "id": "res-10",
+   "nome": "Pendente vira número quando os nomes chegam (recálculo)",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "x",
+     "texto": "x := resolver(a*x == b, x)",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "v",
+     "texto": "x =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "x",
+     "tipo": "parcial",
+     "livres": [
+      "a",
+      "b"
+     ],
+     "expr": "b/a"
+    },
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "a := 2",
+     "y": 1,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "b := 6",
+     "y": 2,
+     "x": 0
+    },
+    {
+     "verificar": "v",
+     "tipo": "numerico",
+     "num": 3
+    }
+   ]
+  },
+  {
+   "id": "res-11",
+   "nome": "Unidades incompatíveis na equação são erro",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "resolver(x + 1{m} == 2{s}, x) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "tipo": "erro"
+    }
+   ]
+  },
+  {
+   "id": "res-12",
+   "nome": "solve é sinônimo; a equação pode ser f = 0 sem o igual",
+   "modo": "parcial",
+   "passos": [
+    {
+     "acao": "adicionar",
+     "id": "a",
+     "texto": "solve(x - 5, x) =",
+     "y": 10,
+     "x": 0
+    },
+    {
+     "acao": "adicionar",
+     "id": "b",
+     "texto": "solve(3*x == 12, x) =",
+     "y": 20,
+     "x": 0
+    },
+    {
+     "verificar": "a",
+     "num": 5
+    },
+    {
+     "verificar": "b",
+     "num": 4
+    }
+   ]
+  }
+ ]
+}

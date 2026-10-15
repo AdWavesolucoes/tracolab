@@ -316,7 +316,8 @@ object LatexEntrada {
         var linha = mutableListOf<String>()
         var celula = mutableListOf<Tok>()
         var chaves = 0; var dentro = 0
-        fun fechaCelula() { linha += juntar(converterSeq(celula)); celula = mutableListOf() }
+        // numa célula, `=` é sempre comparação (equações de um sistema: resolver([x + y = 3; ...], ...))
+        fun fechaCelula() { linha += juntar(converterSeq(celula).map { if (it.t == "=") it.copy(t = "==") else it }); celula = mutableListOf() }
         for (t in corpo) {
             when {
                 t == Tok.Abre -> chaves++

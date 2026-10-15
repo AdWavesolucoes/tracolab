@@ -20,7 +20,12 @@ fun usados(n: No?, ligados: Set<String> = emptySet()): List<String> {
                 val esp = Embutidos.especiais[x.nome]
                 if (esp == null) x.args.forEach { anda(it, lig) }
                 else {
-                    val novos = esp.ligados.mapNotNull { (x.args.getOrNull(it) as? No.Id)?.nome }
+                    // nome ligado: `x`, ou um vetor de nomes `[x; y]` (sistemas do resolver)
+                    val novos = esp.ligados.flatMap { when (val a = x.args.getOrNull(it)) {
+                        is No.Id -> listOf(a.nome)
+                        is No.Matriz -> a.linhas.flatten().mapNotNull { (it as? No.Id)?.nome }
+                        else -> emptyList()
+                    } }.toSet()
                     if (esp.usaLigado(x.args.size)) out += novos.filter { it !in lig }
                     x.args.forEachIndexed { i, a -> if (i !in esp.ligados) anda(a, lig + novos) }
                 }

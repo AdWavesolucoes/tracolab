@@ -8,4 +8,5 @@ val MODULOS: List<ModuloEmbutidos> = listOf(
     Matrizes,
     Logica,
     Calculo,
+    Resolver,
 )
