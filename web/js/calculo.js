@@ -10,7 +10,8 @@ function agendar(ms = 220, salvarHist = true) {
 
 async function calcular(pedido) {
   if (window.TracoLabNativo) return JSON.parse(window.TracoLabNativo.calcular(JSON.stringify(pedido)));
-  const resp = await fetch("api/calcular", { method: "POST", body: JSON.stringify(pedido) });
+  const resp = await fetch("api/calcular", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(pedido) });
+  if (resp.status === 401) { location.replace("conta.html"); throw new Error("sessão encerrada"); }   // ADR 0019
   // erro da API vem como {"erro": "..."} (pedido grande demais, servidor ocupado...): mostra na barra
   if (!resp.ok) throw new Error((await resp.json().catch(() => ({}))).erro || "sem conexão com o núcleo");
   motor = resp.headers.get("X-TracoLab-Motor") || "";

@@ -2,10 +2,11 @@
 // (1280×800 CSS px), o fluxo de uso da folha. Criado depois do bug em que o texto digitado não
 // era lido (o <math-field> era preenchido antes de ser ativado) e a região sumia ao tocar fora.
 //
-//   ./gradlew :servidor-dev:run   (em outro terminal)
+//   ferramentas/harness/interface.sh   (sobe um servidor de teste e roda todos)   ou, com um servidor no ar:
 //   cd ferramentas/teste-ui && npm ci && CHROME=/caminho/do/chrome node fluxo.mjs [url] [print.png]
 
 import { chromium } from "playwright-core";
+import { entrar, salva } from "./sessao.mjs";
 const URL = process.argv[2] || "http://127.0.0.1:8098/";
 const CHROME = process.env.CHROME;  // caminho de um Chrome/Chromium local (ex.: o do cache do Playwright)
 if (!CHROME) { console.error("defina CHROME=/caminho/do/chrome"); process.exit(2); }
@@ -39,6 +40,7 @@ const tocarFolha = async (x, y) => {
 const esperar = (ms = 900) => p.waitForTimeout(ms);
 const resumo = () => p.locator("#resumo").textContent();
 
+await entrar(ctx, URL);
 await p.goto(URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await esperar(1800);
 
 // 1. folha de exemplo: pendente, falta F
@@ -91,7 +93,7 @@ await tocarFolha(700, 1000); await esperar(900);
 v = await regioes();
 confere("tocar fora não apaga fórmulas escritas", v.some((x) => x.v.includes("\\mathrm{kN}")) && v.some((x) => x.v.startsWith("W")), JSON.stringify(v.map((x) => x.v)));
 confere("no máximo a região recém-criada fica vazia", v.filter((x) => !x.v.trim()).length <= 1);
-const salvo = JSON.parse(await p.evaluate(() => localStorage.getItem("tracolab.folha.v2")));
+const salvo = await salva(p);
 confere("folha salva no aparelho", salvo.regioes.some((r) => r.latex.includes("\\mathrm{kN}")) && salvo.regioes.some((r) => r.unidade === "\\,\\mathrm{kPa}"));
 
 if (process.argv[3]) await p.screenshot({ path: process.argv[3] });

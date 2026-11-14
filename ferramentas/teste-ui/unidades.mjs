@@ -4,6 +4,7 @@
 //   cd ferramentas/teste-ui && CHROME=/caminho/do/chrome node unidades.mjs [url]
 
 import { chromium } from "playwright-core";
+import { entrar, salva } from "./sessao.mjs";
 const URL = process.argv[2] || "http://127.0.0.1:8098/";
 const CHROME = process.env.CHROME;
 if (!CHROME) { console.error("defina CHROME=/caminho/do/chrome"); process.exit(2); }
@@ -35,6 +36,7 @@ const tocarFolha = async (x, y) => {
 // região criada com o LaTeX pronto (o que o editor produziria), sem passar pela digitação
 const criar = async (latex, y) => { await p.evaluate(([l, yy]) => { novaRegiao(420, yy, l, false); agendar(0); }, [latex, y]); await esperar(1100); };
 
+await entrar(ctx, URL);
 await p.goto(URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await esperar(1800);
 
 // 1. painel de variáveis nas unidades da folha: d como foi digitado, A em mm²
@@ -73,7 +75,7 @@ confere("tocar no número abre o formato do resultado", await p.locator("#menu-f
 await p.locator("#menu-formato button", { hasText: /^4 casas$/ }).tap(); await esperar(1100);
 t = await regiao("\\frac{2}{3}=");
 confere("só este resultado com 4 casas: 0,6667", t && t.res.replace(/\s/g, "") === "0,6667" && /formato-proprio/.test(t.cls), JSON.stringify(t));
-const salvo = JSON.parse(await p.evaluate(() => localStorage.getItem("tracolab.folha.v2")));
+const salvo = await salva(p);
 confere("formato do resultado salvo na folha", salvo.regioes.some((r) => r.formato?.casas === 4));
 
 // 6. separador de milhar (núcleo manda \: entre os grupos)

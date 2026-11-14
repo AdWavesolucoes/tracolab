@@ -1,0 +1,21 @@
+/* TraçoLab: identidade do design (papel, nanquim, vermelhão, cobalto, grafite). Ver ADR 0008.
+   Fontes e tokens, compartilhados pela folha (estilo.css) e pela página de conta (conta.css). */
+@font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-display: swap; src: url(vendor/fontes/ibm-plex-sans-latin-400-normal.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-weight: 500; font-display: swap; src: url(vendor/fontes/ibm-plex-sans-latin-500-normal.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-display: swap; src: url(vendor/fontes/ibm-plex-sans-latin-600-normal.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-display: swap; src: url(vendor/fontes/ibm-plex-mono-latin-400-normal.woff2) format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: url(vendor/fontes/ibm-plex-mono-latin-500-normal.woff2) format("woff2"); }
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 500; font-display: swap; src: url(vendor/fontes/bricolage-grotesque-latin-500-normal.woff2) format("woff2"); }
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 700; font-display: swap; src: url(vendor/fontes/bricolage-grotesque-latin-700-normal.woff2) format("woff2"); }
+
+:root {
+  --nanquim: #0E1726; --nanquim-2: #17233A; --nanquim-borda: #2B3B5A;
+  --papel: #F5F5F0; --folha: #FCFCF9; --mesa: #D9DAD2; --linha: #EDEEE7;
+  --vermelhao: #C23A14; --vermelhao-claro: #FF6B3D;
+  --cobalto: #2748C9; --cobalto-claro: #8FA8FF;
+  --grafite: #5B6270; --grafite-claro: #8E97A8; --apoio: #4A5160; --texto-2: #3B4252;
+  --borda: #C9CBC1; --borda-clara: #D5D7CE; --tecla-borda: #D2D4CB;
+  --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --marca: "Bricolage Grotesque", "IBM Plex Sans", sans-serif;
+  color-scheme: light;
+}

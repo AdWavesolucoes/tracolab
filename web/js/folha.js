@@ -1,5 +1,5 @@
 "use strict";
-// Estado da folha, persistência e histórico (só neste aparelho) e regiões na página.
+// Estado da folha, histórico (só neste aparelho) e regiões na página. A persistência é de arquivo.js.
 
 const pagina = document.getElementById("pagina");
 const modelo = document.getElementById("modelo-regiao");
@@ -9,11 +9,10 @@ const resumo = document.getElementById("resumo");
 const listaVars = document.getElementById("lista-variaveis");
 const busca = document.getElementById("busca");
 const menuUnidade = document.getElementById("menu-unidade");
-const CHAVE = "tracolab.folha.v2";
 const GRADE = 12;
 const LARGURA = 794;
 
-let estado = { nome: "Folha sem título", modo: "parcial", ordem: false, regioes: [] };   // regioes: {id, latex, unidade, x, y}
+let estado = { nome: "Folha sem título", modo: "parcial", ordem: false, regioes: [] };   // + id e versao da folha na conta; regioes: {id, latex, unidade, x, y}
 let proximoId = 1;
 let temporizador = null;
 let registroPendente = false;   // edição já feita mas ainda não gravada no histórico (espera o debounce)
@@ -22,21 +21,11 @@ let ultimoCampo = null;
 let motor = "";   // máquina que calculou (versão web de teste com mais de uma instância)
 const elementos = new Map();   // id -> elemento .rg
 
-// ------------------------------------------------------------------ persistência e histórico (só neste aparelho)
+// ------------------------------------------------------------------ persistência e histórico
 
+/** Toda mudança passa aqui: rascunho no navegador e gravação na conta (arquivo.js, ADR 0019). */
 function salvar() {
-  try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (_) { /* modo privado etc. */ }
-}
-
-function carregar() {
-  try {
-    const s = JSON.parse(localStorage.getItem(CHAVE) || "null");
-    if (s && Array.isArray(s.regioes)) {
-      s.regioes = s.regioes.filter((r) => r.tipo || (r.latex || "").trim());   // fórmulas vazias não voltam
-      estado = Object.assign(estado, s);
-    }
-  } catch (_) { /* ignora */ }
-  for (const r of estado.regioes) proximoId = Math.max(proximoId, (Number(String(r.id).replace(/\D/g, "")) || 0) + 1);
+  TL.gravar?.();
 }
 
 const historico = [];

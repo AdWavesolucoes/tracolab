@@ -5,6 +5,7 @@
 //   cd ferramentas/teste-ui && CHROME=/caminho/do/chrome node verificacoes.mjs [url] [print.png]
 
 import { chromium } from "playwright-core";
+import { entrar, semear } from "./sessao.mjs";
 const URL = process.argv[2] || "http://127.0.0.1:8098/";
 const CHROME = process.env.CHROME;
 if (!CHROME) { console.error("defina CHROME=/caminho/do/chrome"); process.exit(2); }
@@ -34,9 +35,9 @@ const folha = { nome: "Verificações", modo: "parcial", ordem: false, regioes: 
   R("t1", "m\\tldef\\text{não atende}", 408), R("t2", "m=", 480),
   R("p1", "y\\tldef\\operatorname{se}\\left(x>0,1,2\\right)", 552), R("p2", "y=", 624),
 ] };
+await entrar(ctx, URL);
 await p.goto(URL);
-await p.evaluate((f) => { localStorage.clear(); localStorage.setItem("tracolab.folha.v2", JSON.stringify(f)); }, folha);
-await p.reload(); await esperar(2000);
+await semear(p, folha); await esperar(800);
 
 const v1 = await regiao("v1");
 confere("σ ≤ σ_adm: selo atende e 60%", /verif-ok/.test(v1.cls) && /atende/.test(v1.selo) && !/não/.test(v1.selo) && /60\s?%/.test(v1.selo), JSON.stringify(v1));

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Conta · TraçoLab</title>
+  <meta name="theme-color" content="#0E1726">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="conta.css">
+  <script src="js/conta.js" defer></script>
+</head>
+<body>
+  <header class="barra">
+    <a class="marca-link" href="./" aria-label="Voltar à folha">
+      <svg class="marca" width="30" height="30" viewBox="0 0 96 96" aria-hidden="true"><rect x="1" y="1" width="94" height="94" rx="23" fill="#17233A" stroke="#2B3B5A" stroke-width="2"/><path d="M18 32 C26 18 40 18 48 32 S70 46 78 32" fill="none" stroke="#FF6B3D" stroke-width="7" stroke-linecap="round"/><path d="M48 32 V62" fill="none" stroke="#F5F5F0" stroke-width="7" stroke-linecap="round"/><circle cx="48" cy="75" r="5.5" fill="#FF6B3D"/></svg>
+      <span class="palavra">Traço<span>Lab</span></span>
+    </a>
+    <span class="barra-espaco"></span>
+    <a id="lnk-folha" class="barra-link" href="./" hidden>Voltar à folha</a>
+  </header>
+
+  <main class="mesa">
+    <p id="erro-geral" class="erro" role="alert" hidden></p>
+
+    <!-- Primeiro acesso: a instância ainda não tem contas -->
+    <section class="cartao" data-tela="primeiro" hidden>
+      <h1>Primeiro acesso</h1>
+      <p class="apoio">Esta instância do TraçoLab ainda não tem contas. A primeira conta criada é a do <strong>administrador</strong>: quem convida os outros usuários.</p>
+      <form id="form-primeiro" autocomplete="on">
+        <label>Nome de usuário <input name="usuario" required minlength="3" maxlength="32" pattern="[a-z0-9][a-z0-9._\-]{2,31}" autocapitalize="none" autocomplete="username" spellcheck="false"></label>
+        <label>Senha <input name="senha" type="password" required minlength="10" maxlength="200" autocomplete="new-password"></label>
+        <label>Repita a senha <input name="confirmar" type="password" required minlength="10" maxlength="200" autocomplete="new-password"></label>
+        <p class="dica">Só letras minúsculas, números, ponto, traço e sublinhado. Senha com 10 caracteres ou mais.</p>
+        <p class="erro" role="alert" hidden></p>
+        <button class="primario" type="submit">Criar a conta do administrador</button>
+      </form>
+    </section>
+
+    <!-- Entrar -->
+    <section class="cartao" data-tela="entrar" hidden>
+      <h1>Entrar</h1>
+      <form id="form-entrar" autocomplete="on">
+        <label>Nome de usuário <input name="usuario" required autocapitalize="none" autocomplete="username" spellcheck="false"></label>
+        <label>Senha <input name="senha" type="password" required autocomplete="current-password"></label>
+        <p class="erro" role="alert" hidden></p>
+        <button class="primario" type="submit">Entrar</button>
+      </form>
+      <p class="rodape-cartao" id="entrar-cadastro" hidden><a href="?cadastrar" data-ir="cadastrar">Criar uma conta</a></p>
+      <p class="rodape-cartao" id="entrar-convite" hidden>Para criar uma conta, peça um <strong>convite</strong> ao administrador desta instância.</p>
+    </section>
+
+    <!-- Segunda etapa -->
+    <section class="cartao" data-tela="2fa" hidden>
+      <h1>Verificação em duas etapas</h1>
+      <p class="apoio">Abra o app autenticador no celular e digite o código de 6 dígitos. Se perdeu o celular, use um dos códigos de recuperação.</p>
+      <form id="form-2fa">
+        <label>Código <input name="codigo" required inputmode="numeric" autocomplete="one-time-code" maxlength="11" spellcheck="false" class="mono"></label>
+        <p class="erro" role="alert" hidden></p>
+        <button class="primario" type="submit">Confirmar</button>
+        <button class="secundario" type="button" data-ir="entrar">Voltar</button>
+      </form>
+    </section>
+
+    <!-- Criar conta -->
+    <section class="cartao" data-tela="cadastrar" hidden>
+      <h1>Criar conta</h1>
+      <form id="form-cadastrar" autocomplete="on">
+        <label>Nome de usuário <input name="usuario" required minlength="3" maxlength="32" pattern="[a-z0-9][a-z0-9._\-]{2,31}" autocapitalize="none" autocomplete="username" spellcheck="false"></label>
+        <label>Senha <input name="senha" type="password" required minlength="10" maxlength="200" autocomplete="new-password"></label>
+        <label>Repita a senha <input name="confirmar" type="password" required minlength="10" maxlength="200" autocomplete="new-password"></label>
+        <label id="campo-convite">Convite <input name="convite" autocapitalize="none" spellcheck="false" class="mono"></label>
+        <p class="dica">Só letras minúsculas, números, ponto, traço e sublinhado. Senha com 10 caracteres ou mais.</p>
+        <p class="erro" role="alert" hidden></p>
+        <button class="primario" type="submit">Criar conta</button>
+      </form>
+      <p class="rodape-cartao"><a href="./conta.html" data-ir="entrar">Já tenho conta</a></p>
+    </section>
+
+    <!-- Instância fechada -->
+    <section class="cartao" data-tela="fechado" hidden>
+      <h1>Cadastro fechado</h1>
+      <p class="apoio">Esta instância não aceita novas contas. Fale com quem a administra.</p>
+      <p class="rodape-cartao"><a href="./conta.html" data-ir="entrar">Entrar</a></p>
+    </section>
+
+    <!-- Minha conta -->
+    <section class="cartao largo" data-tela="conta" hidden>
+      <div class="cabeca">
+        <h1>Minha conta</h1>
+        <p class="quem"><span id="conta-nome" class="mono"></span> <span id="conta-admin" class="selo" hidden>administrador</span></p>
+      </div>
+
+      <h2>Verificação em duas etapas</h2>
+      <div id="dois-fatores-off" hidden>
+        <p class="apoio">Além da senha, um código de 6 dígitos gerado no celular (Google Authenticator, Aegis, Microsoft Authenticator, Bitwarden…). Recomendado para qualquer instância acessível pela internet.</p>
+        <button class="primario" id="btn-2fa-preparar" type="button">Ativar</button>
+        <div id="preparo-2fa" hidden>
+          <ol class="passos">
+            <li>Leia o código com o app autenticador, ou digite a chave manualmente.</li>
+            <li>Digite abaixo o código que o app mostrar.</li>
+          </ol>
+          <div class="qr-linha">
+            <div id="qr" class="qr" aria-hidden="true"></div>
+            <div>
+              <p class="lbl">chave</p>
+              <p id="segredo" class="segredo mono"></p>
+            </div>
+          </div>
+          <form id="form-2fa-ativar">
+            <label>Código do app <input name="codigo" required inputmode="numeric" autocomplete="one-time-code" maxlength="7" class="mono"></label>
+            <p class="erro" role="alert" hidden></p>
+            <button class="primario" type="submit">Confirmar e ativar</button>
+          </form>
+        </div>
+      </div>
+      <div id="dois-fatores-on" hidden>
+        <p class="apoio ok-texto">Ativa. Para entrar, você precisa da senha e do código do app.</p>
+        <details>
+          <summary>Gerar novos códigos de recuperação</summary>
+          <form id="form-2fa-codigos">
+            <label>Senha <input name="senha" type="password" required autocomplete="current-password"></label>
+            <label>Código do app <input name="codigo" required inputmode="numeric" autocomplete="one-time-code" maxlength="11" class="mono"></label>
+            <p class="erro" role="alert" hidden></p>
+            <button class="secundario" type="submit">Gerar novos códigos</button>
+          </form>
+        </details>
+        <details>
+          <summary>Desativar a verificação em duas etapas</summary>
+          <form id="form-2fa-desativar">
+            <label>Senha <input name="senha" type="password" required autocomplete="current-password"></label>
+            <label>Código do app ou de recuperação <input name="codigo" required inputmode="numeric" autocomplete="one-time-code" maxlength="11" class="mono"></label>
+            <p class="erro" role="alert" hidden></p>
+            <button class="perigo" type="submit">Desativar</button>
+          </form>
+        </details>
+      </div>
+      <div id="codigos-recuperacao" class="codigos-caixa" hidden>
+        <p><strong>Guarde estes códigos de recuperação.</strong> Cada um entra uma vez, no lugar do código do app. Eles não aparecem de novo.</p>
+        <div class="codigos mono" id="lista-codigos"></div>
+        <div class="acoes-linha">
+          <button class="secundario" type="button" id="btn-copiar-codigos">Copiar</button>
+          <button class="secundario" type="button" id="btn-baixar-codigos">Baixar .txt</button>
+        </div>
+      </div>
+
+      <h2>Senha</h2>
+      <form id="form-senha" autocomplete="on">
+        <label>Senha atual <input name="atual" type="password" required autocomplete="current-password"></label>
+        <label>Nova senha <input name="nova" type="password" required minlength="10" maxlength="200" autocomplete="new-password"></label>
+        <label>Repita a nova senha <input name="confirmar" type="password" required minlength="10" maxlength="200" autocomplete="new-password"></label>
+        <p class="erro" role="alert" hidden></p>
+        <p class="ok-texto" role="status" hidden></p>
+        <button class="secundario" type="submit">Trocar a senha</button>
+      </form>
+
+      <h2>Sessão</h2>
+      <p class="apoio">Sair encerra a sessão só neste navegador. Trocar a senha encerra as sessões dos outros aparelhos.</p>
+      <button class="secundario" id="btn-sair" type="button">Sair</button>
+    </section>
+
+    <!-- Administração -->
+    <section class="cartao largo" data-tela="admin" hidden>
+      <h1>Administração</h1>
+      <p class="apoio" id="admin-modo"></p>
+
+      <h2>Convites</h2>
+      <div class="acoes-linha">
+        <button class="primario" id="btn-convite" type="button">Gerar convite</button>
+        <button class="secundario" id="btn-cancelar-convites" type="button">Cancelar convites abertos</button>
+      </div>
+      <div id="convite-novo" class="codigos-caixa" hidden>
+        <p>Mande este link para a pessoa. Vale por 7 dias e só uma vez.</p>
+        <p id="convite-link" class="segredo mono"></p>
+        <div class="acoes-linha"><button class="secundario" type="button" id="btn-copiar-convite">Copiar link</button></div>
+      </div>
+      <p class="apoio" id="convites-abertos"></p>
+
+      <h2>Usuários</h2>
+      <div class="tabela" id="tabela-usuarios" role="table"></div>
+      <p class="erro" id="admin-erro" role="alert" hidden></p>
+    </section>
+  </main>
+</body>
+</html>

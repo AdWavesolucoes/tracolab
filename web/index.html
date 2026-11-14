@@ -4,9 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>TraçoLab</title>
+  <meta name="theme-color" content="#0E1726">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="vendor/mathlive-0.110.0/mathlive-fonts.css">
   <link rel="stylesheet" href="vendor/mathlive-0.110.0/mathlive-static.css">
+  <link rel="stylesheet" href="base.css">
   <link rel="stylesheet" href="estilo.css">
   <link rel="stylesheet" href="documento.css">
   <link rel="stylesheet" href="formato.css">
@@ -15,6 +18,7 @@
   <script src="vendor/mathlive-0.110.0/mathlive.min.js"></script>
   <!-- ordem importa: ver o comentário de js/configuracao.js -->
   <script src="js/configuracao.js" defer></script>
+  <script src="js/sessao.js" defer></script>
   <script src="js/folha.js" defer></script>
   <script src="js/calculo.js" defer></script>
   <script src="js/pintura.js" defer></script>
@@ -40,13 +44,15 @@
     <div class="titulo">
       <label for="nome-folha" class="sr">Nome da folha</label>
       <input id="nome-folha" class="nome" value="Folha sem título" spellcheck="false" autocomplete="off">
-      <span id="resumo" class="resumo" aria-live="polite"></span>
+      <span class="linha-resumo"><span id="resumo" class="resumo" aria-live="polite"></span><span id="gravacao" class="gravacao" aria-live="polite" title="Gravação na sua conta"></span></span>
     </div>
     <button id="btn-desfazer" class="ib" aria-label="Desfazer" disabled><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
     <button id="btn-refazer" class="ib" aria-label="Refazer" disabled><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
     <button id="btn-ordem" class="ib texto" aria-label="Mostrar ordem de avaliação" aria-pressed="false">1·2</button>
     <button id="btn-calcular" class="ib calcular" aria-label="Calcular folha"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></button>
+    <a id="btn-conta" class="ib" href="conta.html" aria-label="Conta"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg></a>
   </header>
+  <div id="banner" class="banner" role="alert" hidden></div>
 
   <div class="corpo">
     <nav class="trilho" aria-label="Seções">

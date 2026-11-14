@@ -1,42 +1,104 @@
 "use strict";
-// Várias folhas no aparelho e o arquivo .tlab (exportar/importar pelo navegador, sem servidor).
+// Folhas da conta (ADR 0019) e o arquivo .tlab (exportar/importar pelo navegador).
 //
-// Armazenamento (localStorage, por endereço):
-//   tracolab.folha.v2             a folha aberta, como sempre foi (nunca muda de lugar: nada a migrar)
-//   tracolab.folhas.v1            índice: { versao, folhas: [{ id, nome, atualizada }] }
-//   tracolab.folha.arquivo.<id>   as outras folhas, guardadas ao trocar de folha
-// A folha aberta ganha um `id` na primeira vez; até lá ela é "a folha do aparelho" de antes.
+// As folhas vivem no servidor (/api/folhas), uma por id, com número de versão. O navegador guarda
+// só um rascunho da folha aberta (tracolab.rascunho) para não perder a última edição se a aba
+// fechar antes de gravar; na volta, se o rascunho é da mesma versão que está no servidor e difere
+// dela, ele é aplicado e gravado. Folhas que estavam no localStorage antes das contas
+// (tracolab.folha.v2 e tracolab.folha.arquivo.*) são enviadas para a conta na primeira entrada.
 {
-  const INDICE = "tracolab.folhas.v1";
-  const ARQ = "tracolab.folha.arquivo.";
+  const RASCUNHO = "tracolab.rascunho";
+  const ANTIGA = "tracolab.folha.v2";
+  const ANTIGO_INDICE = "tracolab.folhas.v1";
+  const ANTIGO_ARQ = "tracolab.folha.arquivo.";
   const FORMATO = "tracolab";
   const VERSAO = 1;
   const MAX_REGIOES = 5000;
 
   const ler = (chave) => { try { return JSON.parse(localStorage.getItem(chave) || "null"); } catch (_) { return null; } };
-  const gravar = (chave, v) => { try { localStorage.setItem(chave, JSON.stringify(v)); return true; } catch (_) { return false; } };
-  const novoIdFolha = () => "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const gravarLocal = (chave, v) => { try { localStorage.setItem(chave, JSON.stringify(v)); } catch (_) { /* modo privado etc. */ } };
+  const apagarLocal = (chave) => { try { localStorage.removeItem(chave); } catch (_) { /* ignora */ } };
 
-  function indice() {
-    const i = ler(INDICE);
-    return i && Array.isArray(i.folhas) ? i : { versao: 1, folhas: [] };
+  let lista = [];   // {id, nome, versao, atualizadaEm} vindos do servidor
+
+  /** O que vai ao servidor como conteúdo: tudo do estado menos id, versão e nome (colunas próprias). */
+  function conteudoDe(e) {
+    const { id, versao, nome, ...resto } = e;
+    return resto;
   }
 
-  /** Dá id à folha aberta (a do aparelho, de antes das várias folhas) e a põe no índice. */
-  function garantirIndice() {
-    if (!estado.id) { estado.id = novoIdFolha(); salvar(); }
-    const i = indice();
-    const e = i.folhas.find((f) => f.id === estado.id);
-    if (e) { e.nome = estado.nome; e.atualizada = Date.now(); } else i.folhas.push({ id: estado.id, nome: estado.nome, atualizada: Date.now() });
-    gravar(INDICE, i);
-    return i;
+  /** Estado a partir de um registro do servidor ({id, nome, versao, conteudo}). */
+  function estadoDe(reg) {
+    return Object.assign({ modo: "parcial", ordem: false, regioes: [] }, reg.conteudo || {}, { id: reg.id, versao: reg.versao, nome: reg.nome || "Folha sem título" });
   }
 
-  /** Guarda a folha aberta na sua chave de arquivo (antes de trocar de folha). */
-  function arquivar() {
-    garantirIndice();
-    return gravar(ARQ + estado.id, estado);
+  // ------------------------------------------------------------------ gravação no servidor
+
+  const indicador = document.getElementById("gravacao");
+  let temporizadorGravacao = null, gravando = false, pendente = false, ultimoEnviado = "", semRede = false;
+
+  function marcar(texto, classe = "") { indicador.textContent = texto; indicador.className = "gravacao " + classe; }
+
+  function agendarGravacao() {
+    if (!estado.id) return;
+    gravarLocal(RASCUNHO, estado);
+    clearTimeout(temporizadorGravacao);
+    temporizadorGravacao = setTimeout(gravar, 1200);
+    if (JSON.stringify({ nome: estado.nome, conteudo: conteudoDe(estado) }) !== ultimoEnviado) marcar("…");
   }
+
+  async function gravar() {
+    if (!estado.id) return;
+    if (gravando) { pendente = true; return; }
+    const corpo = { nome: estado.nome, conteudo: conteudoDe(estado) };
+    const texto = JSON.stringify(corpo);
+    if (texto === ultimoEnviado) { marcar("salvo"); return; }
+    gravando = true;
+    const id = estado.id;
+    try {
+      const r = await TL.api("PUT", `api/folhas/${id}`, { ...corpo, versao: estado.versao });
+      if (estado.id === id) { estado.versao = r.versao; ultimoEnviado = texto; gravarLocal(RASCUNHO, estado); marcar("salvo"); }
+      semRede = false;
+      atualizarItem(id, r);
+    } catch (e) {
+      if (e.status === 409 && estado.id === id) conflito(e.dados);
+      else if (e.status === 404) { marcar("folha apagada", "erro"); aviso("Esta folha foi apagada em outro lugar. Exporte-a para não perder o trabalho."); }
+      else if (e instanceof TypeError) { semRede = true; marcar("sem conexão", "erro"); setTimeout(agendarGravacao, 8000); }
+      else if (e.status !== 401) { marcar("não salvo", "erro"); aviso("Não foi possível salvar: " + e.message); }
+    } finally {
+      gravando = false;
+      if (pendente) { pendente = false; agendarGravacao(); }
+    }
+  }
+
+  /** A aba está saindo com gravação pendente: manda o que der (sendBeacon não espera resposta). */
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "hidden" || !estado.id || !temporizadorGravacao) return;
+    const corpo = { nome: estado.nome, conteudo: conteudoDe(estado), versao: estado.versao };
+    if (JSON.stringify({ nome: corpo.nome, conteudo: corpo.conteudo }) === ultimoEnviado) return;
+    clearTimeout(temporizadorGravacao); temporizadorGravacao = null;
+    navigator.sendBeacon?.(`api/folhas/${estado.id}`, new Blob([JSON.stringify(corpo)], { type: "application/json" }));
+  });
+
+  // ------------------------------------------------------------------ conflito (409)
+
+  const banner = document.getElementById("banner");
+  function conflito(servidor) {
+    marcar("conflito", "erro");
+    banner.innerHTML = `<span>Esta folha foi alterada em outro aparelho.</span>
+      <button data-acao="servidor" class="secundario">Usar a versão de lá</button>
+      <button data-acao="minha" class="secundario">Manter a minha</button>`;
+    banner.hidden = false;
+    banner.onclick = (ev) => {
+      const acao = ev.target.closest("button")?.dataset.acao;
+      if (!acao) return;
+      banner.hidden = true;
+      if (acao === "servidor") aplicar(estadoDe(servidor));
+      else { estado.versao = servidor.versao; ultimoEnviado = ""; agendarGravacao(); }
+    };
+  }
+
+  // ------------------------------------------------------------------ abrir, nova, duplicar...
 
   /** Abre os dados de uma folha no lugar da atual (o histórico de desfazer recomeça). */
   function aplicar(dados) {
@@ -46,6 +108,7 @@
     historico.length = 0;
     posHist = -1;
     ultimaResposta = null;
+    ultimoEnviado = JSON.stringify({ nome: estado.nome, conteudo: conteudoDe(estado) });
     nomeFolha.value = estado.nome;
     document.title = `${estado.nome} · TraçoLab`;
     selModo.value = estado.modo;
@@ -53,71 +116,144 @@
     montar();
     registrar();
     salvar();
-    garantirIndice();
+    marcar("salvo");
     agendar(0, false);
     pintarLista();
   }
 
-  function abrir(id) {
+  async function abrir(id) {
     if (id === estado.id) return;
-    const dados = ler(ARQ + id);
-    if (!dados || !Array.isArray(dados.regioes)) return aviso("Não foi possível abrir essa folha.");
-    if (!arquivar()) return aviso("Sem espaço no aparelho para guardar a folha atual.");
-    aplicar(dados);
+    clearTimeout(temporizadorGravacao); await gravar();   // a atual vai antes
+    try { aplicar(estadoDe(await TL.api("GET", `api/folhas/${id}`))); }
+    catch (e) { aviso("Não foi possível abrir essa folha: " + e.message); }
   }
 
-  function nova(dados = {}) {
-    if (!arquivar()) return aviso("Sem espaço no aparelho para guardar a folha atual.");
-    aplicar(Object.assign({ nome: "Folha sem título", modo: estado.modo, ordem: false, regioes: [] }, dados, { id: novoIdFolha() }));
+  /** Cria uma folha na conta com esses dados e abre. */
+  async function nova(dados = {}) {
+    clearTimeout(temporizadorGravacao); await gravar();
+    const base = Object.assign({ nome: "Folha sem título", modo: estado.modo || "parcial", ordem: false, regioes: [] }, dados);
+    delete base.id; delete base.versao;
+    try {
+      const r = await TL.api("POST", "api/folhas", { nome: base.nome, conteudo: conteudoDe(base) });
+      lista.unshift({ id: r.id, nome: r.nome, versao: r.versao, atualizadaEm: r.atualizadaEm });
+      aplicar(Object.assign(base, { id: r.id, versao: r.versao, nome: r.nome }));
+      return r.id;
+    } catch (e) { aviso("Não foi possível criar a folha: " + e.message); return null; }
   }
 
-  function duplicar(id) {
-    const dados = id === estado.id ? estado : ler(ARQ + id);
-    if (!dados) return;
-    const copia = JSON.parse(JSON.stringify(dados));
-    copia.id = novoIdFolha();
-    copia.nome = `${dados.nome || "Folha"} (cópia)`;
-    if (!gravar(ARQ + copia.id, copia)) return aviso("Sem espaço no aparelho para a cópia.");
-    const i = garantirIndice();
-    i.folhas.push({ id: copia.id, nome: copia.nome, atualizada: Date.now() });
-    gravar(INDICE, i);
-    pintarLista();
+  async function duplicar(id) {
+    try {
+      const dados = id === estado.id ? estado : estadoDe(await TL.api("GET", `api/folhas/${id}`));
+      const copia = JSON.parse(JSON.stringify(dados));
+      copia.nome = `${dados.nome || "Folha"} (cópia)`;
+      delete copia.id; delete copia.versao;
+      const r = await TL.api("POST", "api/folhas", { nome: copia.nome, conteudo: conteudoDe(copia) });
+      lista.unshift({ id: r.id, nome: r.nome, versao: r.versao, atualizadaEm: r.atualizadaEm });
+      pintarLista();
+    } catch (e) { aviso("Não foi possível duplicar: " + e.message); }
   }
 
-  function renomear(id, nome) {
+  async function renomear(id, nome) {
     nome = nome.trim() || "Folha sem título";
     if (id === estado.id) {
       estado.nome = nome; nomeFolha.value = nome; document.title = `${nome} · TraçoLab`; salvar();
-    } else {
-      const dados = ler(ARQ + id);
-      if (dados) { dados.nome = nome; gravar(ARQ + id, dados); }
+      atualizarItem(id, { nome }); pintarLista();
+      return;
     }
-    const i = garantirIndice();
-    const e = i.folhas.find((f) => f.id === id);
-    if (e) { e.nome = nome; gravar(INDICE, i); }
+    try {
+      const reg = await TL.api("GET", `api/folhas/${id}`);
+      const r = await TL.api("PUT", `api/folhas/${id}`, { nome, conteudo: reg.conteudo, versao: reg.versao });
+      atualizarItem(id, { nome, versao: r.versao, atualizadaEm: r.atualizadaEm });
+    } catch (e) { aviso("Não foi possível renomear: " + e.message); }
     pintarLista();
   }
 
-  function apagar(id) {
-    const i = garantirIndice();
-    i.folhas = i.folhas.filter((f) => f.id !== id);
-    gravar(INDICE, i);
-    try { localStorage.removeItem(ARQ + id); } catch (_) { /* ignora */ }
+  async function apagar(id) {
+    try { await TL.api("DELETE", `api/folhas/${id}`); }
+    catch (e) { if (e.status !== 404) { aviso("Não foi possível apagar: " + e.message); return; } }
+    lista = lista.filter((f) => f.id !== id);
     if (id !== estado.id) return pintarLista();
     // apagou a aberta: abre a mais recente das outras, ou começa uma em branco
-    const outra = [...i.folhas].sort((a, b) => b.atualizada - a.atualizada)[0];
-    const dados = outra && ler(ARQ + outra.id);
-    if (dados) aplicar(dados);
-    else aplicar({ id: novoIdFolha(), nome: "Folha sem título", modo: estado.modo, regioes: [] });
+    clearTimeout(temporizadorGravacao); estado.id = null; apagarLocal(RASCUNHO);
+    const outra = [...lista].sort((a, b) => b.atualizadaEm - a.atualizadaEm)[0];
+    if (outra) { try { return aplicar(estadoDe(await TL.api("GET", `api/folhas/${outra.id}`))); } catch (_) { /* cria uma nova */ } }
+    await nova({ nome: "Folha sem título", modo: estado.modo, regioes: [] });
+  }
+
+  function atualizarItem(id, campos) {
+    const e = lista.find((f) => f.id === id);
+    if (e) Object.assign(e, campos, { atualizadaEm: campos.atualizadaEm ?? Date.now() });
+  }
+
+  // ------------------------------------------------------------------ início: migrar, escolher e abrir
+
+  /** Folhas guardadas no navegador antes das contas, para enviar à conta (e apagar de lá). */
+  function antigas() {
+    const saida = [];
+    const aberta = ler(ANTIGA);
+    if (aberta && Array.isArray(aberta.regioes) && aberta.regioes.some((r) => r.tipo || (r.latex || "").trim()))
+      saida.push({ chave: ANTIGA, dados: aberta });
+    const indice = ler(ANTIGO_INDICE);
+    for (const f of indice?.folhas || []) {
+      if (aberta && f.id === aberta.id) continue;
+      const d = ler(ANTIGO_ARQ + f.id);
+      if (d && Array.isArray(d.regioes)) saida.push({ chave: ANTIGO_ARQ + f.id, dados: d });
+    }
+    return saida;
+  }
+
+  async function migrar() {
+    const velhas = antigas();
+    if (!velhas.length) { apagarLocal(ANTIGA); apagarLocal(ANTIGO_INDICE); return 0; }
+    let n = 0;
+    for (const { chave, dados } of velhas) {
+      const nome = dados.nome || "Folha do aparelho";
+      const corpo = Object.assign({}, dados); delete corpo.id; delete corpo.versao; delete corpo.nome;
+      try {
+        const r = await TL.api("POST", "api/folhas", { nome, conteudo: corpo });
+        lista.unshift({ id: r.id, nome: r.nome, versao: r.versao, atualizadaEm: r.atualizadaEm });
+        apagarLocal(chave); n++;
+      } catch (e) { aviso("Uma folha deste aparelho não pôde ser enviada para a conta: " + e.message); }
+    }
+    if (n === velhas.length) { apagarLocal(ANTIGA); apagarLocal(ANTIGO_INDICE); }
+    return n;
+  }
+
+  /** Folha de exemplo da primeira entrada: tensão numa barra tracionada, esperando a carga. */
+  function exemplo() {
+    const ex = [
+      [`d${DEF}20\\,\\mathrm{mm}`, "", 40, 48], [`A${DEF}\\frac{\\pi d^2}{4}`, "", 40, 132],
+      [`\\sigma${DEF}\\frac{F}{A}`, "", 40, 240], ["\\sigma=", "\\,\\mathrm{MPa}", 40, 372],
+    ];
+    return { nome: "Barra tracionada", modo: "parcial", ordem: false, regioes: ex.map(([latex, unidade, x, y], i) => ({ id: "r" + (i + 1), latex, unidade, x, y })) };
+  }
+
+  /** Chamado por inicio.js depois da sessão: lista as folhas, migra as antigas, abre a certa. */
+  async function iniciar() {
+    lista = await TL.api("GET", "api/folhas");
+    const migradas = await migrar();
+    if (migradas) aviso(`${migradas} folha(s) deste aparelho entraram na sua conta.`);
+    const rascunho = ler(RASCUNHO);
+    if (rascunho?.id && lista.some((f) => f.id === rascunho.id)) {
+      const reg = await TL.api("GET", `api/folhas/${rascunho.id}`);
+      const servidor = estadoDe(reg);
+      if (reg.versao === rascunho.versao && JSON.stringify(conteudoDe(servidor)) + servidor.nome !== JSON.stringify(conteudoDe(rascunho)) + rascunho.nome) {
+        aplicar(rascunho);          // a última edição não chegou ao servidor: ela vale, e vai agora
+        ultimoEnviado = ""; agendarGravacao();
+      } else aplicar(servidor);
+      return;
+    }
+    const recente = [...lista].sort((a, b) => b.atualizadaEm - a.atualizadaEm)[0];
+    if (recente) return aplicar(estadoDe(await TL.api("GET", `api/folhas/${recente.id}`)));
+    await nova(exemplo());
   }
 
   // ------------------------------------------------------------------ arquivo .tlab
 
   function exportar() {
-    garantirIndice();
     const conteudo = {
       formato: FORMATO, versao: VERSAO, nome: estado.nome, exportado: new Date().toISOString(),
-      folha: { modo: estado.modo, ordem: !!estado.ordem, regioes: estado.regioes },
+      folha: Object.assign({ modo: estado.modo, ordem: !!estado.ordem }, conteudoDe(estado)),
     };
     const blob = new Blob([JSON.stringify(conteudo, null, 1)], { type: "application/json" });
     const a = document.createElement("a");
@@ -161,7 +297,8 @@
       n++;
     }
     const nome = typeof obj.nome === "string" && obj.nome.trim() ? obj.nome.trim().slice(0, 200) : "Folha importada";
-    return { dados: { nome, modo: f.modo === "classico" ? "classico" : "parcial", ordem: f.ordem === true, regioes }, ignoradas };
+    const { regioes: _r, modo: _m, ordem: _o, ...extras } = f;   // ajustes da folha (formato, unidades...) vêm junto
+    return { dados: { ...extras, nome, modo: f.modo === "classico" ? "classico" : "parcial", ordem: f.ordem === true, regioes }, ignoradas };
   }
 
   const entrada = document.createElement("input");
@@ -176,7 +313,7 @@
     if (arq.size > 20 * 1024 * 1024) return aviso("Arquivo grande demais.");
     try {
       const { dados, ignoradas } = validar(JSON.parse(await arq.text()));
-      nova(dados);
+      await nova(dados);
       aviso(ignoradas ? `Folha importada. ${ignoradas} região(ões) não reconhecida(s) ficaram de fora.` : "Folha importada.");
     } catch (e) {
       aviso(e instanceof SyntaxError ? "O arquivo não é um .tlab válido (JSON com erro)." : e.message);
@@ -208,13 +345,13 @@
     <p class="aviso-folha" role="status" aria-live="polite"></p>
     <div class="lista-folhas" role="list"></div>`;
   document.getElementById("ajustes").after(secao);
-  const lista = secao.querySelector(".lista-folhas");
+  const listaEl = secao.querySelector(".lista-folhas");
   const avisoEl = secao.querySelector(".aviso-folha");
   let tempoAviso = null;
   function aviso(t) {
     avisoEl.textContent = t;
     clearTimeout(tempoAviso);
-    tempoAviso = setTimeout(() => { avisoEl.textContent = ""; }, 6000);
+    tempoAviso = setTimeout(() => { avisoEl.textContent = ""; }, 8000);
   }
 
   secao.querySelector(".acoes-folha").addEventListener("click", (ev) => {
@@ -229,9 +366,8 @@
 
   function pintarLista() {
     if (secao.hidden) return;
-    const i = garantirIndice();
-    lista.innerHTML = "";
-    for (const f of [...i.folhas].sort((a, b) => b.atualizada - a.atualizada)) {
+    listaEl.innerHTML = "";
+    for (const f of [...lista].sort((a, b) => b.atualizadaEm - a.atualizadaEm)) {
       const atual = f.id === estado.id;
       const item = document.createElement("div");
       item.className = "fl" + (atual ? " atual" : "");
@@ -239,7 +375,7 @@
       item.dataset.id = f.id;
       item.innerHTML = `<button class="fl-abrir" ${atual ? 'aria-current="true"' : ""}>
           <span class="fl-nome">${escapar(f.nome || "Folha sem título")}</span>
-          <span class="fl-data">${atual ? "aberta" : quando(f.atualizada)}</span></button>
+          <span class="fl-data">${atual ? "aberta" : quando(f.atualizadaEm)}</span></button>
         <div class="fl-acoes">
           <button data-acao="renomear">Renomear</button><button data-acao="duplicar">Duplicar</button><button data-acao="apagar">Apagar</button>
         </div>`;
@@ -251,7 +387,7 @@
         if (b.dataset.acao === "renomear") editarNome(item, f);
         if (b.dataset.acao === "apagar") confirmarApagar(item, f);
       });
-      lista.appendChild(item);
+      listaEl.appendChild(item);
     }
   }
 
@@ -275,7 +411,7 @@
     acoes.querySelector("[data-nao]").addEventListener("click", (ev) => { ev.stopPropagation(); pintarLista(); });
   }
 
-  rail.addEventListener("click", () => {
+  rail.addEventListener("click", async () => {
     const abrirPainel = secao.hidden;
     secao.hidden = !abrirPainel;
     if (abrirPainel) {
@@ -283,6 +419,7 @@
       railVars.classList.remove("on"); railVars.setAttribute("aria-pressed", "false");
       railAjustes.classList.remove("on"); railAjustes.setAttribute("aria-expanded", "false");
       pintarLista();
+      try { lista = await TL.api("GET", "api/folhas"); pintarLista(); } catch (_) { /* fica a lista que já tinha */ }
     }
     rail.classList.toggle("on", abrirPainel);
     rail.setAttribute("aria-expanded", String(abrirPainel));
@@ -291,9 +428,9 @@
     secao.hidden = true; rail.classList.remove("on"); rail.setAttribute("aria-expanded", "false");
   });
 
-  // a folha aberta entra no índice depois do primeiro cálculo (e o nome da barra o acompanha)
-  TL.aposCalculo.push(() => { if (!estado.id || !indice().folhas.some((f) => f.id === estado.id)) garantirIndice(); });
-  nomeFolha.addEventListener("change", () => { garantirIndice(); pintarLista(); });
+  nomeFolha.addEventListener("change", () => { estado.nome = nomeFolha.value.trim() || "Folha sem título"; nomeFolha.value = estado.nome; document.title = `${estado.nome} · TraçoLab`; salvar(); atualizarItem(estado.id, { nome: estado.nome }); pintarLista(); });
 
-  TL.folhas = { abrir, nova, duplicar, renomear, apagar, exportar, validar };   // para os testes de interface
+  TL.gravar = agendarGravacao;
+  TL.gravarAgora = async () => { clearTimeout(temporizadorGravacao); await gravar(); };   // testes e troca de folha
+  TL.folhas = { iniciar, abrir, nova, duplicar, renomear, apagar, exportar, validar };   // para inicio.js e os testes de interface
 }

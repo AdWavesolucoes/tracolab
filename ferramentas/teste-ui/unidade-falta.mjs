@@ -2,6 +2,7 @@
 // Agora a região explica o que falta e o chip "F em kN" acrescenta a unidade na definição de F.
 //   CHROME=/caminho/do/chrome node unidade-falta.mjs [url]
 import { chromium } from "playwright-core";
+import { entrar } from "./sessao.mjs";
 const URL = process.argv[2] || "http://127.0.0.1:8098/";
 const nav = await chromium.launch({ executablePath: process.env.CHROME, args: ["--no-sandbox"] });
 const p = await (await nav.newContext({ viewport: { width: 1280, height: 800 }, hasTouch: true, isMobile: true })).newPage();
@@ -12,6 +13,7 @@ const regiao = (inicio) => p.$$eval(".rg", (els, ini) => els.map((e) => ({ v: e.
   res: e.querySelector(".resultado")?.textContent || "", un: e.querySelector(".unidade")?.hidden ? "" : e.querySelector(".unidade")?.textContent || "",
   sug: [...e.querySelectorAll(".sug-unidade .chip")].map((c) => c.textContent) })).find((x) => x.v.startsWith(ini)), inicio);
 
+await entrar(p, URL);
 await p.goto(URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(1800);
 // folha de exemplo: σ := F/A pede F; o chip cria F := e digita 60 sem unidade
 await p.locator(".rg .chip", { hasText: "F" }).first().tap(); await p.waitForTimeout(500);

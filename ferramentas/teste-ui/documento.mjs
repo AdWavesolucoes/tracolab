@@ -1,10 +1,11 @@
 // Teste de interface da folha como documento: definir e mostrar, substituição explícita, regiões
-// de texto, várias folhas (com a migração da folha que já estava no aparelho), arquivo .tlab,
+// de texto, várias folhas na conta (com a migração das folhas que estavam no aparelho), arquivo .tlab,
 // páginas A4 e impressão. Mesmo ambiente do fluxo.mjs (tablet 1280×800 com toque).
 //
 //   cd ferramentas/teste-ui && CHROME=/caminho/do/chrome node documento.mjs [url]
 
 import { chromium } from "playwright-core";
+import { entrar, semear, salva } from "./sessao.mjs";
 import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -30,22 +31,17 @@ const regioes = () => p.$$eval(".rg", (els) => els.map((e) => ({
   res: e.querySelector(".resultado")?.textContent ?? "", un: e.querySelector(".unidade") && !e.querySelector(".unidade").hidden ? e.querySelector(".unidade").textContent : "",
   sub: e.querySelector(".substituicao")?.textContent ?? "",
 })));
-const salvo = async () => JSON.parse(await p.evaluate(() => localStorage.getItem("tracolab.folha.v2")));
-const indice = async () => JSON.parse(await p.evaluate(() => localStorage.getItem("tracolab.folhas.v1") || "null"));
-async function abrirFolha(estado, limparIndice = true) {
-  await p.evaluate(([e, l]) => {
-    localStorage.clear();
-    localStorage.setItem("tracolab.folha.v2", JSON.stringify(e));
-    if (!l) return;
-  }, [estado, limparIndice]);
-  await p.reload(); await esperar(1800);
-}
+// o que está gravado na conta: força a gravação pendente e lê a folha aberta de volta do servidor
+const salvo = () => salva(p);
+const indice = async () => p.evaluate(async () => ({ folhas: await TL.api("GET", "api/folhas") }));
+const abrirFolha = async (estado) => { await semear(p, estado); await esperar(600); };
 const tocar = async (sel) => { await p.locator(sel).first().tap(); await esperar(400); };
 const DEF = "\\tldef";
 
+await entrar(ctx, URL);
 await p.goto(URL); await esperar(1200);
 
-// 1. migração: a folha que já estava no aparelho (sem id, sem índice) continua aberta e entra no índice
+// 1. migração: a folha que estava no aparelho (localStorage de antes das contas) entra na conta e abre
 const antiga = { nome: "Viga antiga", modo: "parcial", ordem: false, regioes: [
   { id: "r1", latex: `q${DEF}12\\,\\mathrm{kN}/\\mathrm{m}`, unidade: "", x: 40, y: 48 },
   { id: "r2", latex: `L${DEF}6\\,\\mathrm{m}`, unidade: "", x: 40, y: 120 },
@@ -55,7 +51,8 @@ await abrirFolha(antiga);
 let v = await regioes();
 confere("migração: a folha do aparelho continua aberta, com as 3 regiões", v.length === 3 && v[0].v.startsWith("q") && (await p.inputValue("#nome-folha")) === "Viga antiga", JSON.stringify(v.map((x) => x.v)));
 let s = await salvo(), idx = await indice();
-confere("migração: ganhou id e entrou no índice sem mudar de chave", !!s.id && s.regioes.length === 3 && idx?.folhas.length === 1 && idx.folhas[0].id === s.id && idx.folhas[0].nome === "Viga antiga", JSON.stringify(idx));
+confere("migração: virou folha da conta, e a cópia antiga saiu do aparelho", !!s.id && s.regioes.length === 3 && idx?.folhas.length === 1 && idx.folhas[0].id === s.id && idx.folhas[0].nome === "Viga antiga"
+  && (await p.evaluate(() => localStorage.getItem("tracolab.folha.v2"))) === null, JSON.stringify(idx));
 
 // 2. definir e mostrar: R := qL/2 = 36 kN, com o chip de unidade
 const R = v.find((x) => x.v.startsWith("R"));

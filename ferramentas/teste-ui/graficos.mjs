@@ -4,6 +4,7 @@
 //   cd ferramentas/teste-ui && CHROME=/caminho/do/chrome node graficos.mjs [url] [print.png]
 
 import { chromium } from "playwright-core";
+import { entrar, semear } from "./sessao.mjs";
 const URL = process.argv[2] || "http://127.0.0.1:8098/";
 const CHROME = process.env.CHROME;
 if (!CHROME) { console.error("defina CHROME=/caminho/do/chrome"); process.exit(2); }
@@ -26,9 +27,9 @@ const info = (id) => p.$eval(`.rg[data-id="${id}"]`, (e) => ({
   trace: e.dataset.trace || "",
 }));
 
+await entrar(ctx, URL);
 await p.goto(URL);
-await p.evaluate(() => { localStorage.clear(); localStorage.setItem("tracolab.folha.v2", JSON.stringify({ nome: "Gráficos", modo: "parcial", ordem: false, regioes: [] })); });
-await p.reload(); await esperar(1800);
+await semear(p, { nome: "Gráficos", modo: "parcial", ordem: false, regioes: [] }); await esperar(600);
 
 // 1) criar pela tecla da faixa
 await p.locator(".tecla-grafico").tap(); await esperar(1500);

@@ -4,6 +4,7 @@
 //   CHROME=/caminho/do/chrome node matrizes.mjs [url]
 
 import { chromium } from "playwright-core";
+import { entrar, salva } from "./sessao.mjs";
 const URL = process.argv[2] || "http://127.0.0.1:8098/";
 const CHROME = process.env.CHROME;
 if (!CHROME) { console.error("defina CHROME=/caminho/do/chrome"); process.exit(2); }
@@ -38,6 +39,7 @@ const aba = async (nome) => {
   await p.locator(".layer-switch:visible", { hasText: nome }).first().tap(); await p.waitForTimeout(250);
 };
 
+await entrar(ctx, URL);
 await p.goto(URL); await p.evaluate(() => { localStorage.clear(); }); await p.reload(); await esperar(1800);
 await p.evaluate(() => { document.getElementById("btn-limpar").click(); }); await esperar(500);
 
@@ -88,7 +90,7 @@ await p.evaluate(() => window.mathVirtualKeyboard.hide()); await esperar(200);
 await p.locator("#rail-ajustes").tap(); await esperar(300);
 await p.selectOption("#sel-origem", "1"); await esperar(1300);
 confere("origem 1: M[1,1] = 1", /^1$/.test((await regiao(e)).res.trim()), JSON.stringify(await regiao(e)));
-const salvo = JSON.parse(await p.evaluate(() => localStorage.getItem("tracolab.folha.v2")));
+const salvo = await salva(p);
 confere("primeiro índice salvo com a folha", salvo.origem === 1);
 
 // 7. teclas + linha / + coluna dentro da matriz

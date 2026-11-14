@@ -2,6 +2,7 @@
 // desempenho com muitas regiões e erros de console. Mesmo estilo do fluxo.mjs.
 //   CHROME=/caminho/do/chrome node exploratorio.mjs [url]
 import { chromium } from "playwright-core";
+import { entrar } from "./sessao.mjs";
 const URL = process.argv[2] || "http://127.0.0.1:8098/";
 const CHROME = process.env.CHROME;
 if (!CHROME) { console.error("defina CHROME=/caminho/do/chrome"); process.exit(2); }
@@ -15,6 +16,7 @@ async function nova(w, h) {
   p.on("pageerror", (e) => erros.push(e.message));
   p.on("console", (m) => { if (m.type() === "error") erros.push("console: " + m.text()); });
   p.on("response", (r) => { if (r.status() >= 400) erros.push(r.status() + " " + r.url()); });
+  await entrar(ctx, URL);
   await p.goto(URL); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(1500);
   return p;
 }
