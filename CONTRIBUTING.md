@@ -17,6 +17,11 @@ Para os dois funcionarem juntos:
 
 ## Código
 
+Para achar as peças: o [mapa do código](https://adwavesolucoes.github.io/tracolab/) (Graphify, atualizado a cada push na
+`main`) mostra os hubs — `Motor`, `Planilha`, `Regiao` no núcleo; `Contas`, `Folhas` no servidor — e as comunidades de
+arquivos. Ele não enxerga a fronteira HTTP: quem liga `web/js/*.js` ao servidor é o `fetch` para `/api/...`, documentado no
+cabeçalho de `servidor/src/main/kotlin/tracolab/servidor/Servidor.kt`.
+
 - **Kotlin** no estilo oficial (`kotlin.code.style=official`), com nomes em português.
 - O módulo `nucleo` **não pode depender de Android** ([ADR 0006](docs/decisoes/0006-nucleo-unico-multiplataforma.md)).
 - **Todo comportamento novo começa por um caso na especificação**: `spec/casos-comportamento.json`

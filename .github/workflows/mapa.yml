@@ -1,0 +1,47 @@
+name: Mapa do código
+
+# Publica no GitHub Pages o grafo do código gerado pelo Graphify (tree-sitter, sem LLM):
+# https://adwavesolucoes.github.io/tracolab/ — visão geral navegável para quem chega de fora.
+# Limite conhecido: a fronteira HTTP (fetch no navegador → rota do servidor) não aparece como aresta.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  mapa:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Instalar o Graphify
+        run: pip install --quiet "graphifyy==0.9.108"
+      - name: Gerar o grafo (sem LLM)
+        run: |
+          graphify update . --no-cluster
+          graphify cluster-only . --no-label
+      - name: Montar a página
+        run: |
+          mkdir -p _site
+          cp graphify-out/graph.html _site/index.html
+          cp graphify-out/graph.html graphify-out/graph.json graphify-out/GRAPH_REPORT.md _site/
+          echo "Gerado de $GITHUB_SHA em $(date -u +%FT%TZ)" > _site/versao.txt
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

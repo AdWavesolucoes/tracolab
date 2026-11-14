@@ -71,7 +71,9 @@ ferramentas/harness/interface.sh         # os roteiros de interface no Chromium 
 ```
 
 Como contribuir: [CONTRIBUTING.md](CONTRIBUTING.md). Comece pelo [índice da documentação](docs/README.md)
-e pelo [roadmap](docs/roadmap.md).
+e pelo [roadmap](docs/roadmap.md). Para se situar no código há um **[mapa navegável](https://adwavesolucoes.github.io/tracolab/)**
+(grafo gerado pelo [Graphify](https://github.com/Graphify-Labs/graphify) a cada push; a ligação navegador → servidor é por HTTP
+e não aparece como aresta).
 
 ## Como foi feito
 

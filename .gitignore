@@ -46,5 +46,8 @@ saida/
 .DS_Store
 Thumbs.db
 
+# Graphify (gerado no CI, publicado no Pages)
+graphify-out/
+
 # Node
 node_modules/
