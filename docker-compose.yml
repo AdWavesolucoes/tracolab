@@ -1,0 +1,21 @@
+# TraçoLab numa máquina só: `docker compose up -d` e abra http://<máquina>:8098/.
+# A primeira conta criada é a do administrador. Guia completo em docs/hospedar.md.
+services:
+  tracolab:
+    image: ghcr.io/adwavesolucoes/tracolab:latest
+    # build: .                      # para compilar a partir deste código em vez de baixar a imagem
+    container_name: tracolab
+    restart: unless-stopped
+    ports:
+      - "8098:8098"
+    environment:
+      TRACOLAB_CADASTRO: convite      # convite (padrão) | aberto | fechado
+      TRACOLAB_MOTORES: "2"           # cálculos ao mesmo tempo (1 por núcleo de CPU é um bom teto)
+      # TRACOLAB_HTTPS: "1"           # ligue quando a instância for servida por HTTPS (cookie Secure)
+      # TRACOLAB_PROXY: "1"           # ligue quando houver um proxy reverso na frente (X-Forwarded-*)
+      # TRACOLAB_MOTOR: casa          # nome desta instância, mostrado na página
+    volumes:
+      - tracolab-dados:/dados         # banco SQLite: é só isso que precisa de cópia de segurança
+    mem_limit: 512m
+volumes:
+  tracolab-dados:

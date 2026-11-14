@@ -20,6 +20,12 @@ local.properties
 *.keystore
 *.jks
 
+# Dados do servidor local (./dados) e cópias do banco
+dados/
+*.db
+*.db-wal
+*.db-shm
+
 # Dados de terceiros e saídas geradas: NUNCA publicar
 # (planilhas, executáveis e qualquer coisa extraída de software proprietário)
 dados-externos/

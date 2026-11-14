@@ -1,0 +1,13 @@
+.git
+.gradle
+.kotlin
+.obsidian
+**/build
+**/node_modules
+docs
+dados
+*.db
+*.db-wal
+*.db-shm
+ferramentas
+.github
