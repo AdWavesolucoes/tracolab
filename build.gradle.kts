@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.0.21" apply false
+    kotlin("jvm") version "2.3.21" apply false
 }
 
 // Todo o projeto gera bytecode Java 17: é o mínimo que roda nas máquinas de destino
