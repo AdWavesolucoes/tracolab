@@ -7,7 +7,8 @@
 #
 # Todas as opções são variáveis de ambiente (ver servidor/src/main/kotlin/tracolab/servidor/Config.kt).
 
-FROM eclipse-temurin:21-jdk AS build
+# o estágio de build roda na arquitetura do host (bytecode é o mesmo): sem Gradle sob emulação no CI
+FROM --platform=$BUILDPLATFORM eclipse-temurin:21-jdk AS build
 WORKDIR /src
 COPY gradlew settings.gradle.kts build.gradle.kts gradle.properties ./
 COPY gradle ./gradle
