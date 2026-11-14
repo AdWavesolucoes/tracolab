@@ -1,6 +1,6 @@
 # 0006 — Núcleo único para Android, Linux e webservice
 
-- **Status:** Proposta (a prova de conceito confirmou o núcleo na JVM: [resultado](../pesquisa/prova-de-conceito-kotlin-symja.md))
+- **Status:** Aceita (2026-11-14, pela [0019](0019-servico-web-multiusuario.md): o mesmo núcleo serve o serviço web; a prova de conceito já o havia confirmado na JVM: [resultado](../pesquisa/prova-de-conceito-kotlin-symja.md))
 - **Data:** 2026-10-12
 
 ## Contexto

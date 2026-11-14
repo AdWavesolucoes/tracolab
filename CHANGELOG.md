@@ -5,6 +5,18 @@ versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+### Mudado (14/11) — TraçoLab vira serviço web multiusuário (ADR 0019)
+- O alvo deixa de ser um APK: o produto é o **serviço web auto-hospedável**, instalado por Docker (imagem multi-arquitetura) ou systemd, com cada pessoa na sua conta. Licença definida: **AGPL-3.0**.
+- `servidor/` (Ktor 3.6, Kotlin 2.3) substitui o `servidor-dev`: mesmas rotas, limites e cabeçalhos de antes, mais contas, folhas e administração. Dados em SQLite (`TRACOLAB_DADOS`) com migrações numeradas.
+- Contas: usuário e senha (Argon2id), sessão em cookie `HttpOnly`/`SameSite=Strict`, limite de tentativas por usuário e por IP, CSRF barrado por `Sec-Fetch-Site`/`Origin` e pela exigência de JSON. Verificação em duas etapas por TOTP com QR e 10 códigos de recuperação. A primeira conta é a do administrador; depois, `TRACOLAB_CADASTRO` = `convite` (padrão), `aberto` ou `fechado`.
+- Administração: convites (link de 7 dias, uso único), lista de usuários, tornar administrador, zerar 2FA, remover conta.
+- Folhas por usuário em `/api/folhas`, com número de versão: gravar com versão velha dá 409 e a página oferece "usar a de lá" ou "manter a minha". Gravação automática 1,2 s depois da edição, indicador na barra, `sendBeacon` ao sair da aba, rascunho local para a última edição não se perder. As folhas que estavam no navegador (`localStorage`) sobem para a conta na primeira entrada. `.tlab` continua.
+- Página de conta (`conta.html`): primeiro acesso, entrar com segunda etapa, criar conta por convite, trocar senha, ativar/desativar 2FA, baixar os códigos, administração.
+- PWA: `manifest.webmanifest`, ícones e service worker (rede primeiro para os arquivos próprios, cache primeiro para `vendor/`, nunca para a API).
+- Empacotamento: `Dockerfile` multi-stage, `docker-compose.yml`, `ferramentas/instalar-systemd.sh` (substitui `implantar-web.sh`), CI publicando a imagem no GHCR a cada tag `v*`. Guia em `docs/hospedar.md`.
+- Especificação executável do serviço: `ferramentas/harness/servico.sh` (109 verificações: página, API, contas, CSRF, 2FA, bloqueio, folhas, administração, reinício) e `ferramentas/harness/interface.sh` (9 roteiros Playwright, 141 verificações, inclusive a página de conta com 2FA e convite de ponta a ponta).
+- O log4j do Symja passa a sair pelo slf4j (sem o aviso no boot). `web/base.css` concentra fontes e tokens para a folha e a página de conta.
+
 ### Adicionado (15/10, áreas feitas por agentes em paralelo)
 - Pontos de extensão para trabalho em paralelo: núcleo em arquivos, registro de embutidos, `spec/casos/` por área, interface em `web/js/` com `TL`.
 - Folha como documento (ADR 0015): regiões de texto, definir e mostrar (`R := qL/2 = 36 kN`), substituição explícita dos valores (memorial), várias folhas, arquivo `.tlab`, páginas A4, impressão/PDF.

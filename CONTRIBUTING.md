@@ -27,7 +27,11 @@ Para os dois funcionarem juntos:
 - **Interface (`web/js/`)**: scripts clássicos, um por assunto. Uma área nova entra num arquivo
   próprio e se registra nos pontos de extensão `TL` (ver `web/js/configuracao.js`).
 - Mexeu em desempenho? Compare `./gradlew :bancada:run` antes e depois.
-- Mexeu na interface (`web/`)? Rode `ferramentas/teste-ui/fluxo.mjs` com o `servidor-dev` no ar.
+- Mexeu no servidor (`servidor/`)? `ferramentas/harness/servico.sh` é o contrato HTTP inteiro: ele precisa continuar
+  verde, e um comportamento novo entra lá antes do código.
+- Mexeu na interface (`web/`)? `ferramentas/harness/interface.sh` roda os roteiros de `ferramentas/teste-ui/` num
+  servidor limpo (um roteiro novo vai para a lista do script).
+- Migração de banco: só se acrescenta no fim de `Banco.MIGRACOES`; uma migração aplicada nunca muda.
 
 ## Regra de conteúdo: só o que é nosso
 

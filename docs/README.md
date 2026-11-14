@@ -10,6 +10,7 @@
 | [Prova de conceito Kotlin + Symja](pesquisa/prova-de-conceito-kotlin-symja.md) | O núcleo em Kotlin passa a mesma especificação? Quão rápido? |
 | [Especificação executável](../spec/README.md) | Os casos em JSON que toda implementação precisa passar |
 | [Decisões (ADRs)](decisoes/README.md) | Por que cada escolha de projeto foi feita |
+| [Hospedar](hospedar.md) | Instalar o serviço (Docker ou systemd), opções, HTTPS, cópia de segurança, atualização |
 | [Roadmap](roadmap.md) | Próximas etapas e pendências |
 | [Glossário](glossario.md) | Termos usados na documentação |
 | [Identidade visual (PDF)](assets/identidade-visual.pdf) | Marca, cores, tipografia, ícones e telas do design |

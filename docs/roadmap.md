@@ -5,58 +5,50 @@
 - [x] Estudar planilhas de referência e medir a ordem, a propagação de erro e as redefinições
 - [x] Escrever o [modelo de avaliação](comportamento/modelo-de-avaliacao.md)
 
-## Fase 1 — Protótipo do motor (Python + SymPy) 🛠️
+## Fase 1 — Protótipo do motor (Python + SymPy) ✅
 
-- [x] Estados numérico / parcial / erro / não suportado
-- [x] Dois modos (parcial e clássico)
-- [x] Recálculo incremental (só o que depende)
-- [x] Funções, faixas, vetores, programas simples, Σ/∫/d/dx
-- [x] 28 testes de comportamento
-- [x] Validação contra resultados de referência (rodadas 1-2)
-- [ ] Subir a cobertura da validação, que hoje é limitada por unidades e embutidos
-- [x] **Unidades de medida** (m, kN, MPa...): cobertura da validação de 20,5% para 29,2% ([ADR 0007](decisoes/0007-unidades-explicitas.md))
-- [x] Exportar os casos de comportamento em JSON neutro ([spec/](../spec/README.md))
+- [x] Estados numérico / parcial / erro / não suportado; dois modos (parcial e clássico); recálculo incremental
+- [x] Funções, faixas, vetores, programas simples, Σ/∫/d/dx; unidades de medida ([ADR 0007](decisoes/0007-unidades-explicitas.md))
+- [x] Validação contra resultados de referência; casos de comportamento em JSON neutro ([spec/](../spec/README.md))
 
-## Fase 2 — Motor no Android
+## Fase 2 — Núcleo em Kotlin ✅
 
-- [x] Prova de conceito Kotlin + Symja na JVM: 30/30 casos ([resultado](pesquisa/prova-de-conceito-kotlin-symja.md))
-- [x] Medir o Symja no tablet (Galaxy Tab S10 Lite): 30/30, 110 regiões em 33–63 ms, APK de 8,5 MB
-- [x] Portar o motor para Kotlin como **biblioteca sem dependência de Android** ([ADR 0006](decisoes/0006-nucleo-unico-multiplataforma.md)), passando os mesmos casos: `nucleo/`, 30/30 no `./gradlew build`
+- [x] Kotlin + Symja como **biblioteca sem dependência de plataforma** ([ADR 0006](decisoes/0006-nucleo-unico-multiplataforma.md)), passando a mesma especificação
+- [x] Medido também num tablet Android (30/30, 110 regiões em 33–63 ms) — alvo depois abandonado ([ADR 0019](decisoes/0019-servico-web-multiusuario.md))
 
-## Fase 3 — Interface para tablet
+## Fase 3 — A folha ✅
 
-- [x] Página com regiões posicionáveis (arrastar, guia de linha de base) — web + MathLive ([ADR 0008](decisoes/0008-interface-web-mathlive.md))
-- [x] Entrada de fórmula pelo teclado matemático (abas TracoLab e Unidades)
-- [ ] Escrita à mão com a S Pen (MyScript iink é a candidata; ML Kit não reconhece matemática)
-- [x] Exibição do estado parcial: expressão restante + "faltam: …"
-- [x] Identidade visual e estrutura do design "Tablet B" (barra, trilho, painel de variáveis, folha A4, faixa de teclas)
-- [x] Chips "falta F", erro de ordem, unidade do resultado como chip, desfazer
-- [x] Versão web de teste em uso diário ([ADR 0009](decisoes/0009-versao-web-de-teste.md))
-- [ ] Ajustes a partir do uso da versão de teste
-- [x] Definir e mostrar na mesma região (`R := qL/2 = 36 kN`)
-- [x] Resultados e painel de variáveis nas unidades da folha ([ADR 0014](decisoes/0014-unidades-da-folha-e-formato.md))
-- [x] Regiões de texto; exportar/importar a folha em arquivo `.tlab`; impressão/PDF ([ADR 0015](decisoes/0015-folha-como-documento.md))
-- [ ] APK: a mesma página numa WebView, com a ponte `TracoLabNativo`
-- [x] Vetores e matrizes ([ADR 0010](decisoes/0010-vetores-e-matrizes.md))
-- [x] Condicionais, por partes e verificações "atende / não atende" ([ADR 0013](decisoes/0013-condicionais-logica-e-verificacoes.md))
-- [x] Limites de tempo e recursão em cada cálculo ([ADR 0017](decisoes/0017-limites-de-calculo.md))
-- [x] Σ, Π, ∫ e d/dx ([ADR 0011](decisoes/0011-calculo.md)); falta `lim`
-- [x] Resolver equações e sistemas ([ADR 0012](decisoes/0012-resolver.md))
-- [x] Gráficos X-Y ([ADR 0016](decisoes/0016-graficos.md)); falta zoom e unidade do eixo
-- [x] Funções: números, estatística, interpolação ([ADR 0018](decisoes/0018-funcoes.md)); faltam complexos
-- [ ] Programas (atribuição local, laços): desenho na ADR 0013
-- [x] Várias folhas no aparelho (formato próprio)
+- [x] Regiões posicionáveis, teclado matemático, estado parcial com chips "falta F", erro de ordem, desfazer ([ADR 0008](decisoes/0008-interface-web-mathlive.md))
+- [x] Identidade visual e estrutura do design "Tablet B"
+- [x] Vetores e matrizes ([ADR 0010](decisoes/0010-vetores-e-matrizes.md)); Σ, Π, ∫ e d/dx ([ADR 0011](decisoes/0011-calculo.md)); resolver ([ADR 0012](decisoes/0012-resolver.md))
+- [x] Condicionais, lógica, textos e verificações ([ADR 0013](decisoes/0013-condicionais-logica-e-verificacoes.md)); unidades da folha e formato ([ADR 0014](decisoes/0014-unidades-da-folha-e-formato.md))
+- [x] Folha como documento: texto, definir e mostrar, substituição, `.tlab`, A4 e impressão ([ADR 0015](decisoes/0015-folha-como-documento.md))
+- [x] Gráficos X-Y ([ADR 0016](decisoes/0016-graficos.md)); limites por cálculo ([ADR 0017](decisoes/0017-limites-de-calculo.md)); funções ([ADR 0018](decisoes/0018-funcoes.md))
 
-## Fase 4 — Outras plataformas (depois do Android)
+## Fase 4 — Serviço web multiusuário ([ADR 0019](decisoes/0019-servico-web-multiusuario.md)) 🛠️
 
-Possível graças ao núcleo único ([ADR 0006](decisoes/0006-nucleo-unico-multiplataforma.md)):
+- [x] Servidor Ktor no lugar do servidor de desenvolvimento, com os mesmos limites e cabeçalhos
+- [x] SQLite com migrações; contas (Argon2id), sessões, limite de tentativas, CSRF sem token
+- [x] Verificação em duas etapas (TOTP + códigos de recuperação); primeiro acesso vira administrador; convites
+- [x] Folhas por usuário com versão e conflito (409); rascunho local; migração das folhas que estavam no navegador
+- [x] Página de conta e administração; PWA (manifesto, ícones, service worker)
+- [x] Imagem Docker multi-arquitetura, `docker-compose.yml`, instalador systemd, [guia de hospedagem](hospedar.md)
+- [x] Harness do serviço (`ferramentas/harness/servico.sh`) e da interface (`ferramentas/harness/interface.sh`) no CI
+- [ ] Publicar o repositório e a primeira imagem (`v0.1.0`)
+- [ ] Compartilhar uma folha por link somente-leitura
+- [ ] Recuperação de senha por e-mail (opcional, com SMTP configurado)
+- [ ] Chaves de acesso (WebAuthn/passkeys) como segundo fator ou no lugar da senha
+- [ ] Postgres como alternativa ao SQLite para instâncias maiores
 
-- [ ] App Linux (Compose Multiplatform, reaproveitando a interface)
-- [ ] Webservice (Ktor) + página web (os limites por cálculo já existem: ADR 0017)
+## Núcleo — pendências
+
+- [ ] `lim`; números complexos; programas (atribuição local, laços — desenho na ADR 0013)
+- [ ] Zoom e unidade do eixo nos gráficos
+- [ ] Subir a cobertura da validação contra o corpus de referência (hoje limitada por embutidos)
 
 ## Antes de publicar no GitHub
 
-- [x] Escolher o nome definitivo do projeto: **TracoLab** (2026-10-13)
-- [ ] Escolher a licença (o Symja é LGPL-3.0: compatível com licenças permissivas, desde que se cumpram as obrigações da LGPL nos apps)
-- [ ] Conferir que nenhum arquivo ou dado de terceiros está no repositório, inclusive no histórico
-- [ ] Revisar o README para quem chega sem contexto
+- [x] Nome definitivo: **TraçoLab** (2026-10-13)
+- [x] Licença: **AGPL-3.0** (2026-11-14; o Symja é LGPL-3.0, compatível)
+- [x] Conferir que nenhum arquivo ou dado de terceiros está no repositório, inclusive no histórico (2026-11-14: limpo)
+- [x] README para quem chega sem contexto

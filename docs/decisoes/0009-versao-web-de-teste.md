@@ -1,6 +1,6 @@
 # 0009 — Versão web de teste antes do APK
 
-- **Status:** Aceita
+- **Status:** Substituída por [0019](0019-servico-web-multiusuario.md) em 2026-11-14: a versão web deixou de ser provisória e virou o produto
 - **Data:** 2026-10-13
 
 ## Contexto

@@ -1,6 +1,6 @@
 # 0005 — Symja como motor simbólico no Android
 
-- **Status:** Aceita (JVM em 2026-10-12; Galaxy Tab S10 Lite em 2026-10-13)
+- **Status:** Substituída por [0019](0019-servico-web-multiusuario.md) em 2026-11-14 (o Symja continua como motor; o alvo Android saiu). Era: Aceita (JVM em 2026-10-12; Galaxy Tab S10 Lite em 2026-10-13)
 - **Data:** 2026-10-12
 
 ## Contexto
